@@ -1183,33 +1183,168 @@ document.addEventListener('DOMContentLoaded', () => {
                         form.addEventListener('submit', function(e) {
                             e.preventDefault();
                             
-                            // Check if page has multi-step tab navigation (switchStep)
-                            if (typeof window.switchStep === 'function') {
-                                var activeStepEl = document.querySelector('.step-container:not(.hidden), [id^="step-"]:not(.hidden)');
-                                var currentStepNum = 1;
-                                if (activeStepEl && activeStepEl.id) {
-                                    var match = activeStepEl.id.match(/\d+/);
-                                    if (match) currentStepNum = parseInt(match[0]);
-                                }
-                                window.switchStep(currentStepNum + 1);
-                                return;
-                            }
+                            var fNameInput = form.querySelector('[name="first_name"], [name="name"], [name="full_name"]');
+                            var phoneInput = form.querySelector('[name="phone"], [name="mobile"]');
+                            var fName = (fNameInput && fNameInput.value) ? fNameInput.value.trim() : 'Valued Client';
+                            var phone = (phoneInput && phoneInput.value) ? phoneInput.value.trim() : 'your number';
 
-                            // Clean, elegant submission confirmation (NO fake phone calls or dialers)
+                            var brandEl = document.querySelector('.brand, .logo, h1');
+                            var brandName = brandEl ? brandEl.textContent.trim().substring(0, 30) : (document.title ? document.title.split(/[-|]/)[0].trim() : 'Our Specialist');
+
                             var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
                             if (submitBtn) {
                                 submitBtn.disabled = true;
-                                submitBtn.innerHTML = '✓ Submitted Successfully!';
+                                submitBtn.innerHTML = '⚡ Connecting Call...';
                             }
 
-                            var existingSuccess = form.querySelector('.mock-submit-success');
-                            if (!existingSuccess) {
-                                var successCard = document.createElement('div');
-                                successCard.className = 'mock-submit-success';
-                                successCard.style.cssText = 'padding: 16px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; color: #10b981; font-weight: 700; text-align: center; margin-top: 16px; font-family: sans-serif; animation: fadeIn 0.3s ease;';
-                                successCard.innerHTML = '<div style="font-size: 24px; margin-bottom: 6px;">✅</div><h4 style="color: #fff; margin-bottom: 4px; font-size: 1.05rem;">Information Received!</h4><p style="color: #cbd5e1; font-size: 0.82rem; font-weight: normal; margin: 0;">Thank you! Your submission has been captured successfully.</p>';
-                                form.appendChild(successCard);
+                            // Detect current funnel step for stepping
+                            var activeStepEl = document.querySelector('.step-container:not(.hidden), [id^="step-"]:not(.hidden)');
+                            var currentStepNum = 1;
+                            if (activeStepEl && activeStepEl.id) {
+                                var stepMatch = activeStepEl.id.match(/\d+/);
+                                if (stepMatch) currentStepNum = parseInt(stepMatch[0]);
                             }
+
+                            setTimeout(function() {
+                                var formCard = form.closest('.glass-card, .glass-form-card') || form.parentElement;
+                                if (!formCard) return;
+
+                                var origFormHtml = formCard.innerHTML;
+
+                                formCard.innerHTML = '<div id="live-call-modal-card" style="text-align: center; padding: 22px 14px; font-family: system-ui, -apple-system, sans-serif; position: relative; animation: fadeIn 0.3s ease;">' +
+                                    '<style>' +
+                                    '@keyframes radarPulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 18px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }' +
+                                    '@keyframes slideInSms { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }' +
+                                    '</style>' +
+                                    '<button type="button" id="dismiss-call-x-btn" style="position: absolute; top: 10px; right: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;" title="Overcome / Close Call">✕</button>' +
+                                    '<div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-size: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; animation: radarPulse 2s infinite;" title="Active Outbound Callback">📞</div>' +
+                                    '<h3 style="color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 4px;">Priority Call Dispatched!</h3>' +
+                                    '<p style="color: #10b981; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px;">⚡ ' + brandName + ' is dialing your phone right now</p>' +
+                                    
+                                    '<div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">' +
+                                        '<div style="text-align: left;"><span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Connecting In:</span><div style="font-size: 1.15rem; font-weight: 800; color: #10b981;" id="live-call-timer">00:30s</div></div>' +
+                                        '<div style="display: flex; gap: 4px; align-items: center;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; animation: radarPulse 1s infinite;"></span><span style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600;">Dialing Rep...</span></div>' +
+                                    '</div>' +
+
+                                    '<p style="color: #cbd5e1; font-size: 0.85rem; line-height: 1.45; margin-bottom: 14px;">Calling <strong>' + fName + '</strong> at <strong>' + phone + '</strong>. Please keep your line open!</p>' +
+
+                                    '<!-- HighLevel Instant SMS Badge -->' +
+                                    '<div style="background: rgba(18, 24, 38, 0.95); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 10px 12px; text-align: left; margin-bottom: 16px; animation: slideInSms 0.35s ease;">' +
+                                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">' +
+                                            '<span style="font-size: 0.72rem; font-weight: 700; color: #60a5fa; display: flex; align-items: center; gap: 4px;">💬 Instant SMS Dispatched (T+0s)</span>' +
+                                            '<span style="font-size: 0.68rem; color: #94a3b8;">Just Now</span>' +
+                                        '</div>' +
+                                        '<p style="font-size: 0.78rem; color: #f8fafc; line-height: 1.35; margin: 0;">"Hey ' + fName + '! This is your representative from ' + brandName + '. Calling you now for your consultation."</p>' +
+                                    '</div>' +
+
+                                    '<!-- USER OVERCOME & BYPASS ACTION OPTIONS -->' +
+                                    '<div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; margin-bottom: 12px;">' +
+                                        '<div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Choose What To Do:</div>' +
+                                        '<button type="button" id="overcome-skip-next-btn" style="width: 100%; background: linear-gradient(135deg, #0ea5e9, #2563eb); border: none; color: #fff; padding: 11px 14px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-bottom: 8px; box-shadow: 0 4px 14px rgba(14,165,233,0.35); transition: transform 0.15s;">⏩ Skip Call & Continue to Next Step ➔</button>' +
+                                        '<div style="display: flex; gap: 8px;">' +
+                                            '<button type="button" id="overcome-cal-btn" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 8px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">📅 Pick Calendar Slot</button>' +
+                                            '<button type="button" id="overcome-dismiss-btn" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 8px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">✕ Dismiss Call</button>' +
+                                        '</div>' +
+                                    '</div>' +
+
+                                    '<div style="font-size: 0.74rem; color: #94a3b8;">' +
+                                        '<span>CRM Automation: <strong style="color: #10b981;">Lead Captured</strong> • Status: <strong>Callback Active</strong></span>' +
+                                    '</div>' +
+                                '</div>';
+
+                                var timeLeft = 30;
+                                var callTimerInterval = setInterval(function() {
+                                    timeLeft--;
+                                    var timerEl = document.getElementById('live-call-timer');
+                                    if (timerEl) {
+                                        timerEl.textContent = '00:' + (timeLeft < 10 ? '0' : '') + timeLeft + 's';
+                                        if (timeLeft <= 0) {
+                                            clearInterval(callTimerInterval);
+                                            timerEl.textContent = 'Connected!';
+                                            timerEl.style.color = '#38bdf8';
+                                        }
+                                    } else {
+                                        clearInterval(callTimerInterval);
+                                    }
+                                }, 1000);
+
+                                function stopCallTimer() {
+                                    clearInterval(callTimerInterval);
+                                }
+
+                                // 1. Option: Skip Call & Continue to Next Step (Overcome action)
+                                var skipNextBtn = document.getElementById('overcome-skip-next-btn');
+                                if (skipNextBtn) {
+                                    skipNextBtn.addEventListener('click', function() {
+                                        stopCallTimer();
+                                        if (typeof window.switchStep === 'function') {
+                                            window.switchStep(currentStepNum + 1);
+                                        } else {
+                                            formCard.innerHTML = '<div style="padding: 20px; text-align: center; font-family: sans-serif; animation: fadeIn 0.3s ease;">' +
+                                                '<div style="font-size: 32px; margin-bottom: 8px;">✅</div>' +
+                                                '<h3 style="color: #fff; font-size: 1.25rem; font-weight: 700; margin-bottom: 6px;">Details Confirmed!</h3>' +
+                                                '<p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 14px;">Call bypassed. Your information has been securely received by ' + brandName + '.</p>' +
+                                                '<div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 10px; color: #10b981; font-size: 0.8rem; font-weight: 600;">✓ Next step activated in CRM</div>' +
+                                            '</div>';
+                                        }
+                                    });
+                                }
+
+                                // 2. Option: Pick a Specific Time on Calendar
+                                var calBtn = document.getElementById('overcome-cal-btn');
+                                if (calBtn) {
+                                    calBtn.addEventListener('click', function() {
+                                        stopCallTimer();
+                                        formCard.innerHTML = '<div style="text-align: left; animation: fadeIn 0.35s ease; font-family: sans-serif;">' +
+                                            '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 12px; border-radius: 8px; color: #10b981; font-size: 0.8rem; font-weight: 700;">' +
+                                                '<span>✓ Call Bypassed — Select Your Preferred Slot for ' + fName + '</span>' +
+                                            '</div>' +
+                                            '<h3 style="color: #fff; font-size: 1.2rem; font-weight: 700; margin-bottom: 4px;">Select Consultation Date & Time</h3>' +
+                                            '<p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 12px;">Choose a 15-minute slot with ' + brandName + ':</p>' +
+                                            '<div id="interactive-ghl-calendar" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px; color: #fff; text-align: center;">' +
+                                                '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; font-size: 0.78rem;">' +
+                                                    '<span style="color: #94a3b8; font-weight: 600;">M</span><span style="color: #94a3b8; font-weight: 600;">T</span><span style="color: #94a3b8; font-weight: 600;">W</span><span style="color: #94a3b8; font-weight: 600;">T</span><span style="color: #94a3b8; font-weight: 600;">F</span><span style="color: #94a3b8; font-weight: 600;">S</span><span style="color: #94a3b8; font-weight: 600;">S</span>' +
+                                                    '<button type="button" class="mock-date-btn" data-date="Oct 14" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">14</button>' +
+                                                    '<button type="button" class="mock-date-btn" data-date="Oct 15" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">15</button>' +
+                                                    '<button type="button" class="mock-date-btn" data-date="Oct 16" style="padding: 6px 3px; border-radius: 6px; background: #0284c7; border: 1px solid #38bdf8; color: #fff; font-weight: 700; cursor: pointer;">16</button>' +
+                                                    '<button type="button" class="mock-date-btn" data-date="Oct 17" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">17</button>' +
+                                                    '<button type="button" class="mock-date-btn" data-date="Oct 18" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">18</button>' +
+                                                    '<button type="button" class="mock-date-btn" data-date="Oct 19" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">19</button>' +
+                                                    '<button type="button" class="mock-date-btn" data-date="Oct 20" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">20</button>' +
+                                                '</div>' +
+                                                '<div style="font-size: 0.78rem; color: #cbd5e1; margin-bottom: 8px; text-align: left;">Available Times (EST):</div>' +
+                                                '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px;">' +
+                                                    '<button type="button" class="mock-time-btn" data-time="09:30 AM" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">09:30 AM</button>' +
+                                                    '<button type="button" class="mock-time-btn" data-time="02:00 PM" style="background: #0284c7; border: 1px solid #38bdf8; color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;">02:00 PM ✓</button>' +
+                                                '</div>' +
+                                                '<button type="button" id="mock-confirm-booking-btn" style="width: 100%; background: linear-gradient(135deg, #0ea5e9, #2563eb); border: none; color: #fff; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">Confirm Appointment ➔</button>' +
+                                            '</div>' +
+                                        '</div>';
+                                    });
+                                }
+
+                                // 3. Option: Dismiss Call (✕ Dismiss)
+                                function handleDismiss() {
+                                    stopCallTimer();
+                                    formCard.innerHTML = '<div style="padding: 18px; text-align: center; font-family: sans-serif; animation: fadeIn 0.3s ease;">' +
+                                        '<div style="font-size: 26px; margin-bottom: 6px;">✓</div>' +
+                                        '<h4 style="color: #fff; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">Callback Dismissed</h4>' +
+                                        '<p style="color: #cbd5e1; font-size: 0.82rem; margin-bottom: 12px;">Your contact details were recorded. Our team will contact you at a convenient time.</p>' +
+                                        '<button type="button" id="restore-form-btn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; cursor: pointer;">Back to Form</button>' +
+                                    '</div>';
+                                    var restoreBtn = document.getElementById('restore-form-btn');
+                                    if (restoreBtn) {
+                                        restoreBtn.addEventListener('click', function() {
+                                            formCard.innerHTML = origFormHtml;
+                                        });
+                                    }
+                                }
+
+                                var dismissBtn = document.getElementById('overcome-dismiss-btn');
+                                var dismissXBtn = document.getElementById('dismiss-call-x-btn');
+                                if (dismissBtn) dismissBtn.addEventListener('click', handleDismiss);
+                                if (dismissXBtn) dismissXBtn.addEventListener('click', handleDismiss);
+                            }, 500);
                         });
                     });
                 });
