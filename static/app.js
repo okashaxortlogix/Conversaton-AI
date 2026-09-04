@@ -3301,6 +3301,11 @@ Please deliver:
             if (!response.ok) {
                 removeThinkingState();
                 const errData = await response.json().catch(() => ({ detail: response.statusText }));
+                if (response.status === 401) {
+                    localStorage.removeItem('copilot_auth_token');
+                    localStorage.removeItem('copilot_auth_user');
+                    showLoginModal();
+                }
                 const errMsg = `⚠️ **Error (${response.status}):** ${errData.detail || 'Execution failed.'}`;
                 if (displayedText && displayedText.length > 0) {
                     if ((displayedText.split('```').length - 1) % 2 !== 0) {
