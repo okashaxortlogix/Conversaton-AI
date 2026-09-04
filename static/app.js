@@ -939,11 +939,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rest = cleanCode.substring(endIdx).trim();
                 cleanCode = cleanCode.substring(0, endIdx).trim();
                 if (rest && rest.length > 5) {
-                    try {
-                        trailingMarkdown = `<div class="agent-markdown-text" style="margin-top: 18px;">${marked.parse(rest)}</div>`;
-                    } catch (e) {
-                        trailingMarkdown = `<div class="agent-markdown-text" style="margin-top: 18px;">${escapeHtml(rest)}</div>`;
-                    }
+                    trailingMarkdown = `<div class="agent-markdown-text" style="margin-top: 18px;">${safeMarkdown(rest)}</div>`;
                 }
             }
 
@@ -3207,9 +3203,9 @@ Please deliver:
             const stopMsg = (displayedText ? '\n\n' : '') + '*[Response generation stopped by user]*';
             let textContainer = botBodyEl.querySelector('.agent-markdown-text');
             if (textContainer) {
-                textContainer.innerHTML = (typeof marked !== 'undefined' ? marked.parse(displayedText + stopMsg) : escapeHtml(displayedText + stopMsg));
+                textContainer.innerHTML = safeMarkdown(displayedText + stopMsg);
             } else {
-                botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(stopMsg) : stopMsg;
+                botBodyEl.innerHTML = safeMarkdown(stopMsg);
             }
             addMessageToCurrentThread('assistant', (displayedText || '') + stopMsg, recordedBadges, botMsgId);
             onGenerationComplete();
@@ -3251,7 +3247,7 @@ Please deliver:
                     textContainer.className = 'agent-markdown-text';
                     botBodyEl.appendChild(textContainer);
                 }
-                textContainer.innerHTML = (typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText)) + '<span class="streaming-cursor"></span>';
+                textContainer.innerHTML = safeMarkdown(displayedText) + '<span class="streaming-cursor"></span>';
             }
 
             if (typewriterQueue.length > 0 || !isStreamDone) {
@@ -3263,7 +3259,7 @@ Please deliver:
                 }
                 let textContainer = botBodyEl.querySelector('.agent-markdown-text');
                 if (textContainer && displayedText) {
-                    textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                    textContainer.innerHTML = safeMarkdown(displayedText);
                 }
                 if (displayedText) {
                     addMessageToCurrentThread('assistant', displayedText, recordedBadges, botMsgId);
@@ -3308,10 +3304,10 @@ Please deliver:
                     displayedText += `\n\n> ${errMsg}\n> *(All content generated above has been preserved)*`;
                     let textContainer = botBodyEl.querySelector('.agent-markdown-text');
                     if (textContainer) {
-                        textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                        textContainer.innerHTML = safeMarkdown(displayedText);
                     }
                 } else {
-                    botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(errMsg) : errMsg;
+                    botBodyEl.innerHTML = safeMarkdown(errMsg);
                 }
                 addMessageToCurrentThread('assistant', displayedText || errMsg, [], botMsgId);
                 onGenerationComplete();
@@ -3373,7 +3369,7 @@ Please deliver:
                                     displayedText = newText;
                                     let textContainer = botBodyEl.querySelector('.agent-markdown-text');
                                     if (textContainer) {
-                                        textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                                        textContainer.innerHTML = safeMarkdown(displayedText);
                                     }
                                 }
                             } else if (data.type === 'chunk') {
@@ -3410,9 +3406,9 @@ Please deliver:
                 const stopMsg = (displayedText ? '\n\n' : '') + '*[Response generation stopped by user]*';
                 let textContainer = botBodyEl.querySelector('.agent-markdown-text');
                 if (textContainer) {
-                    textContainer.innerHTML = (typeof marked !== 'undefined' ? marked.parse(displayedText + stopMsg) : escapeHtml(displayedText + stopMsg));
+                    textContainer.innerHTML = safeMarkdown(displayedText + stopMsg);
                 } else {
-                    botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(stopMsg) : stopMsg;
+                    botBodyEl.innerHTML = safeMarkdown(stopMsg);
                 }
                 addMessageToCurrentThread('assistant', (displayedText || '') + stopMsg, recordedBadges, botMsgId);
             } else {
@@ -3424,11 +3420,11 @@ Please deliver:
                     displayedText += errStr;
                     let textContainer = botBodyEl.querySelector('.agent-markdown-text');
                     if (textContainer) {
-                        textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                        textContainer.innerHTML = safeMarkdown(displayedText);
                     }
                     addMessageToCurrentThread('assistant', displayedText, recordedBadges, botMsgId);
                 } else {
-                    botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(errStr) : errStr;
+                    botBodyEl.innerHTML = safeMarkdown(errStr);
                     addMessageToCurrentThread('assistant', errStr, [], botMsgId);
                 }
             }
@@ -3535,7 +3531,7 @@ Please deliver:
             `).join('');
         }
 
-        const parsedContent = typeof marked !== 'undefined' ? marked.parse(msg.content || '') : escapeHtml(msg.content);
+        const parsedContent = safeMarkdown(msg.content || '');
         msgWrap.innerHTML = `
             <div class="assistant-avatar">⚡</div>
             <div class="assistant-body">
@@ -3598,6 +3594,24 @@ Please deliver:
         }
         chatContainer.scrollTop = 0;
     }
+    function safeMarkdown(rawText) {
+        if (!rawText) return '';
+        if (typeof marked === 'undefined') return escapeHtml(rawText);
+        try {
+            const rawHtml = marked.parse(rawText);
+            if (typeof DOMPurify !== 'undefined') {
+                return DOMPurify.sanitize(rawHtml, {
+                    ADD_ATTR: ['target', 'data-code', 'data-funnel-action'],
+                    ADD_TAGS: ['iframe']
+                });
+            }
+            return rawHtml;
+        } catch (e) {
+            console.error("Markdown parse error:", e);
+            return escapeHtml(rawText);
+        }
+    }
+
     function escapeHtml(text) {
         if (!text) return '';
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };

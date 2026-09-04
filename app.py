@@ -89,7 +89,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -393,9 +393,11 @@ async def get_all_usage_stats():
 async def get_openrouter_pool_status():
     """Returns real-time credit status and active rotation state for OpenRouter key pool."""
     openrouter_key_pool.poll_all_keys()
+    active_k = openrouter_key_pool.get_active_key()
+    masked_key = f"{active_k[:12]}...{active_k[-4:]}" if active_k else ""
     return {
         "success": True,
-        "active_key": openrouter_key_pool.get_active_key(),
+        "active_key_masked": masked_key,
         "pool": openrouter_key_pool.get_pool_status()
     }
 
@@ -482,11 +484,11 @@ async def agent_chat_endpoint(req: AgentChatRequest):
                 history=req.history or [],
                 attachments=raw_attachments
             )
-            for item in generator:
+            from starlette.concurrency import iterate_in_threadpool
+            async for item in iterate_in_threadpool(generator):
                 if item.get("type") == "chunk":
                     total_output_chars += len(item.get("text", ""))
                 yield f"data: {json.dumps(item)}\n\n"
-                await asyncio.sleep(0)
             
             # Record exact usage tokens into tracker
             completion_tokens = max(10, total_output_chars // 4)
