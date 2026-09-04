@@ -107,12 +107,22 @@ def classify_prompt_intent(prompt: str) -> str:
     if _DIRECT_ASSET_PATTERNS.search(lower) and not any(kw in lower for kw in ['all 14 sections', 'full blueprint', 'complete funnel', 'landing page and crm']):
         return 'quick_answer'
 
-    # If prompt mentions changing/modifying design, color, styling, or has an attached document being updated
-    if any(phrase in lower for phrase in [
-        'need changes in', 'changes in its', 'change the color', 'change design', 'color scheme',
-        'update the design', 'modify the code', 'tweak the design', 'make changes', 'change in it',
-        'liked it but', 'good but i need', 'good, but i need', 'user attached files'
-    ]) and not any(kw in lower for kw in ['configuration:', 'target industry:', 'all 14 sections']):
+    # Check for iteration / modification intent (including existing code, Urdu/Roman Urdu phrases, and direct updates)
+    is_iteration = (
+        _ITERATION_PATTERNS.search(lower) or
+        any(phrase in lower for phrase in [
+            'need changes in', 'changes in its', 'change the color', 'change design', 'color scheme',
+            'update the design', 'modify the code', 'tweak the design', 'make changes', 'change in it',
+            'liked it but', 'good but i need', 'good, but i need', 'user attached files',
+            'changes kr', 'changes kardo', 'changes kar', 'changes kr k', 'change kr', 'change kardo',
+            'update kr', 'update kardo', 'modify kr', 'edit kr', 'badal do', 'tabdeel',
+            'is mein', 'ismein', 'is me', 'iss mein', 'iss me', 'yeh changes', 'ye changes',
+            'to this funnel', 'to this landing page', 'in this funnel', 'in this landing page',
+            'in this code', 'is code mein', 'is code me', 'update this', 'modify this',
+            'edit this', 'change this', 'fix this', 'tweak this', '<!doctype', '<html', '```html'
+        ])
+    )
+    if is_iteration and not any(kw in lower for kw in ['configuration:', 'funnel plan & specifications:', 'target industry:', 'all 14 sections']):
         return 'iteration'
 
     # Check for direct full build commands
@@ -122,10 +132,6 @@ def classify_prompt_intent(prompt: str) -> str:
     # Explicit full build markers from Wizard or structured commands
     if any(kw in lower for kw in _FULL_BUILD_KEYWORDS):
         return 'full_build'
-
-    # Check for iteration / modification intent
-    if _ITERATION_PATTERNS.search(lower):
-        return 'iteration'
 
     # If prompt is explicitly a proposal or simple feedback, classify as quick_answer
     if _PROPOSAL_OR_QA_PATTERNS.search(lower):

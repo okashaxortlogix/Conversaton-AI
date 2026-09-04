@@ -2536,7 +2536,7 @@ Please deliver:
         if (!text) return false;
         const lower = text.toLowerCase().trim();
 
-        // Never intercept prompts that originated from our specifications studio or already contain full configurations
+        // 1. Never intercept prompts that originated from our specifications studio or already contain full configurations
         if (lower.includes('configuration:') ||
             lower.includes('funnel plan & specifications:') ||
             lower.includes('strategic requirements') ||
@@ -2549,24 +2549,45 @@ Please deliver:
             return false;
         }
 
-        // Target asset keywords
+        // 2. Never intercept if user provided existing code (HTML/CSS/JS) or attachments
+        if (typeof pendingAttachments !== 'undefined' && pendingAttachments && pendingAttachments.length > 0) {
+            return false;
+        }
+        if (lower.includes('<!doctype') || lower.includes('<html') || lower.includes('```html') ||
+            lower.includes('<body') || lower.includes('<div') || lower.includes('<section') ||
+            lower.includes('<style') || lower.includes('class="') || lower.includes("class='") ||
+            lower.includes('id="') || lower.includes("id='")) {
+            return false;
+        }
+
+        // 3. Never intercept if the user is asking to EDIT, MODIFY, CHANGE, or UPDATE an existing funnel/page
+        // Covers English and Roman Urdu / Hindi: "is mein yeh changes kr k do", "update this funnel", "change color", etc.
+        const isModificationRequest = /\b(change|changes|modify|modification|modifications|update|updates|updating|edit|edits|editing|tweak|tweaks|adjust|adjustments|fix|fixes|fixing|improve|improvement|refine|replace|replacement|swap|rewrite|redo|alter|revamp|redesign|patch)\b/i.test(lower) ||
+            /\b(is\s*mein|ismein|is\s*me|isme|iss\s*mein|iss\s*me|is\s*ko|isko|yeh\s*changes|ye\s*changes|yeh\s*change|ye\s*change|badal|badlo|tabdeel|tabdeeli|theek\s*kro|theek\s*kr|sahi\s*kro|sahi\s*kr|kardo|krdo|kr\s*k\s*do|kar\s*k\s*do|change\s*kro|change\s*kr|changes\s*kro|changes\s*kr|update\s*kro|update\s*kr|edit\s*kro|edit\s*kr|modify\s*kro|modify\s*kr)\b/i.test(lower) ||
+            /\b(existing|provided|above|current|previous|given|this\s+code|yeh\s+code|ye\s+code|is\s+code|this\s+funnel|is\s+funnel|this\s+landing|is\s+landing|this\s+page|is\s+page)\b/i.test(lower);
+
+        if (isModificationRequest) {
+            return false;
+        }
+
+        // 4. Target asset keywords for NEW creation only
         const hasFunnel = /\b(funnel|funnels|sales\s*funnel|vsl|tripwire|squeeze\s*page|optin\s*page|opt-in\s*page)\b/i.test(lower);
         const hasLanding = /\b(landing\s*page|landingpage|lead\s*page|sales\s*page|one\s*pager|website|webpage)\b/i.test(lower);
 
         if (!hasFunnel && !hasLanding) return false;
 
-        // Intent / Action verbs (English + Roman Urdu/Hindi)
-        const hasAction = /\b(make|create|build|design|generate|setup|set\s*up|develop|want|need|construct|architect|give\s*me|bana|bna|banani|chahiye|banao|karo|krdo|kardo|ready|tayyar)\b/i.test(lower);
+        // Intent / Action verbs (English + Roman Urdu/Hindi) for CREATING NEW
+        const hasCreateAction = /\b(make|create|build|generate|setup|set\s*up|develop|want|need|construct|architect|give\s*me|bana|bna|banani|chahiye|banao|tayyar)\b/i.test(lower);
 
-        if (hasAction && (hasFunnel || hasLanding)) return true;
+        if (hasCreateAction && (hasFunnel || hasLanding)) return true;
 
-        // Short queries e.g. "funnel", "landing page", "new funnel", "create a funnel"
+        // Short queries for new builds e.g. "funnel", "landing page", "new funnel", "create a funnel"
         if (/^(a\s+)?(new\s+)?(funnel|landing\s*page|sales\s*page|vsl\s*funnel)[\s\.\?!]*$/i.test(lower)) return true;
 
-        // Questions / Requests: "can you make a funnel", "i want a landing page", "help me build a funnel"
+        // Questions / Requests for new builds: "can you make a funnel", "i want a landing page", "help me build a funnel"
         if (/\b(can\s+you|could\s+you|i\s+want|i\s+need|i\s+would\s+like|help\s+me|how\s+to\s+build)\b.*?\b(funnel|landing\s*page)\b/i.test(lower)) return true;
 
-        // Niche combos: "fitness funnel", "real estate landing page", "ecommerce funnel"
+        // Niche combos for new builds: "fitness funnel", "real estate landing page", "ecommerce funnel"
         if (/\b(fitness|gym|real\s*estate|agency|coaching|ecommerce|restaurant|dental|contractor|crypto|saas|b2b)\s+(funnel|landing\s*page)\b/i.test(lower)) return true;
 
         return false;
