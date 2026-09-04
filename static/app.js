@@ -2577,35 +2577,76 @@ Please deliver:
             return false;
         }
 
-        // 3. Never intercept if the user is asking to EDIT, MODIFY, CHANGE, or UPDATE an existing funnel/page
-        // Covers English and Roman Urdu / Hindi: "is mein yeh changes kr k do", "update this funnel", "change color", etc.
-        const isModificationRequest = /\b(change|changes|modify|modification|modifications|update|updates|updating|edit|edits|editing|tweak|tweaks|adjust|adjustments|fix|fixes|fixing|improve|improvement|refine|replace|replacement|swap|rewrite|redo|alter|revamp|redesign|patch)\b/i.test(lower) ||
-            /\b(is\s*mein|ismein|is\s*me|isme|iss\s*mein|iss\s*me|is\s*ko|isko|yeh\s*changes|ye\s*changes|yeh\s*change|ye\s*change|badal|badlo|tabdeel|tabdeeli|theek\s*kro|theek\s*kr|sahi\s*kro|sahi\s*kr|kardo|krdo|kr\s*k\s*do|kar\s*k\s*do|change\s*kro|change\s*kr|changes\s*kro|changes\s*kr|update\s*kro|update\s*kr|edit\s*kro|edit\s*kr|modify\s*kro|modify\s*kr)\b/i.test(lower) ||
+        // 3. Thread History Check:
+        // If the current conversation thread ALREADY has a generated funnel/page HTML,
+        // any subsequent prompt in this thread is a modification, tweak, fix, or follow-up!
+        // NEVER show the modal unless the user explicitly asks for a BRAND NEW funnel from scratch.
+        try {
+            const activeThread = (typeof getThreadById === 'function' && typeof currentThreadId !== 'undefined' && currentThreadId) ? getThreadById(currentThreadId) : null;
+            const hasExistingFunnelInThread = activeThread && activeThread.messages && activeThread.messages.some(m =>
+                m.role === 'assistant' && (
+                    m.content.includes('<!DOCTYPE') ||
+                    m.content.includes('<html') ||
+                    m.content.includes('```html') ||
+                    m.content.includes('landing_page.html') ||
+                    m.content.includes('switchStep')
+                )
+            );
+
+            if (hasExistingFunnelInThread) {
+                const isExplicitlyNewBuild = /\b(new\s+funnel|new\s+landing|fresh\s+funnel|another\s+funnel|brand\s*new\s+funnel|start\s+over|from\s+scratch|nayi\s+funnel|naya\s+funnel|dusri\s+funnel|alhada\s+funnel)\b/i.test(lower);
+                if (!isExplicitlyNewBuild) {
+                    return false; // Direct execution, do NOT show modal!
+                }
+            }
+        } catch (e) {
+            console.warn('Error checking thread history in isFunnelOrLandingRequest:', e);
+        }
+
+        // 4. Never intercept if the user is asking to EDIT, MODIFY, CHANGE, CORRECT, FIX, REMOVE, or UPDATE
+        // Covers English and Roman Urdu / Hindi comprehensively
+        const isModificationRequest =
+            // Explicit modification / correction verbs
+            /\b(change|changes|changing|modify|modification|modifications|modifying|update|updates|updating|edit|edits|editing|tweak|tweaks|adjust|adjustments|adjusting|fix|fixes|fixing|correct|corrects|correction|corrections|corect|corects|corection|corections|remove|removes|removing|removal|remov|delete|deletes|deleting|strip|clean|erase|hide|hidden|hiding|improve|improvement|refine|replace|replacement|swap|rewrite|redo|alter|revamp|redesign|patch|restyle)\b/i.test(lower) ||
+            // Instructions / UI component adjustments ("make sure buttons are visible", "make button red", etc.)
+            /\b(make\s+sure|make\s+it|make\s+them|ensure|visible|visibility|prominent|aligned|alignment|contrast)\b/i.test(lower) ||
+            // Page / Step / Element references
+            /\b(first\s+page|second\s+page|third\s+page|step\s*\d+|top\s*bar|navbar|header|hero|footer|button|buttons|heading|subheading|form|fields|input|testimonials?|faq|pricing)\b/i.test(lower) ||
+            // Context markers: "in the funnel", "of the funnel", "to this funnel", "otherwise the funnel is...", "working fine"
+            /\b(in\s+the\s+funnel|in\s+this\s+funnel|to\s+the\s+funnel|to\s+this\s+funnel|on\s+the\s+funnel|of\s+the\s+funnel|for\s+the\s+funnel|in\s+the\s+landing|to\s+the\s+landing|otherwise\s+the\s+funnel|funnel\s+is\s+good|working\s+fine)\b/i.test(lower) ||
+            // Roman Urdu / Hindi edit & change phrases
+            /\b(is\s*mein|ismein|is\s*me|isme|iss\s*mein|iss\s*me|is\s*ko|isko|iss\s*ko|yeh\s*changes|ye\s*changes|yeh\s*change|ye\s*change|badal|badlo|tabdeel|tabdeeli|theek\s*kro|theek\s*kr|theek\s*kardo|theek\s*kar\s*do|sahi\s*kro|sahi\s*kr|sahi\s*kardo|sahi\s*kar\s*do|kardo|krdo|kr\s*k\s*do|kar\s*k\s*do|hatao|hata\s*do|nikalo|nikal\s*do|door\s*kro|door\s*kar\s*do|change\s*kro|change\s*kr|changes\s*kro|changes\s*kr|update\s*kro|update\s*kr|edit\s*kro|edit\s*kr|modify\s*kro|modify\s*kr|daal\s*do|add\s*kro|aur\s*add)\b/i.test(lower) ||
+            // Reference to existing assets
             /\b(existing|provided|above|current|previous|given|this\s+code|yeh\s+code|ye\s+code|is\s+code|this\s+funnel|is\s+funnel|this\s+landing|is\s+landing|this\s+page|is\s+page)\b/i.test(lower);
 
         if (isModificationRequest) {
             return false;
         }
 
-        // 4. Target asset keywords for NEW creation only
-        const hasFunnel = /\b(funnel|funnels|sales\s*funnel|vsl|tripwire|squeeze\s*page|optin\s*page|opt-in\s*page)\b/i.test(lower);
+        // 5. Target asset keywords for NEW creation
+        const hasFunnel = /\b(funnel|funnels|sales\s*funnel|vsl\s*funnel|tripwire|squeeze\s*page|optin\s*page|opt-in\s*page)\b/i.test(lower);
         const hasLanding = /\b(landing\s*page|landingpage|lead\s*page|sales\s*page|one\s*pager|website|webpage)\b/i.test(lower);
 
         if (!hasFunnel && !hasLanding) return false;
 
-        // Intent / Action verbs (English + Roman Urdu/Hindi) for CREATING NEW
-        const hasCreateAction = /\b(make|create|build|generate|setup|set\s*up|develop|want|need|construct|architect|give\s*me|bana|bna|banani|chahiye|banao|tayyar)\b/i.test(lower);
+        // Intent / Action verbs for CREATING NEW funnel
+        // Note: Avoid bare \bmake\b which would falsely match "make sure", "make it blue", etc.
+        const hasCreateAction =
+            /\b(create|build|generate|setup|set\s*up|develop|design|construct|architect|give\s*me)\b/i.test(lower) ||
+            /\bmake\s+(?:a|an|the|me|us|new)?\s*(?:[a-z0-9_-]+\s*){0,3}(?:funnel|landing|website|page|site)\b/i.test(lower) ||
+            /\b(i\s+want|i\s+need|i\s+would\s+like|want\s+to\s+build|want\s+to\s+create|want\s+to\s+make|looking\s+to\s+build|need\s+a)\b.*?\b(funnel|landing\s*page)\b/i.test(lower) ||
+            /\b(can\s+you|could\s+you|help\s+me|how\s+to)\s+(?:make|build|create|design|generate)\b.*?\b(funnel|landing\s*page)\b/i.test(lower) ||
+            // Roman Urdu creation verbs: "funnel bana do", "funnel banani hai", "funnel chahiye", "funnel tayyar karo"
+            /\b(funnel|landing\s*page)\s*(?:bana|bna|banao|banani|chahiye|tayyar|develop)\b/i.test(lower) ||
+            /\b(bana|bna|banao|banani|tayyar)\s*(?:ek|aik|ik)?\s*(?:[a-z0-9_-]+\s*){0,2}(?:funnel|landing\s*page)\b/i.test(lower);
 
-        if (hasCreateAction && (hasFunnel || hasLanding)) return true;
+        if (hasCreateAction) return true;
 
         // Short queries for new builds e.g. "funnel", "landing page", "new funnel", "create a funnel"
         if (/^(a\s+)?(new\s+)?(funnel|landing\s*page|sales\s*page|vsl\s*funnel)[\s\.\?!]*$/i.test(lower)) return true;
 
-        // Questions / Requests for new builds: "can you make a funnel", "i want a landing page", "help me build a funnel"
-        if (/\b(can\s+you|could\s+you|i\s+want|i\s+need|i\s+would\s+like|help\s+me|how\s+to\s+build)\b.*?\b(funnel|landing\s*page)\b/i.test(lower)) return true;
-
         // Niche combos for new builds: "fitness funnel", "real estate landing page", "ecommerce funnel"
-        if (/\b(fitness|gym|real\s*estate|agency|coaching|ecommerce|restaurant|dental|contractor|crypto|saas|b2b)\s+(funnel|landing\s*page)\b/i.test(lower)) return true;
+        if (/^(fitness|gym|real\s*estate|agency|coaching|ecommerce|restaurant|dental|contractor|crypto|saas|b2b)\s+(funnel|landing\s*page)[\s\.\?!]*$/i.test(lower)) return true;
 
         return false;
     }
