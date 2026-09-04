@@ -75,8 +75,9 @@ _PROPOSAL_OR_QA_PATTERNS = re.compile(
     re.IGNORECASE
 )
 _ITERATION_PATTERNS = re.compile(
-    r'^(change|modify|update|edit|tweak|adjust|fix|improve|darker|lighter|blue|red|green|'
-    r'add\s+a|remove\s+the|make\s+it|replace|swap|rename|move|instead)\b',
+    r'^(change|changes|modify|update|edit|tweak|adjust|fix|correct|corect|remove|delete|strip|clean|'
+    r'improve|darker|lighter|blue|red|green|add|make\s+it|make\s+sure|replace|swap|rename|move|instead|'
+    r'ensure|visible|button|buttons|first\s+page|in\s+the\s+funnel|in\s+this\s+funnel|is\s+mein|ismein|theek|sahi)\b',
     re.IGNORECASE
 )
 _FULL_BUILD_KEYWORDS = {
@@ -94,11 +95,11 @@ _DIRECT_ASSET_PATTERNS = re.compile(
 )
 
 
-def classify_prompt_intent(prompt: str) -> str:
+def classify_prompt_intent(prompt: str, history: Optional[List[Dict[str, str]]] = None) -> str:
     """
     Classifies user prompt into one of three intent categories:
     - 'full_build': Explicit request to build full landing page & CRM architecture or write code
-    - 'iteration': Modify or refine a previous response
+    - 'iteration': Modify, correct, or refine an existing response, funnel, or code
     - 'quick_answer': Q&A, job proposals, consultation, troubleshooting, or direct asset creation
     """
     lower = prompt.lower().strip()
@@ -107,7 +108,34 @@ def classify_prompt_intent(prompt: str) -> str:
     if _DIRECT_ASSET_PATTERNS.search(lower) and not any(kw in lower for kw in ['all 14 sections', 'full blueprint', 'complete funnel', 'landing page and crm']):
         return 'quick_answer'
 
-    # Check for iteration / modification intent (including existing code, Urdu/Roman Urdu phrases, and direct updates)
+    # Check if this thread already has existing code (HTML/funnel) in history
+    has_existing_code_in_history = False
+    if history:
+        for msg in history:
+            c = msg.get('content', '').lower()
+            if '<!doctype' in c or '<html' in c or '```html' in c or 'switchstep' in c or 'landing_page.html' in c:
+                has_existing_code_in_history = True
+                break
+
+    # If there is existing code in history and user is asking to modify/fix/correct or referring to the funnel/page:
+    if has_existing_code_in_history:
+        # Check if user explicitly wants to build a fresh new project from scratch
+        is_explicit_brand_new = any(kw in lower for kw in [
+            'from scratch', 'brand new funnel', 'different funnel', 'new funnel for',
+            'start over', 'create a new funnel from scratch', 'build a new funnel from scratch'
+        ])
+        if not is_explicit_brand_new:
+            # If user refers to any correction, change, button, text, removal, or "in the funnel", classify as iteration!
+            if any(w in lower for w in [
+                'correct', 'corect', 'change', 'modify', 'update', 'edit', 'fix', 'remove', 'delete',
+                'button', 'buttons', 'visible', 'first page', 'in the funnel', 'in this funnel',
+                'on the page', 'on the first page', 'otherwise the funnel', 'make sure', 'good looking',
+                'strip', 'clean', 'is mein', 'ismein', 'is me', 'yeh changes', 'ye changes',
+                'theek', 'sahi', 'badal', 'kardo', 'krdo', 'working fine'
+            ]) or _ITERATION_PATTERNS.search(lower):
+                return 'iteration'
+
+    # Check for iteration / modification intent (including existing code in prompt, Urdu/Roman Urdu phrases, and direct updates)
     is_iteration = (
         _ITERATION_PATTERNS.search(lower) or
         any(phrase in lower for phrase in [
@@ -119,7 +147,10 @@ def classify_prompt_intent(prompt: str) -> str:
             'is mein', 'ismein', 'is me', 'iss mein', 'iss me', 'yeh changes', 'ye changes',
             'to this funnel', 'to this landing page', 'in this funnel', 'in this landing page',
             'in this code', 'is code mein', 'is code me', 'update this', 'modify this',
-            'edit this', 'change this', 'fix this', 'tweak this', '<!doctype', '<html', '```html'
+            'edit this', 'change this', 'fix this', 'tweak this', '<!doctype', '<html', '```html',
+            'corect', 'correct some', 'remove it', 'remove from', 'first page',
+            'make sure that the buttons', 'buttons are properly visible', 'buttons visible',
+            'otherwise the funnel is', 'working fine'
         ])
     )
     if is_iteration and not any(kw in lower for kw in ['configuration:', 'funnel plan & specifications:', 'target industry:', 'all 14 sections']):
@@ -634,7 +665,7 @@ class GHLAgentExecutionEngine:
         is_ghl_connected = bool(location_id and access_token)
 
         # Classify prompt intent for adaptive configuration
-        intent = classify_prompt_intent(prompt)
+        intent = classify_prompt_intent(prompt, history=history)
         logger.info(f"Prompt intent classified as: {intent} | Provider: {provider} | Model: {model_name} | Attachments: {len(attachments or [])}")
 
         # Build adaptive system prompt based on intent, provider, and portfolio context
@@ -944,28 +975,31 @@ MANDATORY GOHIGHLEVEL (GHL) OPERATIONAL RULES
 =============================================================================
 {base_rules}
 =============================================================================
-TASK DIRECTIVE: DOCUMENT EDITING, DESIGN REFINEMENT & CHANGE LOG
+TASK DIRECTIVE: SURGICAL CODE UPDATE & STRICT DESIGN PRESERVATION (NO REDESIGN)
 =============================================================================
-The user is providing an existing codebase, funnel, landing page, or document (either in chat or as an attached file like `landing_page.html`) and requesting specific changes (e.g. colors, visual styling, layout tweaks, copy adjustments, or feature additions).
+The user is providing an existing codebase, funnel, landing page, or document (either in chat history or user prompt/attachment) and requesting specific corrections or changes.
 
-YOUR INSTRUCTIONS:
-1. IMPLEMENT THE REQUESTED CHANGES DIRECTLY into the code or document provided by the user.
-   • If the user requests color/design changes, apply the new color palette throughout the CSS and components (backgrounds, text gradients, borders, buttons, cards).
-   • Maintain 100% of the working logic (navigation, forms, validation, and functionality) unless specifically asked to change it.
-   • Ensure the updated code is production-ready and fully contained.
+CRITICAL PRIME DIRECTIVE: PRESERVE THE EXACT EXISTING UI & CODE 100%!
+1. STRICT PRESERVATION OF EXISTING UI, LAYOUT, COLORS & STRUCTURE (NO UNREQUESTED REDESIGN):
+   • The user ALREADY LIKES their current design ("otherwise the funnel is good looking and working fine").
+   • You MUST PRESERVE the exact same layout structure, split cards, color theme, typography, hierarchy, and copy that the user did NOT ask to change.
+   • DO NOT invent a new design, DO NOT switch a split dark/light card layout to a full dark page, and DO NOT replace the UI with a different template.
+   • Every element, class, section, card, and text that the user did not ask to modify MUST REMAIN INTACT.
 
-2. STRUCTURE YOUR RESPONSE IN TWO DISTINCT PARTS:
+2. SURGICALLY IMPLEMENT ONLY THE SPECIFICALLY REQUESTED CORRECTIONS:
+   • If the user asks to remove unwanted text or preamble (e.g. model handover messages or banner text), REMOVE ONLY THAT TEXT from the page/code.
+   • If the user asks to ensure buttons are properly visible, ensure the CTA buttons have prominent, high-contrast, fully visible styling (e.g. solid vibrant background, clear legible text, proper padding, no clipping), without altering the rest of the form or page.
+   • If the user asks to change a specific color, headline, or input, change ONLY that specific item.
+   • NEVER change anything that was not requested!
 
-   PART 1: UPDATED CODE / DOCUMENT
-   • Provide the fully updated, revised code inside a clean code block (e.g. ```html ... ```).
+3. RESPONSE STRUCTURE:
+   PART 1: UPDATED COMPLETE CODE
+   • Provide the full, clean, working code in a single code block (```html ... ```).
+   • Ensure NO handover messages, markdown quotes, or preamble text appear inside or before the code block. Start directly with <!DOCTYPE html>.
 
    PART 2: SUMMARY OF CHANGES MADE (What Was Changed)
-   • Provide a clear, bullet-pointed summary explaining EXACTLY what changes were made in the code/design:
-     - **Color Palette & Design Updates:** List the exact colors/shades updated (e.g. Old theme vs New theme).
-     - **Component / Styling Adjustments:** List buttons, typography, cards, or hero elements modified.
-     - **Functional / Structural Changes (if requested):** Note any new sections, forms, or steps added or updated.
-   • If the user asked for changes in non-code elements (such as workflows, tags, or copy), explain those specific changes clearly and concisely.
-   • DO NOT generate unrequested 14-section CRM architectures or redundant tables. Focus strictly on delivering the updated code/document and explaining the modifications made.
+   • At the very end, provide a clear, concise bulleted summary of ONLY the specific changes implemented.
+   • DO NOT generate unrequested 14-section CRM architectures or redundant tables. Focus strictly on delivering the updated code and summarizing the modifications made.
 {tool_block}
 """
 
@@ -1161,9 +1195,11 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                             recent_tail = accumulated_text[-2000:]
                             last_cutoff = accumulated_text[-80:].replace('\n', ' ')
                             logger.info(f"Gemini capacity reached mid-generation. Handing off to Groq Cloud...")
+                            close_code = "\n```\n" if accumulated_text.count('```') % 2 != 0 else ""
+                            reopen_code = "```html\n" if accumulated_text.count('```') % 2 != 0 else ""
                             yield {
                                 "type": "chunk",
-                                "text": f"\n\n> 🔄 **Model Handover:** Google Gemini generated the initial architecture ({len(accumulated_text):,} chars). Reaching quota limit — **Groq Cloud (Qwen 3.8)** is now seamlessly continuing generation from this exact point...\n\n---\n\n"
+                                "text": f"{close_code}\n\n> 🔄 **Model Handover:** Google Gemini generated the initial architecture ({len(accumulated_text):,} chars). Reaching quota limit — **Groq Cloud (Qwen 3.8)** is now seamlessly continuing generation from this exact point...\n\n---\n\n{reopen_code}"
                             }
                             yield from self._execute_openai_compatible(
                                 prompt=prompt,
@@ -1198,11 +1234,33 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
 
                         # If text was already started and errored out, seamlessly hand over to Groq
                         if stream_started and not is_fallback and self.groq_key:
+                            if len(accumulated_text) < 300:
+                                logger.info(f"Gemini failed early ({len(accumulated_text)} chars). Cleanly routing fresh query to Groq Cloud...")
+                                yield from self._execute_openai_compatible(
+                                    prompt=prompt,
+                                    ghl=ghl,
+                                    is_ghl_connected=is_ghl_connected,
+                                    system_instruction=system_instruction,
+                                    model_name="qwen/qwen3.8-27b",
+                                    api_url="https://api.groq.com/openai/v1/chat/completions",
+                                    api_key=self.groq_key,
+                                    provider_name="Groq Cloud",
+                                    location_id=location_id,
+                                    access_token=access_token,
+                                    history=history,
+                                    intent=intent,
+                                    is_fallback=True,
+                                    attachments=attachments
+                                )
+                                return
+
                             recent_tail = accumulated_text[-2000:]
                             last_cutoff = accumulated_text[-80:].replace('\n', ' ')
+                            close_code = "\n```\n" if accumulated_text.count('```') % 2 != 0 else ""
+                            reopen_code = "```html\n" if accumulated_text.count('```') % 2 != 0 else ""
                             yield {
                                 "type": "chunk",
-                                "text": f"\n\n> 🔄 **Model Handover:** Google Gemini limit reached ({len(accumulated_text):,} chars generated). Seamlessly continuing with **Groq Cloud (Qwen 3.8)**...\n\n---\n\n"
+                                "text": f"{close_code}\n\n> 🔄 **Model Handover:** Google Gemini limit reached ({len(accumulated_text):,} chars generated). Seamlessly continuing with **Groq Cloud (Qwen 3.8)**...\n\n---\n\n{reopen_code}"
                             }
                             yield from self._execute_openai_compatible(
                                 prompt=prompt,

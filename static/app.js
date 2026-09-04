@@ -823,13 +823,23 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer.code = function (code, language) {
             const rawLang = (language || '').toLowerCase().trim();
 
-            // Clean unclosed HTML leaks: If code contains </html>, strip everything after </html>
+            // Clean unclosed HTML leaks: If code contains <!DOCTYPE or <html, strip anything before it
             let cleanCode = code;
             let trailingMarkdown = '';
-            if ((rawLang === 'html' || code.includes('<html') || code.includes('<!DOCTYPE')) && code.includes('</html>')) {
-                const endIdx = code.indexOf('</html>') + 7;
-                cleanCode = code.substring(0, endIdx).trim();
-                const rest = code.substring(endIdx).trim();
+            if (rawLang === 'html' || cleanCode.includes('<html') || cleanCode.includes('<!DOCTYPE') || cleanCode.includes('<!doctype')) {
+                const docIdx = cleanCode.search(/<!doctype\s+html|<html/i);
+                if (docIdx > 0) {
+                    cleanCode = cleanCode.substring(docIdx).trim();
+                }
+                // Strip any leaked model handover text or backtick markers
+                cleanCode = cleanCode.replace(/[<>\s]*🔄\s*\*\*Model Handover:\*\*[\s\S]*?---\s*/gi, '').trim();
+                cleanCode = cleanCode.replace(/^```(?:html)?\s*/i, '').trim();
+            }
+
+            if ((rawLang === 'html' || cleanCode.includes('<html') || cleanCode.includes('<!DOCTYPE') || cleanCode.includes('<!doctype')) && cleanCode.includes('</html>')) {
+                const endIdx = cleanCode.indexOf('</html>') + 7;
+                const rest = cleanCode.substring(endIdx).trim();
+                cleanCode = cleanCode.substring(0, endIdx).trim();
                 if (rest && rest.length > 5) {
                     try {
                         trailingMarkdown = `<div class="agent-markdown-text" style="margin-top: 18px;">${marked.parse(rest)}</div>`;
@@ -956,6 +966,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (artifactTabsPill) artifactTabsPill.classList.remove('hidden');
 
             let previewHtml = art.code;
+            const docIdx = previewHtml.search(/<!doctype\s+html|<html/i);
+            if (docIdx > 0) {
+                previewHtml = previewHtml.substring(docIdx).trim();
+            }
+            previewHtml = previewHtml.replace(/[<>\s]*🔄\s*\*\*Model Handover:\*\*[\s\S]*?---\s*/gi, '').trim();
+            previewHtml = previewHtml.replace(/^```(?:html)?\s*/i, '').trim();
+
             // If code contains placeholder GHL calendar iframe that fails in local sandbox,
             // replace with a beautiful interactive glassmorphic calendar mockup for preview!
             if (previewHtml.includes('YOUR_CALENDAR_ID') || previewHtml.includes('api.leadconnectorhq.com/widget/booking') || previewHtml.includes('services.leadconnectorhq.com')) {
