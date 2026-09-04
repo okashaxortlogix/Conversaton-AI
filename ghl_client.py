@@ -17,6 +17,8 @@ class GHLSubAccountClient:
     def __init__(self, location_id: str, access_token: str):
         self.location_id = location_id.strip() if location_id else ""
         self.access_token = access_token.strip() if access_token else ""
+        self.session = requests.Session()
+        self.session.headers.update(self._get_headers())
 
     def _get_headers(self) -> Dict[str, str]:
         return {
@@ -33,7 +35,7 @@ class GHLSubAccountClient:
 
         url = f"{self.BASE_URL}/locations/{self.location_id}"
         try:
-            res = requests.get(url, headers=self._get_headers(), timeout=10)
+            res = self.session.get(url, timeout=10)
             if res.status_code == 200:
                 data = res.json()
                 loc_name = data.get("location", {}).get("name") or "Sub-Account"
@@ -68,7 +70,7 @@ class GHLSubAccountClient:
             payload["customFields"] = custom_fields
 
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=12)
+            res = self.session.post(url, json=payload, timeout=12)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Contact '{(first_name + ' ' + last_name).strip()}' created successfully."}
             else:
@@ -82,7 +84,7 @@ class GHLSubAccountClient:
         url = f"{self.BASE_URL}/contacts/"
         params = {"locationId": self.location_id, "query": query}
         try:
-            res = requests.get(url, headers=self._get_headers(), params=params, timeout=10)
+            res = self.session.get(url, params=params, timeout=10)
             if res.status_code == 200:
                 return {"success": True, "data": res.json()}
             else:
@@ -100,7 +102,7 @@ class GHLSubAccountClient:
             "stages": formatted_stages
         }
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=12)
+            res = self.session.post(url, json=payload, timeout=12)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Pipeline '{name}' created with {len(stages)} stages."}
             else:
@@ -113,7 +115,7 @@ class GHLSubAccountClient:
         url = f"{self.BASE_URL}/opportunities/pipelines/"
         params = {"locationId": self.location_id}
         try:
-            res = requests.get(url, headers=self._get_headers(), params=params, timeout=10)
+            res = self.session.get(url, params=params, timeout=10)
             if res.status_code == 200:
                 return {"success": True, "data": res.json()}
             else:
@@ -144,7 +146,7 @@ class GHLSubAccountClient:
             payload["contactId"] = contact_id
 
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=12)
+            res = self.session.post(url, json=payload, timeout=12)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Opportunity '{title}' created successfully."}
             else:
@@ -157,7 +159,7 @@ class GHLSubAccountClient:
         url = f"{self.BASE_URL}/locations/{self.location_id}/tags"
         payload = {"name": tag_name}
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=10)
+            res = self.session.post(url, json=payload, timeout=10)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Tag '{tag_name}' created successfully."}
             else:
@@ -176,7 +178,7 @@ class GHLSubAccountClient:
         if options and data_type.upper() in ["SINGLE_OPTIONS", "MULTIPLE_OPTIONS", "RADIO", "CHECKBOX"]:
             payload["options"] = options
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=10)
+            res = self.session.post(url, json=payload, timeout=10)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Custom Field '{name}' ({data_type}) created."}
             else:
@@ -193,7 +195,7 @@ class GHLSubAccountClient:
             "message": message
         }
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=10)
+            res = self.session.post(url, json=payload, timeout=10)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Message sent to contact ID {contact_id} via {type_}."}
             else:
@@ -205,7 +207,7 @@ class GHLSubAccountClient:
         """Fetch all Location Tags."""
         url = f"{self.BASE_URL}/locations/{self.location_id}/tags"
         try:
-            res = requests.get(url, headers=self._get_headers(), timeout=10)
+            res = self.session.get(url, timeout=10)
             if res.status_code == 200:
                 return {"success": True, "data": res.json()}
             else:
@@ -217,7 +219,7 @@ class GHLSubAccountClient:
         """Fetch all Custom Fields in location."""
         url = f"{self.BASE_URL}/locations/{self.location_id}/custom-fields"
         try:
-            res = requests.get(url, headers=self._get_headers(), timeout=10)
+            res = self.session.get(url, timeout=10)
             if res.status_code == 200:
                 return {"success": True, "data": res.json()}
             else:
@@ -230,7 +232,7 @@ class GHLSubAccountClient:
         url = f"{self.BASE_URL}/workflows/"
         params = {"locationId": self.location_id}
         try:
-            res = requests.get(url, headers=self._get_headers(), params=params, timeout=10)
+            res = self.session.get(url, params=params, timeout=10)
             if res.status_code == 200:
                 return {"success": True, "data": res.json()}
             else:
@@ -245,7 +247,7 @@ class GHLSubAccountClient:
         if due_date:
             payload["dueDate"] = due_date
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=10)
+            res = self.session.post(url, json=payload, timeout=10)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Task '{title}' added to contact ID {contact_id}."}
             else:
@@ -258,7 +260,7 @@ class GHLSubAccountClient:
         url = f"{self.BASE_URL}/contacts/{contact_id}/notes"
         payload = {"body": body}
         try:
-            res = requests.post(url, headers=self._get_headers(), json=payload, timeout=10)
+            res = self.session.post(url, json=payload, timeout=10)
             if res.status_code in [200, 201]:
                 return {"success": True, "data": res.json(), "message": f"✅ Note added to contact ID {contact_id}."}
             else:

@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import threading
 from datetime import datetime, timezone
 from typing import Dict, Any, List
 
@@ -57,6 +58,7 @@ MODEL_SPECS: Dict[str, Dict[str, Any]] = {
 class ModelUsageTracker:
     def __init__(self):
         self.usage_file = USAGE_FILE
+        self._lock = threading.Lock()
         self.sliding_window: Dict[str, List[Dict[str, Any]]] = {}  # {model_id: [{"ts": time, "tokens": int}]}
         self.data = self._load()
 
@@ -84,15 +86,25 @@ class ModelUsageTracker:
         return data
 
     def _save(self):
-        try:
-            # Create backup before writing
-            if os.path.exists(self.usage_file):
-                import shutil
-                shutil.copy2(self.usage_file, self.usage_file + ".bak")
-            with open(self.usage_file, "w", encoding="utf-8") as f:
-                json.dump(self.data, f, indent=2)
-        except Exception:
-            pass
+        with self._lock:
+            try:
+                # Write to temp file first then atomic rename
+                tmp_file = self.usage_file + ".tmp"
+                with open(tmp_file, "w", encoding="utf-8") as f:
+                    json.dump(self.data, f, indent=2)
+                
+                # Update backup
+                if os.path.exists(self.usage_file):
+                    import shutil
+                    try:
+                        shutil.copy2(self.usage_file, self.usage_file + ".bak")
+                    except Exception:
+                        pass
+                
+                # Atomic replace
+                os.replace(tmp_file, self.usage_file)
+            except Exception:
+                pass
 
     def record_usage(self, model_id: str, prompt_tokens: int = 0, completion_tokens: int = 0):
         """

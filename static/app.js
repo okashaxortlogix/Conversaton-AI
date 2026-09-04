@@ -1922,24 +1922,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Smart visibility-aware polling: 30s when active, 10s when usage modal is open, 0 when tab hidden
+    // Smart visibility-aware polling: 10s when active/modal open, 30s when idle, 0 when tab hidden
+    let pollCounter = 0;
     setInterval(() => {
         if (document.hidden) return; // Pause polling when tab is inactive
+        pollCounter += 5;
         const modalOpen = usageModal && !usageModal.classList.contains('hidden');
         if (modalOpen || isGenerating) {
-            fetchModelsCatalog();
-            if (modalOpen) renderUsageModalGrid();
+            if (pollCounter % 10 === 0) {
+                fetchModelsCatalog();
+                if (modalOpen) renderUsageModalGrid();
+            }
+        } else {
+            if (pollCounter % 30 === 0) {
+                fetchModelsCatalog();
+            }
         }
-    }, 10000);
-
-    // Refresh every 30s when tab is visible and idle
-    setInterval(() => {
-        if (document.hidden) return;
-        const modalOpen = usageModal && !usageModal.classList.contains('hidden');
-        if (!modalOpen && !isGenerating) {
-            fetchModelsCatalog();
-        }
-    }, 30000);
+    }, 5000);
 
     // Usage Modal Handlers
     if (openUsageModalBtn) openUsageModalBtn.addEventListener('click', openUsageModal);
@@ -3279,9 +3278,15 @@ Please deliver:
         }
 
         try {
+            const reqHeaders = { 'Content-Type': 'application/json' };
+            const authToken = localStorage.getItem('copilot_auth_token');
+            if (authToken) {
+                reqHeaders['Authorization'] = `Bearer ${authToken}`;
+            }
+
             const response = await fetch('/api/chat-agent', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: reqHeaders,
                 signal: currentAbortController.signal,
                 body: JSON.stringify({
                     prompt: prompt,

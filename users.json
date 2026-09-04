@@ -1,14 +1,14 @@
 {
   "muhammad.okasha2146@gmail.com": {
     "email": "muhammad.okasha2146@gmail.com",
-    "password": "okashaadmin",
+    "password": "pbkdf2_sha256$b267fdc3c61a3a6e140da7b1806838a8$b79ff30c5a920d3d4f2351d3a55423a79c3c7d3986adfe7788f3b7702cec7214",
     "name": "Muhammad Okasha",
     "role": "Master Admin",
     "avatar": "\ud83d\udc51"
   },
   "test@gmail.com": {
     "email": "test@gmail.com",
-    "password": "12345678",
+    "password": "pbkdf2_sha256$38bb1a40d6ee5b541e9f1afe81e2626e$47e7a10e8906e66bbf1f97110517cb5d1d4fa9aa1e8ff20bab9339b7c700b35b",
     "name": "Test User",
     "role": "Member",
     "avatar": "\ud83d\udc64"

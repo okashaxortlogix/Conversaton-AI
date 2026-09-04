@@ -1,6 +1,11 @@
 import os
 import sys
 import json
+import time
+import hashlib
+import hmac
+import secrets as _secrets
+import threading
 import asyncio
 import logging
 from typing import Optional, List, Dict, Any
@@ -131,18 +136,67 @@ class UpdateUserRequest(BaseModel):
 
 # Persistent authentication database (saved to users.json)
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
+USERS_LOCK = threading.Lock()
+AUTH_SECRET = os.environ.get("AUTH_SECRET", "copilot-secure-session-auth-token-2026-secret")
+
+def hash_password(password: str) -> str:
+    """Cryptographic password hashing via PBKDF2-HMAC-SHA256 with 100,000 iterations."""
+    salt = _secrets.token_hex(16)
+    key = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000)
+    return f"pbkdf2_sha256${salt}${key.hex()}"
+
+def verify_password(stored_password: str, provided_password: str) -> bool:
+    """Verifies password hash; transparently falls back to plaintext for legacy migration."""
+    if not stored_password or not provided_password:
+        return False
+    if stored_password.startswith("pbkdf2_sha256$"):
+        parts = stored_password.split("$")
+        if len(parts) == 3:
+            salt = parts[1]
+            expected_key = parts[2]
+            key = hashlib.pbkdf2_hmac("sha256", provided_password.encode("utf-8"), salt.encode("utf-8"), 100000)
+            return _secrets.compare_digest(key.hex(), expected_key)
+    # Legacy plaintext migration
+    return stored_password == provided_password
+
+def generate_signed_token(email: str) -> str:
+    """Generates tamper-proof HMAC-signed token that persists across Railway container restarts."""
+    timestamp = str(int(time.time()))
+    payload = f"{email}:{timestamp}"
+    sig = hmac.new(AUTH_SECRET.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{payload}:{sig}"
+
+def verify_signed_token(token: str) -> Optional[str]:
+    """Verifies HMAC signature and 30-day freshness of signed session tokens."""
+    if not token or ":" not in token:
+        return None
+    parts = token.split(":")
+    if len(parts) != 3:
+        return None
+    email, timestamp, sig = parts
+    payload = f"{email}:{timestamp}"
+    expected_sig = hmac.new(AUTH_SECRET.encode("utf-8"), payload.encode("utf-8"), hashlib.sha256).hexdigest()
+    if not _secrets.compare_digest(sig, expected_sig):
+        return None
+    try:
+        ts = int(timestamp)
+        if time.time() - ts > (30 * 86400):
+            return None
+    except Exception:
+        return None
+    return email
 
 DEFAULT_USERS_DB = {
     "muhammad.okasha2146@gmail.com": {
         "email": "muhammad.okasha2146@gmail.com",
-        "password": "okashaadmin",
+        "password": hash_password("okashaadmin"),
         "name": "Muhammad Okasha",
         "role": "Master Admin",
         "avatar": "👑"
     },
     "test@gmail.com": {
         "email": "test@gmail.com",
-        "password": "12345678",
+        "password": hash_password("12345678"),
         "name": "Test User",
         "role": "Member",
         "avatar": "👤"
@@ -154,10 +208,6 @@ def load_users_db() -> Dict[str, Dict[str, Any]]:
         try:
             with open(USERS_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                # Ensure test user password is updated if it was previously old value
-                if "test@gmail.com" in data and data["test@gmail.com"].get("password") == "tum12345678":
-                    data["test@gmail.com"]["password"] = "12345678"
-                    save_users_db(data)
                 return data
         except Exception as e:
             logger.error(f"Error loading users.json: {e}")
@@ -165,24 +215,49 @@ def load_users_db() -> Dict[str, Dict[str, Any]]:
     return DEFAULT_USERS_DB
 
 def save_users_db(data: Dict[str, Dict[str, Any]]):
-    try:
-        with open(USERS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-    except Exception as e:
-        logger.error(f"Error saving users.json: {e}")
+    with USERS_LOCK:
+        try:
+            tmp = USERS_FILE + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+            os.replace(tmp, USERS_FILE)
+        except Exception as e:
+            logger.error(f"Error saving users.json: {e}")
 
 USERS_DB = load_users_db()
 
 ACTIVE_SESSIONS: Dict[str, Dict[str, Any]] = {}
-import secrets as _secrets
 
 def get_current_user_from_req(request: Request) -> Optional[Dict[str, Any]]:
     auth_header = request.headers.get("Authorization", "")
     token = ""
     if auth_header.startswith("Bearer "):
         token = auth_header[7:].strip()
-    if token and token in ACTIVE_SESSIONS:
+    if not token:
+        token = request.query_params.get("token", "").strip()
+
+    if not token:
+        return None
+
+    if token in ACTIVE_SESSIONS:
         return ACTIVE_SESSIONS[token]
+
+    # Verify cryptographic signature (recovers session seamlessly if container restarted)
+    verified_email = verify_signed_token(token)
+    if verified_email:
+        global USERS_DB
+        if verified_email in USERS_DB:
+            u = USERS_DB[verified_email]
+            session_data = {
+                "email": u["email"],
+                "name": u["name"],
+                "role": u["role"],
+                "avatar": u["avatar"],
+                "token": token
+            }
+            ACTIVE_SESSIONS[token] = session_data
+            return session_data
+
     return None
 
 @app.post("/api/auth/login")
@@ -193,10 +268,15 @@ async def auth_login(req: LoginRequest):
     password = req.password.strip()
 
     user = USERS_DB.get(email)
-    if not user or user["password"] != password:
+    if not user or not verify_password(user.get("password", ""), password):
         raise HTTPException(status_code=401, detail="Invalid email or password. Please check your credentials.")
 
-    token = _secrets.token_hex(24)
+    # Automatically upgrade plaintext password to PBKDF2 hash
+    if not user.get("password", "").startswith("pbkdf2_sha256$"):
+        user["password"] = hash_password(password)
+        save_users_db(USERS_DB)
+
+    token = generate_signed_token(user["email"])
     session_data = {
         "email": user["email"],
         "name": user["name"],
@@ -247,7 +327,7 @@ async def admin_get_users(request: Request):
             "name": u["name"],
             "role": u["role"],
             "avatar": u["avatar"],
-            "password": u["password"]  # Admin can view/manage passwords
+            "has_password": bool(u.get("password"))
         })
     return {"success": True, "users": users_list}
 
@@ -265,7 +345,7 @@ async def admin_update_user(req: UpdateUserRequest, request: Request):
         raise HTTPException(status_code=404, detail="User not found.")
 
     if req.new_password and req.new_password.strip():
-        USERS_DB[target_email]["password"] = req.new_password.strip()
+        USERS_DB[target_email]["password"] = hash_password(req.new_password.strip())
     if req.name and req.name.strip():
         USERS_DB[target_email]["name"] = req.name.strip()
     if req.role and req.role.strip():
@@ -274,10 +354,11 @@ async def admin_update_user(req: UpdateUserRequest, request: Request):
     save_users_db(USERS_DB)
     logger.info(f"Master Admin updated user account: {target_email}")
 
+    safe_user = {k: v for k, v in USERS_DB[target_email].items() if k != "password"}
     return {
         "success": True,
         "message": f"User {target_email} updated successfully.",
-        "user": USERS_DB[target_email]
+        "user": safe_user
     }
 
 @app.post("/api/admin/create-user")
@@ -301,13 +382,14 @@ async def admin_create_user(req: Dict[str, Any], request: Request):
 
     USERS_DB[email] = {
         "email": email,
-        "password": password,
+        "password": hash_password(password),
         "name": name,
         "role": role,
         "avatar": "👤" if role != "Master Admin" else "👑"
     }
     save_users_db(USERS_DB)
-    return {"success": True, "message": f"User {email} created successfully.", "user": USERS_DB[email]}
+    safe_user = {k: v for k, v in USERS_DB[email].items() if k != "password"}
+    return {"success": True, "message": f"User {email} created successfully.", "user": safe_user}
 
 @app.get("/health")
 async def health_check():
@@ -461,7 +543,12 @@ async def setup_gym_architecture_endpoint(req: VerifyTokenRequest):
     return res
 
 @app.post("/api/chat-agent")
-async def agent_chat_endpoint(req: AgentChatRequest):
+async def agent_chat_endpoint(req: AgentChatRequest, request: Request):
+    user = get_current_user_from_req(request)
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header and not user:
+        raise HTTPException(status_code=401, detail="Session expired or invalid authentication token. Please log in again.")
+
     prompt = req.prompt.strip()
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt string cannot be empty.")
