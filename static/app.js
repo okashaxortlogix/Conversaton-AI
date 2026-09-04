@@ -1110,405 +1110,205 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 previewHtml = previewHtml.replace(/<iframe[^>]*api\.leadconnectorhq\.com[^>]*>.*?<\/iframe>/gis, calendarMockup)
                     .replace(/<iframe[^>]*YOUR_CALENDAR_ID[^>]*>.*?<\/iframe>/gis, calendarMockup)
-                    .replace(/<iframe[^>]*leadconnectorhq\.com[^>]*><\/iframe>/gis, calendarMockup);
-            }
-
-            // Inject Live Preview form submit & calendar click interceptor
+                    .replace(/<i            // Inject Live Preview sandbox script
             const formInterceptScript = `
             <style>
                 .hidden { display: none !important; }
-                .funnel-step:not(:first-of-type),
-                [id^="step-"]:not(#step-1),
-                [id^="step_"]:not(#step_1),
-                [id^="step"]:not(#step1):not(#step-1) {
-                    display: none;
-                }
             </style>
             <script>
             (function() {
+                // Check if this HTML page is a multi-step funnel
                 function getFunnelSteps() {
-                    var steps = Array.from(document.querySelectorAll('.funnel-step, [id^="step-"], [id^="step_"], [id^="step"], [data-step]'));
-                    if (steps.length <= 1) {
-                        var namedSections = Array.from(document.querySelectorAll('main > section, main > div, body > section, body > div[id]')).filter(function(s) {
-                            var id = (s.id || '').toLowerCase();
-                            var cls = (s.className || '').toLowerCase();
-                            return /step|optin|lead|vsl|video|order|checkout|cart|upsell|oto|thank|confirm/.test(id + ' ' + cls);
-                        });
-                        if (namedSections.length > 1) {
-                            steps = namedSections;
-                        }
-                    }
-                    return steps;
-                }
-
-                function enforceStepIsolation() {
-                    var steps = getFunnelSteps();
-                    if (steps.length > 1) {
-                        steps.forEach(function(el, idx) {
-                            if (idx > 0) {
-                                el.classList.add('hidden');
-                                el.style.setProperty('display', 'none', 'important');
-                            } else {
-                                el.classList.remove('hidden');
-                                el.style.removeProperty('display');
-                                el.style.setProperty('display', 'block', 'important');
-                            }
-                        });
-                    }
-                }
-
-                window.switchStep = function(stepNum) {
-                    var steps = getFunnelSteps();
-                    steps.forEach(function(s) {
-                        s.classList.add('hidden');
-                        s.style.setProperty('display', 'none', 'important');
+                    var stepEls = Array.from(document.querySelectorAll('.funnel-step, [id^="step-"], [id^="step_"]'));
+                    // Filter so only top-level steps (not nested substeps like substep-1 or step-3-1) are treated as steps
+                    return stepEls.filter(function(el) {
+                        var p = el.parentElement ? el.parentElement.closest('.funnel-step, [id^="step-"], [id^="step_"]') : null;
+                        return !p;
                     });
-                    var target = document.getElementById('step-' + stepNum) || 
-                                 document.getElementById('step_' + stepNum) || 
-                                 document.getElementById('step' + stepNum);
-                    if (!target && typeof stepNum === 'number' && steps[stepNum - 1]) {
-                        target = steps[stepNum - 1];
-                    }
-                    if (!target && typeof stepNum === 'string') {
-                        target = document.getElementById(stepNum) || document.querySelector(stepNum);
-                    }
-                    if (target) {
-                        target.classList.remove('hidden');
-                        target.style.removeProperty('display');
-                        target.style.setProperty('display', 'block', 'important');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                };
+                }
 
-                // Run step isolation immediately
-                enforceStepIsolation();
+                var steps = getFunnelSteps();
+                var isFunnel = steps.length > 1;
+                window._currentStepNum = 1;
 
-                var selectedDate = 'Oct 16';
-                var selectedTime = '02:00 PM';
-
-                document.addEventListener('click', function(e) {
-                    var dateBtn = e.target.closest('.mock-date-btn');
-                    if (dateBtn) {
-                        var allDates = document.querySelectorAll('.mock-date-btn');
-                        for (var i = 0; i < allDates.length; i++) {
-                            allDates[i].style.background = 'rgba(255,255,255,0.04)';
-                            allDates[i].style.border = '1px solid rgba(255,255,255,0.08)';
-                            allDates[i].style.color = '#cbd5e1';
-                            allDates[i].style.fontWeight = 'normal';
-                            allDates[i].style.boxShadow = 'none';
+                if (isFunnel) {
+                    // Universal switchStep that supports any number of steps cleanly without CSS conflicts
+                    window.switchStep = function(stepNum) {
+                        var allSteps = getFunnelSteps();
+                        var target = document.getElementById('step-' + stepNum) || 
+                                     document.getElementById('step_' + stepNum) || 
+                                     document.getElementById('step' + stepNum);
+                        if (!target && typeof stepNum === 'number' && allSteps[stepNum - 1]) {
+                            target = allSteps[stepNum - 1];
                         }
-                        dateBtn.style.background = '#0284c7';
-                        dateBtn.style.border = '1px solid #38bdf8';
-                        dateBtn.style.color = '#fff';
-                        dateBtn.style.fontWeight = 'bold';
-                        dateBtn.style.boxShadow = '0 0 10px rgba(2,132,199,0.5)';
-                        selectedDate = dateBtn.getAttribute('data-date') || dateBtn.textContent.trim();
-                    }
-
-                    var timeBtn = e.target.closest('.mock-time-btn');
-                    if (timeBtn) {
-                        var allTimes = document.querySelectorAll('.mock-time-btn');
-                        for (var j = 0; j < allTimes.length; j++) {
-                            allTimes[j].style.background = 'rgba(255,255,255,0.06)';
-                            allTimes[j].style.border = '1px solid rgba(56, 189, 248, 0.3)';
-                            allTimes[j].style.color = '#fff';
-                            allTimes[j].style.fontWeight = 'normal';
-                            allTimes[j].style.boxShadow = 'none';
-                            allTimes[j].textContent = allTimes[j].getAttribute('data-time') || allTimes[j].textContent.replace('✓', '').trim();
-                        }
-                        timeBtn.style.background = '#0284c7';
-                        timeBtn.style.border = '1px solid #38bdf8';
-                        timeBtn.style.color = '#fff';
-                        timeBtn.style.fontWeight = 'bold';
-                        timeBtn.style.boxShadow = '0 0 10px rgba(2,132,199,0.4)';
-                        var t = timeBtn.getAttribute('data-time') || timeBtn.textContent.trim();
-                        timeBtn.textContent = t + ' ✓';
-                        selectedTime = t;
-                    }
-
-                    var confirmBtn = e.target.closest('#mock-confirm-booking-btn');
-                    if (confirmBtn) {
-                        var calWrapper = document.getElementById('interactive-ghl-calendar');
-                        if (calWrapper) {
-                            calWrapper.innerHTML = '<div style="text-align: center; padding: 32px 14px; font-family: sans-serif;">' +
-                                '<div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; box-shadow: 0 0 24px rgba(16, 185, 129, 0.5);">🎉</div>' +
-                                '<h3 style="color: #fff; font-size: 1.4rem; font-weight: 800; margin-bottom: 8px;">Assessment Confirmed!</h3>' +
-                                '<p style="color: #38bdf8; font-weight: 700; font-size: 1rem; margin-bottom: 12px;">' + selectedDate + ' at ' + selectedTime + ' EST</p>' +
-                                '<p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin-bottom: 18px;">A calendar invite and SMS confirmation with your dedicated coach details have been dispatched to your phone.</p>' +
-                                '<div style="background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.35); border-radius: 12px; padding: 12px; color: #38bdf8; font-size: 0.8rem; text-align: left;">' +
-                                    '⚡ <strong>Live Demo:</strong> In your GoHighLevel CRM, this booking automatically moves the opportunity stage to <em>"Appointment Scheduled"</em> and activates the 24-Hour Reminder Sequence!' +
-                                '</div>' +
-                            '</div>';
-                        }
-                    }
-
-                    // Handle discrete step navigation links, action buttons, and bypass links
-                    var anchor = e.target.closest('a');
-                    var btn = e.target.closest('button, [role="button"], input[type="submit"], input[type="button"]');
-                    var targetEl = anchor || btn;
-                    if (targetEl) {
-                        var href = (anchor ? anchor.getAttribute('href') : '') || targetEl.getAttribute('data-step-target') || '';
-                        var stepMatch = href.match(/step[-_]?(\d+)/i);
-                        if (stepMatch) {
-                            e.preventDefault();
-                            window.switchStep(parseInt(stepMatch[1]));
-                            return;
+                        if (!target && typeof stepNum === 'string') {
+                            target = document.getElementById(stepNum) || document.querySelector(stepNum);
                         }
 
-                        // Determine current step of the clicked element
-                        var parentStep = targetEl.closest('.funnel-step, [id^="step-"], [id^="step_"], [id^="step"]');
-                        var currentStepNum = 1;
-                        if (parentStep && parentStep.id) {
-                            var numMatch = parentStep.id.match(/\d+/);
-                            if (numMatch) currentStepNum = parseInt(numMatch[0]);
-                        } else if (parentStep) {
-                            var allSteps = getFunnelSteps();
-                            var sIdx = allSteps.indexOf(parentStep);
-                            if (sIdx !== -1) currentStepNum = sIdx + 1;
-                        }
+                        if (target) {
+                            allSteps.forEach(function(s) {
+                                if (s !== target) {
+                                    s.classList.add('hidden');
+                                    s.style.display = 'none';
+                                }
+                            });
+                            target.classList.remove('hidden');
+                            target.style.display = 'block';
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
 
-                        var text = (targetEl.textContent || targetEl.value || '').trim().toLowerCase();
-
-                        // 1. Bypass / Skip / No Thanks (e.g. OTO Upsell)
-                        if (/no thanks|no, thanks|decline|skip|bypass|continue without/i.test(text) || (anchor && (href === '#' || href.endsWith('/#')) && /continue|skip|next|confirm|no/i.test(text))) {
-                            e.preventDefault();
-                            window.switchStep(currentStepNum + 1);
-                            return;
-                        }
-
-                        // 2. Upsell Accept ("Yes, Add Now", "Add To Order")
-                        if (/yes, add|add now|add to order|claim offer|upgrade my order|take this offer/i.test(text)) {
-                            e.preventDefault();
-                            window.switchStep(currentStepNum + 1);
-                            return;
-                        }
-
-                        // 3. 2-Step Order Form Sub-step Transition
-                        if (/continue to payment|proceed to payment|continue to checkout|proceed to checkout/i.test(text)) {
-                            var sub2 = parentStep ? parentStep.querySelector('#substep-2, #sub-step-2, #step-3-2, .payment-step, .card-details') : null;
-                            var sub1 = parentStep ? parentStep.querySelector('#substep-1, #sub-step-1, #step-3-1, .contact-step') : null;
-                            if (sub2 && sub1) {
-                                e.preventDefault();
-                                sub1.classList.add('hidden');
-                                sub1.style.setProperty('display', 'none', 'important');
-                                sub2.classList.remove('hidden');
-                                sub2.style.removeProperty('display');
-                                sub2.style.setProperty('display', 'block', 'important');
-                                return;
+                            var targetIdx = allSteps.indexOf(target);
+                            if (targetIdx !== -1) {
+                                window._currentStepNum = targetIdx + 1;
+                            } else if (typeof stepNum === 'number') {
+                                window._currentStepNum = stepNum;
                             }
-                            e.preventDefault();
-                            window.switchStep(currentStepNum + 1);
-                            return;
                         }
+                    };
 
-                        // 4. Checkout Place Order Button
-                        if (/complete purchase|place order|pay now|submit order|buy now|complete order/i.test(text)) {
-                            e.preventDefault();
-                            window.switchStep(currentStepNum + 1);
-                            return;
+                    // Initial isolation: ensure Step 1 is visible, all other steps hidden
+                    steps.forEach(function(el, idx) {
+                        if (idx === 0) {
+                            el.classList.remove('hidden');
+                            el.style.display = 'block';
+                        } else {
+                            el.classList.add('hidden');
+                            el.style.display = 'none';
                         }
+                    });
+                }
 
-                        // 5. Catch-all for hash links on progression buttons
-                        if (anchor && (href === '#' || href === 'javascript:void(0)' || href.endsWith('/#'))) {
-                            if (/continue|next|proceed|get|start|order|yes/i.test(text)) {
-                                e.preventDefault();
-                                window.switchStep(currentStepNum + 1);
-                                return;
-                            }
+                // Handle Form Submissions safely inside the sandbox iframe
+                document.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (isFunnel) {
+                        var onsubmitAttr = (e.target.getAttribute('onsubmit') || '');
+                        if (onsubmitAttr.includes('switchStep')) return;
+
+                        var allSteps = getFunnelSteps();
+                        var parentStep = e.target.closest('.funnel-step, [id^="step-"], [id^="step_"]');
+                        var cur = window._currentStepNum || 1;
+                        if (parentStep) {
+                            var idx = allSteps.indexOf(parentStep);
+                            if (idx !== -1) cur = idx + 1;
+                        }
+                        if (cur < allSteps.length) {
+                            window.switchStep(cur + 1);
+                        }
+                    } else {
+                        // Landing page form submission feedback
+                        var submitBtn = e.target.querySelector('button[type="submit"], input[type="submit"]');
+                        if (submitBtn) {
+                            var origText = submitBtn.innerHTML || submitBtn.value;
+                            submitBtn.innerHTML = '✓ Submitted Successfully!';
+                            setTimeout(function() { submitBtn.innerHTML = origText; }, 3000);
                         }
                     }
                 });
 
-                function initFormInterception() {
-                    var forms = document.querySelectorAll('form');
-                    forms.forEach(function(form) {
-                        form.addEventListener('submit', function(e) {
-                            e.preventDefault();
-                            
-                            var parentStep = form.closest('.funnel-step, [id^="step-"], [id^="step_"], [id^="step"]');
-                            var currentStepNum = 1;
-                            if (parentStep && parentStep.id) {
-                                var numMatch = parentStep.id.match(/\d+/);
-                                if (numMatch) currentStepNum = parseInt(numMatch[0]);
-                            }
-
-                            var phoneInput = form.querySelector('[name="phone"], [name="mobile"]');
-                            // If form is in Step 2+ or does not have a phone field, simply advance to next step!
-                            if (currentStepNum > 1 || !phoneInput) {
-                                var allSteps = getFunnelSteps();
-                                if (allSteps.length > 1) {
-                                    window.switchStep(currentStepNum + 1);
-                                    return;
-                                }
-                            }
-
-                            var fNameInput = form.querySelector('[name="first_name"], [name="name"], [name="full_name"]');
-                            var fName = (fNameInput && fNameInput.value) ? fNameInput.value.trim() : 'Valued Client';
-                            var phone = (phoneInput && phoneInput.value) ? phoneInput.value.trim() : 'your number';
-
-                            var brandEl = document.querySelector('.brand, .logo, h1');
-                            var brandName = brandEl ? brandEl.textContent.trim().substring(0, 30) : (document.title ? document.title.split(/[-|]/)[0].trim() : 'Our Specialist');
-
-                            var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-                            if (submitBtn) {
-                                submitBtn.disabled = true;
-                                submitBtn.innerHTML = '⚡ Connecting Call...';
-                            }
-
-                            setTimeout(function() {
-                                var formCard = form.closest('.glass-card, .glass-form-card') || form.parentElement;
-                                if (!formCard) return;
-
-                                var origFormHtml = formCard.innerHTML;
-
-                                formCard.innerHTML = '<div id="live-call-modal-card" style="text-align: center; padding: 22px 14px; font-family: system-ui, -apple-system, sans-serif; position: relative; animation: fadeIn 0.3s ease;">' +
-                                    '<style>' +
-                                    '@keyframes radarPulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 18px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }' +
-                                    '@keyframes slideInSms { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }' +
-                                    '</style>' +
-                                    '<button type="button" id="dismiss-call-x-btn" style="position: absolute; top: 10px; right: 12px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;" title="Overcome / Close Call">✕</button>' +
-                                    '<div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-size: 28px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; animation: radarPulse 2s infinite;" title="Active Outbound Callback">📞</div>' +
-                                    '<h3 style="color: #fff; font-size: 1.3rem; font-weight: 800; margin-bottom: 4px;">Priority Call Dispatched!</h3>' +
-                                    '<p style="color: #10b981; font-weight: 700; font-size: 0.9rem; margin-bottom: 12px;">⚡ ' + brandName + ' is dialing your phone right now</p>' +
-                                    
-                                    '<div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between;">' +
-                                        '<div style="text-align: left;"><span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Connecting In:</span><div style="font-size: 1.15rem; font-weight: 800; color: #10b981;" id="live-call-timer">00:30s</div></div>' +
-                                        '<div style="display: flex; gap: 4px; align-items: center;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; animation: radarPulse 1s infinite;"></span><span style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600;">Dialing Rep...</span></div>' +
-                                    '</div>' +
-
-                                    '<p style="color: #cbd5e1; font-size: 0.85rem; line-height: 1.45; margin-bottom: 14px;">Calling <strong>' + fName + '</strong> at <strong>' + phone + '</strong>. Please keep your line open!</p>' +
-
-                                    '<!-- HighLevel Instant SMS Badge -->' +
-                                    '<div style="background: rgba(18, 24, 38, 0.95); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 10px; padding: 10px 12px; text-align: left; margin-bottom: 16px; animation: slideInSms 0.35s ease;">' +
-                                        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">' +
-                                            '<span style="font-size: 0.72rem; font-weight: 700; color: #60a5fa; display: flex; align-items: center; gap: 4px;">💬 Instant SMS Dispatched (T+0s)</span>' +
-                                            '<span style="font-size: 0.68rem; color: #94a3b8;">Just Now</span>' +
-                                        '</div>' +
-                                        '<p style="font-size: 0.78rem; color: #f8fafc; line-height: 1.35; margin: 0;">"Hey ' + fName + '! This is your representative from ' + brandName + '. Calling you now for your consultation."</p>' +
-                                    '</div>' +
-
-                                    '<!-- USER OVERCOME & BYPASS ACTION OPTIONS -->' +
-                                    '<div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; margin-bottom: 12px;">' +
-                                        '<div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Choose What To Do:</div>' +
-                                        '<button type="button" id="overcome-skip-next-btn" style="width: 100%; background: linear-gradient(135deg, #0ea5e9, #2563eb); border: none; color: #fff; padding: 11px 14px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer; margin-bottom: 8px; box-shadow: 0 4px 14px rgba(14,165,233,0.35); transition: transform 0.15s;">⏩ Skip Call & Continue to Next Step ➔</button>' +
-                                        '<div style="display: flex; gap: 8px;">' +
-                                            '<button type="button" id="overcome-cal-btn" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 8px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">📅 Pick Calendar Slot</button>' +
-                                            '<button type="button" id="overcome-dismiss-btn" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 8px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.15s;">✕ Dismiss Call</button>' +
-                                        '</div>' +
-                                    '</div>' +
-
-                                    '<div style="font-size: 0.74rem; color: #94a3b8;">' +
-                                        '<span>CRM Automation: <strong style="color: #10b981;">Lead Captured</strong> • Status: <strong>Callback Active</strong></span>' +
-                                    '</div>' +
-                                '</div>';
-
-                                var timeLeft = 30;
-                                var callTimerInterval = setInterval(function() {
-                                    timeLeft--;
-                                    var timerEl = document.getElementById('live-call-timer');
-                                    if (timerEl) {
-                                        timerEl.textContent = '00:' + (timeLeft < 10 ? '0' : '') + timeLeft + 's';
-                                        if (timeLeft <= 0) {
-                                            clearInterval(callTimerInterval);
-                                            timerEl.textContent = 'Connected!';
-                                            timerEl.style.color = '#38bdf8';
-                                        }
-                                    } else {
-                                        clearInterval(callTimerInterval);
-                                    }
-                                }, 1000);
-
-                                function stopCallTimer() {
-                                    clearInterval(callTimerInterval);
-                                }
-
-                                // 1. Option: Skip Call & Continue to Next Step (Overcome action)
-                                var skipNextBtn = document.getElementById('overcome-skip-next-btn');
-                                if (skipNextBtn) {
-                                    skipNextBtn.addEventListener('click', function() {
-                                        stopCallTimer();
-                                        var allSteps = getFunnelSteps();
-                                        if (allSteps.length > 1 && typeof window.switchStep === 'function') {
-                                            window.switchStep(currentStepNum + 1);
-                                        } else {
-                                            formCard.innerHTML = '<div style="padding: 20px; text-align: center; font-family: sans-serif; animation: fadeIn 0.3s ease;">' +
-                                                '<div style="font-size: 32px; margin-bottom: 8px;">✅</div>' +
-                                                '<h3 style="color: #fff; font-size: 1.25rem; font-weight: 700; margin-bottom: 6px;">Details Confirmed!</h3>' +
-                                                '<p style="color: #cbd5e1; font-size: 0.85rem; margin-bottom: 14px;">Call bypassed. Your information has been securely received by ' + brandName + '.</p>' +
-                                                '<div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 10px; color: #10b981; font-size: 0.8rem; font-weight: 600;">✓ Next step activated in CRM</div>' +
-                                            '</div>';
-                                        }
-                                    });
-                                }
-
-                                // 2. Option: Pick a Specific Time on Calendar
-                                var calBtn = document.getElementById('overcome-cal-btn');
-                                if (calBtn) {
-                                    calBtn.addEventListener('click', function() {
-                                        stopCallTimer();
-                                        formCard.innerHTML = '<div style="text-align: left; animation: fadeIn 0.35s ease; font-family: sans-serif;">' +
-                                            '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 12px; border-radius: 8px; color: #10b981; font-size: 0.8rem; font-weight: 700;">' +
-                                                '<span>✓ Call Bypassed — Select Your Preferred Slot for ' + fName + '</span>' +
-                                            '</div>' +
-                                            '<h3 style="color: #fff; font-size: 1.2rem; font-weight: 700; margin-bottom: 4px;">Select Consultation Date & Time</h3>' +
-                                            '<p style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 12px;">Choose a 15-minute slot with ' + brandName + ':</p>' +
-                                            '<div id="interactive-ghl-calendar" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 14px; color: #fff; text-align: center;">' +
-                                                '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 12px; font-size: 0.78rem;">' +
-                                                    '<span style="color: #94a3b8; font-weight: 600;">M</span><span style="color: #94a3b8; font-weight: 600;">T</span><span style="color: #94a3b8; font-weight: 600;">W</span><span style="color: #94a3b8; font-weight: 600;">T</span><span style="color: #94a3b8; font-weight: 600;">F</span><span style="color: #94a3b8; font-weight: 600;">S</span><span style="color: #94a3b8; font-weight: 600;">S</span>' +
-                                                    '<button type="button" class="mock-date-btn" data-date="Oct 14" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">14</button>' +
-                                                    '<button type="button" class="mock-date-btn" data-date="Oct 15" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">15</button>' +
-                                                    '<button type="button" class="mock-date-btn" data-date="Oct 16" style="padding: 6px 3px; border-radius: 6px; background: #0284c7; border: 1px solid #38bdf8; color: #fff; font-weight: 700; cursor: pointer;">16</button>' +
-                                                    '<button type="button" class="mock-date-btn" data-date="Oct 17" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">17</button>' +
-                                                    '<button type="button" class="mock-date-btn" data-date="Oct 18" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">18</button>' +
-                                                    '<button type="button" class="mock-date-btn" data-date="Oct 19" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">19</button>' +
-                                                    '<button type="button" class="mock-date-btn" data-date="Oct 20" style="padding: 6px 3px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">20</button>' +
-                                                '</div>' +
-                                                '<div style="font-size: 0.78rem; color: #cbd5e1; margin-bottom: 8px; text-align: left;">Available Times (EST):</div>' +
-                                                '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px;">' +
-                                                    '<button type="button" class="mock-time-btn" data-time="09:30 AM" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">09:30 AM</button>' +
-                                                    '<button type="button" class="mock-time-btn" data-time="02:00 PM" style="background: #0284c7; border: 1px solid #38bdf8; color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.8rem;">02:00 PM ✓</button>' +
-                                                '</div>' +
-                                                '<button type="button" id="mock-confirm-booking-btn" style="width: 100%; background: linear-gradient(135deg, #0ea5e9, #2563eb); border: none; color: #fff; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer;">Confirm Appointment ➔</button>' +
-                                            '</div>' +
-                                        '</div>';
-                                    });
-                                }
-
-                                // 3. Option: Dismiss Call (✕ Dismiss)
-                                function handleDismiss() {
-                                    stopCallTimer();
-                                    formCard.innerHTML = '<div style="padding: 18px; text-align: center; font-family: sans-serif; animation: fadeIn 0.3s ease;">' +
-                                        '<div style="font-size: 26px; margin-bottom: 6px;">✓</div>' +
-                                        '<h4 style="color: #fff; font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">Callback Dismissed</h4>' +
-                                        '<p style="color: #cbd5e1; font-size: 0.82rem; margin-bottom: 12px;">Your contact details were recorded. Our team will contact you at a convenient time.</p>' +
-                                        '<button type="button" id="restore-form-btn" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; padding: 6px 14px; border-radius: 6px; font-size: 0.78rem; cursor: pointer;">Back to Form</button>' +
-                                    '</div>';
-                                    var restoreBtn = document.getElementById('restore-form-btn');
-                                    if (restoreBtn) {
-                                        restoreBtn.addEventListener('click', function() {
-                                            formCard.innerHTML = origFormHtml;
-                                        });
-                                    }
-                                }
-
-                                var dismissBtn = document.getElementById('overcome-dismiss-btn');
-                                var dismissXBtn = document.getElementById('dismiss-call-x-btn');
-                                if (dismissBtn) dismissBtn.addEventListener('click', handleDismiss);
-                                if (dismissXBtn) dismissXBtn.addEventListener('click', handleDismiss);
-                            }, 500);
+                // Global Click Interceptor for Sandboxed Iframe (prevents reload / hash reset)
+                document.addEventListener('click', function(e) {
+                    // Mock Calendar date/time selection
+                    var dateBtn = e.target.closest('.mock-date-btn');
+                    if (dateBtn) {
+                        document.querySelectorAll('.mock-date-btn').forEach(function(b) {
+                            b.style.background = 'rgba(255,255,255,0.04)';
+                            b.style.color = '#cbd5e1';
+                            b.style.fontWeight = 'normal';
+                            b.style.boxShadow = 'none';
                         });
-                    });
+                        dateBtn.style.background = '#0284c7';
+                        dateBtn.style.color = '#fff';
+                        dateBtn.style.fontWeight = 'bold';
+                        dateBtn.style.boxShadow = '0 0 10px rgba(2,132,199,0.5)';
+                    }
+                    var timeBtn = e.target.closest('.mock-time-btn');
+                    if (timeBtn) {
+                        document.querySelectorAll('.mock-time-btn').forEach(function(b) {
+                            b.style.background = 'rgba(255,255,255,0.06)';
+                            b.style.color = '#fff';
+                            b.style.fontWeight = 'normal';
+                            b.style.boxShadow = 'none';
+                            b.textContent = b.getAttribute('data-time') || b.textContent.replace('✓', '').trim();
+                        });
+                        timeBtn.style.background = '#0284c7';
+                        timeBtn.style.fontWeight = 'bold';
+                        timeBtn.style.boxShadow = '0 0 10px rgba(2,132,199,0.4)';
+                        var t = timeBtn.getAttribute('data-time') || timeBtn.textContent.trim();
+                        timeBtn.textContent = t + ' ✓';
+                    }
+                    var confirmBtn = e.target.closest('#mock-confirm-booking-btn');
+                    if (confirmBtn) {
+                        var calWrapper = document.getElementById('interactive-ghl-calendar');
+                        if (calWrapper) {
+                            calWrapper.innerHTML = '<div style="text-align: center; padding: 24px; font-family: sans-serif;">' +
+                                '<div style="font-size: 32px; margin-bottom: 12px;">🎉</div>' +
+                                '<h3 style="color: #fff; font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;">Assessment Confirmed!</h3>' +
+                                '<p style="color: #38bdf8; font-weight: 600; font-size: 0.9rem; margin-bottom: 8px;">Your appointment has been registered in GoHighLevel CRM.</p>' +
+                                '<p style="color: #94a3b8; font-size: 0.8rem;">A confirmation SMS and calendar invite have been dispatched.</p>' +
+                            '</div>';
+                        }
+                    }
 
-                    // Initial enforcement of step isolation
-                    enforceStepIsolation();
-                }
+                    var anchor = e.target.closest('a');
+                    var btn = e.target.closest('button, [role="button"], input[type="submit"], input[type="button"]');
+                    var targetEl = anchor || btn;
+                    if (!targetEl) return;
 
-                if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initFormInterception);
-                } else {
-                    initFormInterception();
-                }
-                window.addEventListener('load', enforceStepIsolation);
+                    var href = anchor ? (anchor.getAttribute('href') || '') : '';
+                    var isHashOrEmpty = href === '#' || href === '' || href === 'javascript:void(0)' || href.startsWith('#') || href.includes('#');
+
+                    // Stop dead anchors from reloading or navigating iframe away
+                    if (anchor && isHashOrEmpty) {
+                        e.preventDefault();
+                    }
+
+                    if (!isFunnel) return;
+
+                    // If anchor specifies a step target like href="#step-3" or data-step-target="3"
+                    var stepTargetAttr = targetEl.getAttribute('data-step-target') || '';
+                    var stepMatch = href.match(/step[-_]?(\d+)/i) || stepTargetAttr.match(/step[-_]?(\d+)/i);
+                    if (stepMatch) {
+                        window.switchStep(parseInt(stepMatch[1], 10));
+                        return;
+                    }
+
+                    // 2-Step Order Form Substep Toggle
+                    var text = (targetEl.textContent || targetEl.value || '').trim().toLowerCase();
+                    if (/continue to payment|proceed to payment|continue to checkout|proceed to checkout/i.test(text)) {
+                        var parentStep = targetEl.closest('.funnel-step, [id^="step-"], [id^="step_"]');
+                        var sub2 = parentStep ? parentStep.querySelector('#substep-2, #sub-step-2, #step-3-2, .payment-step, .card-details') : null;
+                        var sub1 = parentStep ? parentStep.querySelector('#substep-1, #sub-step-1, #step-3-1, .contact-step') : null;
+                        if (sub2 && sub1) {
+                            sub1.classList.add('hidden');
+                            sub1.style.display = 'none';
+                            sub2.classList.remove('hidden');
+                            sub2.style.display = 'block';
+                            return;
+                        }
+                    }
+
+                    // If button has an inline onclick (e.g. switchStep(3)), let it run without interference
+                    var onclickAttr = targetEl.getAttribute('onclick') || '';
+                    if (onclickAttr.includes('switchStep')) {
+                        return;
+                    }
+
+                    // For progression buttons without an inline onclick (Next, Continue, Yes Add Now, No Thanks, Complete Order)
+                    var isProgression = /next|continue|proceed|complete|start|order|yes|claim|book|schedule|get|add now|no thanks|skip|bypass/i.test(text);
+                    if (isProgression) {
+                        var allSteps = getFunnelSteps();
+                        var parentStep = targetEl.closest('.funnel-step, [id^="step-"], [id^="step_"]');
+                        var cur = window._currentStepNum || 1;
+                        if (parentStep) {
+                            var idx = allSteps.indexOf(parentStep);
+                            if (idx !== -1) cur = idx + 1;
+                        }
+                        // Only advance if there is a next step! Never loop past the last step!
+                        if (cur < allSteps.length) {
+                            window.switchStep(cur + 1);
+                        }
+                    }
+                });
             })();
             <\/script>
             `;
