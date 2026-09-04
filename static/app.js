@@ -1115,8 +1115,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Inject Live Preview form submit & calendar click interceptor
             const formInterceptScript = `
+            <style>
+                .hidden { display: none !important; }
+            </style>
             <script>
             (function() {
+                function getFunnelSteps() {
+                    var steps = Array.from(document.querySelectorAll('.funnel-step, [id^="step-"], [id^="step_"], [id^="step"], [data-step]'));
+                    if (steps.length <= 1) {
+                        var namedSections = Array.from(document.querySelectorAll('main > section, main > div, body > section, body > div[id]')).filter(function(s) {
+                            var id = (s.id || '').toLowerCase();
+                            var cls = (s.className || '').toLowerCase();
+                            return /step|optin|lead|vsl|video|order|checkout|cart|upsell|oto|thank|confirm/.test(id + ' ' + cls);
+                        });
+                        if (namedSections.length > 1) {
+                            steps = namedSections;
+                        }
+                    }
+                    return steps;
+                }
+
+                function enforceStepIsolation() {
+                    var steps = getFunnelSteps();
+                    if (steps.length > 1) {
+                        steps.forEach(function(el, idx) {
+                            if (idx > 0) {
+                                el.classList.add('hidden');
+                                el.style.setProperty('display', 'none', 'important');
+                            } else {
+                                el.classList.remove('hidden');
+                                el.style.removeProperty('display');
+                                el.style.display = 'block';
+                            }
+                        });
+                    }
+                }
+
+                window.switchStep = function(stepNum) {
+                    var steps = getFunnelSteps();
+                    steps.forEach(function(s) {
+                        s.classList.add('hidden');
+                        s.style.setProperty('display', 'none', 'important');
+                    });
+                    var target = document.getElementById('step-' + stepNum) || 
+                                 document.getElementById('step_' + stepNum) || 
+                                 document.getElementById('step' + stepNum);
+                    if (!target && typeof stepNum === 'number' && steps[stepNum - 1]) {
+                        target = steps[stepNum - 1];
+                    }
+                    if (!target && typeof stepNum === 'string') {
+                        target = document.getElementById(stepNum) || document.querySelector(stepNum);
+                    }
+                    if (target) {
+                        target.classList.remove('hidden');
+                        target.style.removeProperty('display');
+                        target.style.display = 'block';
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                };
+
+                // Run step isolation immediately
+                enforceStepIsolation();
+
                 var selectedDate = 'Oct 16';
                 var selectedTime = '02:00 PM';
 
@@ -1175,9 +1235,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             '</div>';
                         }
                     }
+
+                    // Handle discrete step navigation links and buttons
+                    var stepLink = e.target.closest('a[href*="step-"], a[href*="step_"], a[href*="step"], [data-step-target]');
+                    if (stepLink) {
+                        var href = stepLink.getAttribute('data-step-target') || stepLink.getAttribute('href') || '';
+                        var match = href.match(/step[-_]?(\d+)/i);
+                        if (match) {
+                            e.preventDefault();
+                            window.switchStep(parseInt(match[1]));
+                            return;
+                        }
+                    }
                 });
 
-                document.addEventListener('DOMContentLoaded', function() {
+                function initFormInterception() {
                     var forms = document.querySelectorAll('form');
                     forms.forEach(function(form) {
                         form.addEventListener('submit', function(e) {
@@ -1277,7 +1349,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (skipNextBtn) {
                                     skipNextBtn.addEventListener('click', function() {
                                         stopCallTimer();
-                                        if (typeof window.switchStep === 'function') {
+                                        var allSteps = getFunnelSteps();
+                                        if (allSteps.length > 1 && typeof window.switchStep === 'function') {
                                             window.switchStep(currentStepNum + 1);
                                         } else {
                                             formCard.innerHTML = '<div style="padding: 20px; text-align: center; font-family: sans-serif; animation: fadeIn 0.3s ease;">' +
@@ -1347,7 +1420,17 @@ document.addEventListener('DOMContentLoaded', () => {
                             }, 500);
                         });
                     });
-                });
+
+                    // Initial enforcement of step isolation
+                    enforceStepIsolation();
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initFormInterception);
+                } else {
+                    initFormInterception();
+                }
+                window.addEventListener('load', enforceStepIsolation);
             })();
             <\/script>
             `;

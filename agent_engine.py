@@ -989,7 +989,34 @@ CRITICAL PRIME DIRECTIVES:
    • NEVER label every file as generic "landing_page.html".
    • Include a matching, descriptive <title> (e.g. <title>BrightSmile Dental Care Funnel</title>) and top comment <!-- filename: descriptive_name.html -->.
 
-3. CLEAN & COMPLETE FEATURE REMOVAL (e.g. INBOUND CALL, PHONE INPUT, TOP BANNER, SECTION):
+3. STRICT DISCRETE STEP NAVIGATION (NO VERTICAL SCROLLING ACROSS STEPS):
+   • A funnel MUST NEVER render all steps stacked vertically one below another down the page! The user must NEVER be able to scroll down to see the next page (VSL, Order Form, Upsell, Thank You).
+   • ONLY Step 1 (`<div id="step-1" class="funnel-step">...</div>`) is visible on initial load!
+   • Steps 2, 3, 4, 5+ MUST be completely hidden initially:
+     `<div id="step-2" class="funnel-step hidden" style="display:none;">...</div>`
+     `<div id="step-3" class="funnel-step hidden" style="display:none;">...</div>`
+     `<div id="step-4" class="funnel-step hidden" style="display:none;">...</div>`
+     `<div id="step-5" class="funnel-step hidden" style="display:none;">...</div>`
+   • The ONLY way to see the next page is when the user clicks the CTA button or submits a form, which triggers `switchStep(n)`.
+   • Under `<style>`, you MUST include: `.hidden {{ display: none !important; }}`.
+   • Under `<script>`, you MUST include:
+     ```javascript
+     function switchStep(stepNum) {{
+       document.querySelectorAll('.funnel-step').forEach(function(el) {{
+         el.classList.add('hidden');
+         el.style.display = 'none';
+       }});
+       var target = document.getElementById('step-' + stepNum);
+       if (target) {{
+         target.classList.remove('hidden');
+         target.style.display = 'block';
+         window.scrollTo({{ top: 0, behavior: 'smooth' }});
+       }}
+     }}
+     ```
+   • Every CTA button or form submission MUST cleanly call `switchStep(nextStepNumber)`.
+
+4. CLEAN & COMPLETE FEATURE REMOVAL (e.g. INBOUND CALL, PHONE INPUT, TOP BANNER, SECTION):
    • When the user asks to REMOVE any feature, element, step, or text (for example: "remove inbound call", "remove phone field", "remove top bar", "remove extra text", "remove video section"):
      - You must THOROUGHLY and CLEANLY REMOVE that item completely from the HTML markup.
      - REMOVE any related JavaScript logic, countdown timers, event listeners, variables, or functions associated with that feature.
@@ -998,14 +1025,14 @@ CRITICAL PRIME DIRECTIVES:
      - NEVER leave orphaned empty containers, broken references, or half-deleted markup.
      - Output the clean, fully functional single file with the feature completely excised.
 
-4. STRICT PRESERVATION OF REMAINING DESIGN & STRUCTURE 100%:
+5. STRICT PRESERVATION OF REMAINING DESIGN & STRUCTURE 100%:
    • The user ALREADY LIKES their current design ("otherwise the funnel is good looking and working fine").
    • You MUST PRESERVE the exact same layout structure, split cards, color theme, typography, hierarchy, and copy that the user did NOT ask to change.
    • DO NOT invent a new design, DO NOT switch a split dark/light card layout to a full dark page, and DO NOT replace the UI with a different template.
    • Ensure all CTA buttons are prominent, high-contrast, and fully visible without clipping.
    • Implement the requested changes EXACTLY as instructed ("jesi kahi jaye wesi kr k de"), modifying only what was asked.
 
-5. RESPONSE STRUCTURE:
+6. RESPONSE STRUCTURE:
    PART 1: UPDATED COMPLETE SINGLE CODE FILE
    • Provide the full, clean, working code in ONE single code block (```html:descriptive_funnel_name.html ... ```).
    • Start cleanly with <!DOCTYPE html> with ZERO preamble text, no markdown handover quotes, and no broken wrappers.
@@ -1035,8 +1062,33 @@ Output all 5 sections in this exact order with ZERO preamble text:
 1. Complete Single-File HTML App (```html:descriptive_funnel_name.html <!DOCTYPE html> ... </html>```)
    • STRICT SINGLE CODE FILE: You must generate STRICTLY ONE complete, self-contained code file in a single code block. NEVER split into multiple files or multiple code blocks (such as index.html, style.css, script.js). Everything must be inside this single file.
    • ACCORDING FILE NAMING: Name the file accurately according to the user's brand and niche (e.g. `brightsmile_dental_funnel.html`, `apex_gym_funnel.html`, `ecommerce_sales_funnel.html`). NEVER label every file as generic `landing_page.html`. Always include descriptive `<title>Brand Name - Purpose</title>` and `<!-- filename: [descriptive_name].html -->`.
+   • STRICT DISCRETE STEP NAVIGATION (NO VERTICAL SCROLLING ACROSS STEPS):
+     - Funnels MUST operate as discrete, separate pages/steps. NEVER stack steps vertically down one long page! The user must NEVER be able to scroll down to see Step 2, Step 3, Step 4, or Step 5.
+     - ONLY Step 1 (`<div id="step-1" class="funnel-step">...</div>`) is visible on initial load!
+     - Every subsequent step MUST have `class="funnel-step hidden" style="display:none;"` hardcoded so they are completely hidden on initial load:
+       `<div id="step-2" class="funnel-step hidden" style="display:none;">...</div>`
+       `<div id="step-3" class="funnel-step hidden" style="display:none;">...</div>`
+       `<div id="step-4" class="funnel-step hidden" style="display:none;">...</div>`
+       `<div id="step-5" class="funnel-step hidden" style="display:none;">...</div>`
+     - Advancing to the next step MUST ONLY happen when the user clicks a CTA button (e.g. `onclick="switchStep(2)"`) or submits a step form.
+     - In `<style>`, you MUST include: `.hidden {{ display: none !important; }}`.
+     - In `<script>`, you MUST include the complete navigation function:
+       ```javascript
+       function switchStep(stepNum) {{
+         document.querySelectorAll('.funnel-step').forEach(function(el) {{
+           el.classList.add('hidden');
+           el.style.display = 'none';
+         }});
+         var target = document.getElementById('step-' + stepNum);
+         if (target) {{
+           target.classList.remove('hidden');
+           target.style.display = 'block';
+           window.scrollTo({{ top: 0, behavior: 'smooth' }});
+         }}
+       }}
+       ```
+     - Make sure every CTA button has `onclick="switchStep(n)"` or the form submit handler calls `switchStep(n)`.
    • Use Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com"></script>`) with utility classes.
-   • ALL funnel steps MUST be fully built inside this ONE file with interactive JavaScript tab navigation (`switchStep(n)`).
    • Fully build EVERY step with real high-converting copy, real inputs, real CTA buttons:
      - Step 1: Opt-In (Hero, benefit bullets, lead form with real client-side validation for name, email, and valid E.164 phone).
      - Step 2: VSL Video Room (Real `<video>` element or custom HTML5 player with play/pause controls, real `timeupdate` event listener in JavaScript that computes exact percentage watched, and fires an event at 80% mark to trigger the CTA and log the progress).
