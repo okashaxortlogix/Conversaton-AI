@@ -1,0 +1,16 @@
+{
+  "muhammad.okasha2146@gmail.com": {
+    "email": "muhammad.okasha2146@gmail.com",
+    "password": "okashaadmin",
+    "name": "Muhammad Okasha",
+    "role": "Master Admin",
+    "avatar": "\ud83d\udc51"
+  },
+  "test@gmail.com": {
+    "email": "test@gmail.com",
+    "password": "12345678",
+    "name": "Test User",
+    "role": "Member",
+    "avatar": "\ud83d\udc64"
+  }
+}
