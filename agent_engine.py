@@ -914,6 +914,56 @@ DIRECT WRITING STYLE MANDATE:
 
 5. ZERO DUPLICATION & SINGLE-PASS DELIVERY:
    - NEVER repeat the same solution, payload, or endpoint twice in a single response.
+
+=============================================================================
+GOHIGHLEVEL (GHL) NATIVE FUNNEL & LANDING PAGE DEVELOPMENT RULES
+=============================================================================
+THE GOLDEN PRINCIPLE:
+"Use GoHighLevel's native elements and widgets whenever the required functionality/design can be achieved natively. Use custom HTML/CSS/JS only when necessary."
+The final result must look professional, modern, and conversion-focused while remaining easy to edit, maintain, and customize inside the GHL drag-and-drop builder.
+
+1. PRIMARY DEVELOPMENT PRIORITY:
+   • Priority 1 — GHL Native Elements: Navigation/Menu widget, Button element, Form widget, Calendar widget, Text element, Image element, Video element, Rows/Columns, FAQ Accordion, Countdown, Checkout/Order elements.
+   • Priority 2 — GHL Styling Controls: Typography, font sizes, weights, colors, backgrounds, borders, shadows, padding, margins, alignment, width/height, responsive controls. (DO NOT write custom CSS if GHL styling can achieve it natively).
+   • Priority 3 — Custom CSS: Only when native styling cannot achieve it; minimal, clean, scoped (e.g. `.custom-testimonial-grid`, NEVER generic `div` or `button`).
+   • Priority 4 — Custom JavaScript: Only when absolutely necessary; never recreate GHL native functionality.
+
+2. NEVER RECREATE NATIVE GHL COMPONENTS WITH CODE:
+   • ❌ Do NOT create `<a class="custom-button">` if a GHL native button can be used.
+   • ❌ Do NOT create custom HTML navigation bars if GHL Navigation widget can handle it.
+   • ❌ Do NOT create custom HTML forms if GHL Form widget can handle it.
+   • ❌ Do NOT create custom calendar embeds if GHL Calendar widget can handle it.
+   • ❌ Do NOT create custom checkout components if GHL native checkout is available.
+
+3. NATIVE-FIRST IMPLEMENTATION RULE:
+   Before implementing every component, ask:
+   1. Can this be built using an existing GHL element/widget? If YES -> Use GHL native functionality.
+   2. Can this be achieved using GHL's built-in styling/layout controls? If YES -> Use native GHL styling.
+   Only if both are NO should custom code be used.
+   Aim for 80–95% native GHL implementation whenever practical, with custom code only for gaps.
+
+4. LANDING PAGE & FUNNEL STRUCTURE:
+   Page -> Section -> Row -> Column -> Native GHL Elements.
+   Clean, understandable GHL hierarchy that any user can edit in the GHL drag-and-drop builder.
+
+5. RESPONSIVE DESIGN SPECIFICATIONS:
+   • Desktop: 1440px, 1280px, 1024px
+   • Tablet: 768px
+   • Mobile: 430px, 390px, 375px
+   Use GHL's native responsive controls. Keep custom CSS media queries minimal and targeted.
+
+6. BUTTON RULE: Native GHL Button element with high contrast, clear CTA, and mobile width configured.
+7. NAVIGATION RULE: Native GHL Navigation/Menu widget with logo, navigation links, and primary CTA.
+8. FORM RULE: Native GHL Form widget with native fields, tagged, connected to workflow and validation.
+9. CALENDAR RULE: Native GHL Calendar widget connected to availability and confirmation automation.
+10. FUNNEL ARCHITECTURE: Traffic -> Landing Page -> Opt-In -> VSL/Sales -> Booking/Checkout -> Upsell -> Thank You -> Follow-up Automation.
+11. GHL CRM CONNECTION: Complete workflow mapping with Contact creation, custom fields, tags, pipeline stages, opportunities, and speed-to-lead follow-up automation.
+12. AI / DEVELOPER MANDATE:
+    Do NOT interpret "make it in HTML/CSS" as "build the entire page from scratch using HTML and CSS".
+    Instead interpret it as: "Use HTML/CSS only for the parts that GHL cannot build natively."
+    The final funnel must feel like a properly built GoHighLevel funnel that the client can open in the GHL builder to change headlines, text, images, buttons, and colors without needing a developer!
+    FINAL RULE: Native GHL First. Native GHL Styling Second. Custom CSS Third. Custom JavaScript Last.
+    Build for: Conversion + Maintainability + GHL Compatibility + Responsiveness + Simplicity.
 """
 
         tool_block = ""
@@ -1090,8 +1140,11 @@ Output all 5 sections in this exact order with ZERO preamble text:
    • Use Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com"></script>`) with utility classes.
    • Code MUST be 100% complete and self-contained from `<!DOCTYPE html>` to `</html>` without truncation or placeholders.
 
-2. Landing Page Copywriting Strategy & Conversion Architecture (Compact Markdown Breakdown)
+2. GoHighLevel Native Page Hierarchy & Conversion Blueprint (80–95% Native GHL Elements)
    • Value Proposition, Target Audience Hook, Differentiators, and Primary CTA Action.
+   • GHL Native Element & Layout Hierarchy Table:
+     - Section Name | GHL Section/Row Structure | Native GHL Element/Widget (Navigation, Heading, Button, Form, Video, FAQ Accordion) | Native Styling Controls
+     - Explain how to configure each section natively in GHL drag-and-drop builder so non-technical clients can edit headlines, images, buttons, and forms without touching code.
 
 3. HighLevel Form, Pipeline Stages, Custom Fields & Tags (Compact Markdown Tables)
    • Pipeline Stages: Order | Stage Name | Exact Entry Trigger | Exit / Win Condition
@@ -1101,9 +1154,9 @@ Output all 5 sections in this exact order with ZERO preamble text:
 4. Automated Speed-to-Lead Follow-up & Confirmation Workflow
    • Complete workflow with triggers, timing, and full SMS/Email copy.
 
-5. HighLevel Website/Funnel Embedding & Deployment Guide
-   • How to import this single-page landing page into GoHighLevel (Custom HTML element vs Page Builder).
-   • Form webhook connection and lead notification setup.
+5. HighLevel Website/Funnel Native Implementation & Deployment Guide
+   • Native Builder vs Custom Code: How to build with 80–95% native GHL elements, and how to embed custom interactive visual effects into GHL's Custom Code element.
+   • Form webhook connection, workflow triggers, and lead notification setup.
 
 DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
 {tool_block}
@@ -1165,8 +1218,10 @@ Output all 5 sections in this exact order with ZERO preamble text:
      - Step 5: Thank You Page Container `<div id="step-5" class="funnel-step hidden" style="display:none;">` (Access credentials notice, instant onboarding schedule calendar embed placeholder, community link).
    • Code MUST be 100% complete and self-contained from `<!DOCTYPE html>` to `</html>` without truncation or placeholders.
 
-2. Funnel Step Map & URLs (Compact Markdown Table)
-   • Columns: Step # | Step Name | Path/Slug | Page Type | Primary CTA / Action | Next Step Trigger
+2. GoHighLevel Native Funnel Step Blueprint & URL Map (80–95% Native GHL Elements)
+   • Funnel Step Hierarchy Table:
+     - Step # | Step Name | Path/Slug | Page Type | GHL Native Section & Row Layout | Native GHL Widget/Element (Form Widget, Video, 2-Step Order Form, 1-Click Upsell, Calendar) | Native Styling Controls
+   • Detail how each step is built natively in GHL's drag-and-drop builder so the client can easily modify copy, images, prices, and buttons without needing a developer.
 
 3. HighLevel Pipeline Stages, Custom Fields & Tags (Compact Markdown Tables)
    • Pipeline Stages: Order | Stage Name | Exact Entry Trigger | Exit / Win Condition
@@ -1182,12 +1237,13 @@ Output all 5 sections in this exact order with ZERO preamble text:
    • WORKFLOW 4: Core Purchase & OTO Fulfillment (Payment triggers for exact core price and exact OTO price, tag management, custom fields)
    • WORKFLOW 5: Dual-Event Onboarding Activation (Appointment Confirmed + Portal Access)
 
-5. Post-Funnel Implementation & Deployment Walkthrough
+5. Post-Funnel Native GHL Implementation & Deployment Walkthrough
    • Provide the user with a clear, step-by-step technical implementation guide explaining:
-     - How to import this single-file funnel into GoHighLevel (Custom Code / HTML element vs Funnel Builder).
+     - How to build natively in GoHighLevel's Funnel Builder (80–95% Native Elements: native buttons, forms, 2-step checkout, calendars) vs Custom Code embed.
      - How to connect Stripe in HighLevel Sub-Account (Settings ➔ Payments ➔ Integrations).
      - How to set up the Inbound Webhook for VSL 80% watch tracking.
      - How to test the 2-step order form and verify cart abandonment in HighLevel.
+     - Mobile-First Audit Checklist: Verifying native responsive controls on Desktop (1440px/1280px), Tablet (768px), and Mobile (430px/375px).
 
 DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
 {tool_block}
