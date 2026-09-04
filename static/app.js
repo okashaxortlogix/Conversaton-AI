@@ -1117,6 +1117,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const formInterceptScript = `
             <style>
                 .hidden { display: none !important; }
+                .funnel-step:not(:first-of-type),
+                [id^="step-"]:not(#step-1),
+                [id^="step_"]:not(#step_1),
+                [id^="step"]:not(#step1):not(#step-1) {
+                    display: none;
+                }
             </style>
             <script>
             (function() {
@@ -1145,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             } else {
                                 el.classList.remove('hidden');
                                 el.style.removeProperty('display');
-                                el.style.display = 'block';
+                                el.style.setProperty('display', 'block', 'important');
                             }
                         });
                     }
@@ -1169,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (target) {
                         target.classList.remove('hidden');
                         target.style.removeProperty('display');
-                        target.style.display = 'block';
+                        target.style.setProperty('display', 'block', 'important');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 };
@@ -1236,15 +1242,79 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
-                    // Handle discrete step navigation links and buttons
-                    var stepLink = e.target.closest('a[href*="step-"], a[href*="step_"], a[href*="step"], [data-step-target]');
-                    if (stepLink) {
-                        var href = stepLink.getAttribute('data-step-target') || stepLink.getAttribute('href') || '';
-                        var match = href.match(/step[-_]?(\d+)/i);
-                        if (match) {
+                    // Handle discrete step navigation links, action buttons, and bypass links
+                    var anchor = e.target.closest('a');
+                    var btn = e.target.closest('button, [role="button"], input[type="submit"], input[type="button"]');
+                    var targetEl = anchor || btn;
+                    if (targetEl) {
+                        var href = (anchor ? anchor.getAttribute('href') : '') || targetEl.getAttribute('data-step-target') || '';
+                        var stepMatch = href.match(/step[-_]?(\d+)/i);
+                        if (stepMatch) {
                             e.preventDefault();
-                            window.switchStep(parseInt(match[1]));
+                            window.switchStep(parseInt(stepMatch[1]));
                             return;
+                        }
+
+                        // Determine current step of the clicked element
+                        var parentStep = targetEl.closest('.funnel-step, [id^="step-"], [id^="step_"], [id^="step"]');
+                        var currentStepNum = 1;
+                        if (parentStep && parentStep.id) {
+                            var numMatch = parentStep.id.match(/\d+/);
+                            if (numMatch) currentStepNum = parseInt(numMatch[0]);
+                        } else if (parentStep) {
+                            var allSteps = getFunnelSteps();
+                            var sIdx = allSteps.indexOf(parentStep);
+                            if (sIdx !== -1) currentStepNum = sIdx + 1;
+                        }
+
+                        var text = (targetEl.textContent || targetEl.value || '').trim().toLowerCase();
+
+                        // 1. Bypass / Skip / No Thanks (e.g. OTO Upsell)
+                        if (/no thanks|no, thanks|decline|skip|bypass|continue without/i.test(text) || (anchor && (href === '#' || href.endsWith('/#')) && /continue|skip|next|confirm|no/i.test(text))) {
+                            e.preventDefault();
+                            window.switchStep(currentStepNum + 1);
+                            return;
+                        }
+
+                        // 2. Upsell Accept ("Yes, Add Now", "Add To Order")
+                        if (/yes, add|add now|add to order|claim offer|upgrade my order|take this offer/i.test(text)) {
+                            e.preventDefault();
+                            window.switchStep(currentStepNum + 1);
+                            return;
+                        }
+
+                        // 3. 2-Step Order Form Sub-step Transition
+                        if (/continue to payment|proceed to payment|continue to checkout|proceed to checkout/i.test(text)) {
+                            var sub2 = parentStep ? parentStep.querySelector('#substep-2, #sub-step-2, #step-3-2, .payment-step, .card-details') : null;
+                            var sub1 = parentStep ? parentStep.querySelector('#substep-1, #sub-step-1, #step-3-1, .contact-step') : null;
+                            if (sub2 && sub1) {
+                                e.preventDefault();
+                                sub1.classList.add('hidden');
+                                sub1.style.setProperty('display', 'none', 'important');
+                                sub2.classList.remove('hidden');
+                                sub2.style.removeProperty('display');
+                                sub2.style.setProperty('display', 'block', 'important');
+                                return;
+                            }
+                            e.preventDefault();
+                            window.switchStep(currentStepNum + 1);
+                            return;
+                        }
+
+                        // 4. Checkout Place Order Button
+                        if (/complete purchase|place order|pay now|submit order|buy now|complete order/i.test(text)) {
+                            e.preventDefault();
+                            window.switchStep(currentStepNum + 1);
+                            return;
+                        }
+
+                        // 5. Catch-all for hash links on progression buttons
+                        if (anchor && (href === '#' || href === 'javascript:void(0)' || href.endsWith('/#'))) {
+                            if (/continue|next|proceed|get|start|order|yes/i.test(text)) {
+                                e.preventDefault();
+                                window.switchStep(currentStepNum + 1);
+                                return;
+                            }
                         }
                     }
                 });
@@ -1255,8 +1325,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         form.addEventListener('submit', function(e) {
                             e.preventDefault();
                             
-                            var fNameInput = form.querySelector('[name="first_name"], [name="name"], [name="full_name"]');
+                            var parentStep = form.closest('.funnel-step, [id^="step-"], [id^="step_"], [id^="step"]');
+                            var currentStepNum = 1;
+                            if (parentStep && parentStep.id) {
+                                var numMatch = parentStep.id.match(/\d+/);
+                                if (numMatch) currentStepNum = parseInt(numMatch[0]);
+                            }
+
                             var phoneInput = form.querySelector('[name="phone"], [name="mobile"]');
+                            // If form is in Step 2+ or does not have a phone field, simply advance to next step!
+                            if (currentStepNum > 1 || !phoneInput) {
+                                var allSteps = getFunnelSteps();
+                                if (allSteps.length > 1) {
+                                    window.switchStep(currentStepNum + 1);
+                                    return;
+                                }
+                            }
+
+                            var fNameInput = form.querySelector('[name="first_name"], [name="name"], [name="full_name"]');
                             var fName = (fNameInput && fNameInput.value) ? fNameInput.value.trim() : 'Valued Client';
                             var phone = (phoneInput && phoneInput.value) ? phoneInput.value.trim() : 'your number';
 
@@ -1267,14 +1353,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (submitBtn) {
                                 submitBtn.disabled = true;
                                 submitBtn.innerHTML = '⚡ Connecting Call...';
-                            }
-
-                            // Detect current funnel step for stepping
-                            var activeStepEl = document.querySelector('.step-container:not(.hidden), [id^="step-"]:not(.hidden)');
-                            var currentStepNum = 1;
-                            if (activeStepEl && activeStepEl.id) {
-                                var stepMatch = activeStepEl.id.match(/\d+/);
-                                if (stepMatch) currentStepNum = parseInt(stepMatch[0]);
                             }
 
                             setTimeout(function() {

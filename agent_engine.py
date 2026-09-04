@@ -1014,7 +1014,13 @@ CRITICAL PRIME DIRECTIVES:
        }}
      }}
      ```
-   • Every CTA button or form submission MUST cleanly call `switchStep(nextStepNumber)`.
+   • ZERO DEAD LINKS & WIRED BUTTON PROGRESSION (ZERO VERTICAL SCROLLING):
+     - Every step's CTA button or form submission MUST advance directly to the next step:
+       * Step 1 form submission -> `switchStep(2)`
+       * Step 2 VSL CTA button -> `switchStep(3)`
+       * Step 3 Order checkout button -> `switchStep(4)`
+       * Step 4 Upsell accept ("Yes, Add Now") AND bypass ("No Thanks, Continue") -> `switchStep(5)`. NEVER output `<a href="#">` or dead links! Both must call `switchStep(5)`.
+     - Clicking the CTA button is the ONLY way to view the next step. Steps 2-5 must stay completely hidden until triggered!
 
 4. CLEAN & COMPLETE FEATURE REMOVAL (e.g. INBOUND CALL, PHONE INPUT, TOP BANNER, SECTION):
    • When the user asks to REMOVE any feature, element, step, or text (for example: "remove inbound call", "remove phone field", "remove top bar", "remove extra text", "remove video section"):
@@ -1089,14 +1095,16 @@ Output all 5 sections in this exact order with ZERO preamble text:
        ```
      - Make sure every CTA button has `onclick="switchStep(n)"` or the form submit handler calls `switchStep(n)`.
    • Use Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com"></script>`) with utility classes.
-   • Fully build EVERY step with real high-converting copy, real inputs, real CTA buttons:
-     - Step 1: Opt-In (Hero, benefit bullets, lead form with real client-side validation for name, email, and valid E.164 phone).
-     - Step 2: VSL Video Room (Real `<video>` element or custom HTML5 player with play/pause controls, real `timeupdate` event listener in JavaScript that computes exact percentage watched, and fires an event at 80% mark to trigger the CTA and log the progress).
-     - Step 3: TRUE 2-Step Order Form (NOT just one form!):
-       * SUB-STEP 1: Contact Details (First Name, Last Name, Email, Phone). Clicking "Continue to Payment" validates all 4 inputs, triggers the Cart Abandonment event/webhook, and reveals Sub-Step 2.
-       * SUB-STEP 2: Payment & Card Details (Card Number, Expiry, CVC, Zip code) with REAL client-side input validation (Luhn/16-digit check, expiry check, CVC check — if empty or invalid, show error and BLOCK checkout; do NOT allow empty checkout). Include order summary with itemized core price + toggleable Bump Offer checkbox that updates total in real time.
-     - Step 4: OTO Upsell Page (Urgency banner, value stack, 1-click accept button that simulates tokenized secondary charge with loading spinner + explicit "No thanks" bypass link).
-     - Step 5: Thank You Page (Access credentials notice, instant onboarding schedule calendar embed placeholder, community link).
+   • Fully build EVERY step as an isolated container with wired button triggers (ZERO DEAD LINKS / ZERO SCROLLING):
+     - Step 1: Opt-In Container `<div id="step-1" class="funnel-step">` (Hero, benefit bullets, lead form with client validation for name, email, and E.164 phone). The form MUST have `onsubmit="event.preventDefault(); switchStep(2);"` and the submit CTA button advances directly to Step 2!
+     - Step 2: VSL Video Room Container `<div id="step-2" class="funnel-step hidden" style="display:none;">` (HTML5 video player with play/pause controls and 80% watch tracking). The main CTA button MUST have `onclick="switchStep(3)"` to advance directly to Step 3!
+     - Step 3: TRUE 2-Step Order Form Container `<div id="step-3" class="funnel-step hidden" style="display:none;">`:
+       * Sub-Step 1 (Contact Details: First Name, Last Name, Email, Phone): Clicking "Continue to Payment" validates inputs and toggles to Sub-Step 2.
+       * Sub-Step 2 (Payment: Card Number, Expiry, CVC, Zip code + Bump Offer checkbox): The "Complete Purchase" / "Place Order" button MUST have `onclick="event.preventDefault(); switchStep(4);"` to advance directly to Step 4!
+     - Step 4: OTO Upsell Page Container `<div id="step-4" class="funnel-step hidden" style="display:none;">`:
+       * Accept button: `<button onclick="switchStep(5)">Yes, Add Now ($XX) ➔</button>` — advances directly to Step 5!
+       * Bypass link: `<a href="javascript:void(0)" onclick="switchStep(5)">No Thanks, Continue to Confirmation</a>` (NEVER a dead `href="#"`!) — advances directly to Step 5!
+     - Step 5: Thank You Page Container `<div id="step-5" class="funnel-step hidden" style="display:none;">` (Access credentials notice, instant onboarding schedule calendar embed placeholder, community link).
    • Code MUST be 100% complete and self-contained from `<!DOCTYPE html>` to `</html>` without truncation or placeholders.
 
 2. Funnel Step Map & URLs (Compact Markdown Table)
