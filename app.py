@@ -498,7 +498,12 @@ async def agent_chat_endpoint(req: AgentChatRequest):
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
         except Exception as e:
             logger.error(f"Chat streaming error: {e}", exc_info=True)
-            yield f"data: {json.dumps({'type': 'chunk', 'text': format_friendly_error_banner(str(e))})}\n\n"
+            if total_output_chars > 0:
+                payload = json.dumps({'type': 'chunk', 'text': '\n```\n\n> ℹ️ *Generation ended at output limit. All generated content above has been preserved.*'})
+                yield f"data: {payload}\n\n"
+            else:
+                payload = json.dumps({'type': 'chunk', 'text': format_friendly_error_banner(str(e))})
+                yield f"data: {payload}\n\n"
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
     return StreamingResponse(sse_generator(), media_type="text/event-stream")

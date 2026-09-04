@@ -3171,6 +3171,9 @@ Please deliver:
                 setTimeout(processTypewriterTick, 4);
             } else {
                 isTypewriterRunning = false;
+                if (displayedText && (displayedText.split('```').length - 1) % 2 !== 0) {
+                    displayedText += '\n```\n';
+                }
                 let textContainer = botBodyEl.querySelector('.agent-markdown-text');
                 if (textContainer && displayedText) {
                     textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
@@ -3192,17 +3195,6 @@ Please deliver:
             }
         }
 
-        /*
-        // --- Puter.js Client-Side Execution (Commented out to prioritize ultra-fast backend API speeds) ---
-        const activeModelId = modelSelector ? modelSelector.value : 'gemini-3.6-flash';
-        const activeModelMeta = (cachedModelsData || []).find(m => m.id === activeModelId);
-        const isPuterSelected = activeModelId === 'x-ai/grok-4.6' || (activeModelMeta && activeModelMeta.provider === 'puter');
-
-        if (isPuterSelected && typeof puter !== 'undefined' && puter.ai) {
-            // Puter in-browser execution logic preserved for future reference
-        }
-        */
-
         try {
             const response = await fetch('/api/chat-agent', {
                 method: 'POST',
@@ -3222,8 +3214,19 @@ Please deliver:
                 removeThinkingState();
                 const errData = await response.json().catch(() => ({ detail: response.statusText }));
                 const errMsg = `⚠️ **Error (${response.status}):** ${errData.detail || 'Execution failed.'}`;
-                botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(errMsg) : errMsg;
-                addMessageToCurrentThread('assistant', errMsg, [], botMsgId);
+                if (displayedText && displayedText.length > 0) {
+                    if ((displayedText.split('```').length - 1) % 2 !== 0) {
+                        displayedText += '\n```\n';
+                    }
+                    displayedText += `\n\n> ${errMsg}\n> *(All content generated above has been preserved)*`;
+                    let textContainer = botBodyEl.querySelector('.agent-markdown-text');
+                    if (textContainer) {
+                        textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                    }
+                } else {
+                    botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(errMsg) : errMsg;
+                }
+                addMessageToCurrentThread('assistant', displayedText || errMsg, [], botMsgId);
                 onGenerationComplete();
                 return;
             }
@@ -3275,11 +3278,16 @@ Please deliver:
                                 }
                             } else if (data.type === 'replace_content') {
                                 removeThinkingState();
-                                typewriterQueue = '';
-                                displayedText = data.text || '';
-                                let textContainer = botBodyEl.querySelector('.agent-markdown-text');
-                                if (textContainer) {
-                                    textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                                const newText = data.text || '';
+                                if (displayedText && displayedText.length > 200 && !newText.includes('<!DOCTYPE') && !newText.includes('```html')) {
+                                    enqueueIncomingChunk('\n\n' + newText);
+                                } else {
+                                    typewriterQueue = '';
+                                    displayedText = newText;
+                                    let textContainer = botBodyEl.querySelector('.agent-markdown-text');
+                                    if (textContainer) {
+                                        textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                                    }
                                 }
                             } else if (data.type === 'chunk') {
                                 enqueueIncomingChunk(data.text || '');
@@ -3321,9 +3329,21 @@ Please deliver:
                 }
                 addMessageToCurrentThread('assistant', (displayedText || '') + stopMsg, recordedBadges, botMsgId);
             } else {
-                const errStr = `⚠️ **Connection Error:** ${err.message}`;
-                botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(errStr) : errStr;
-                addMessageToCurrentThread('assistant', errStr, [], botMsgId);
+                const errStr = `\n\n> ⚠️ **Notice:** Generation interrupted (${err.message}). All content generated above has been preserved.`;
+                if (displayedText && displayedText.length > 0) {
+                    if ((displayedText.split('```').length - 1) % 2 !== 0) {
+                        displayedText += '\n```\n';
+                    }
+                    displayedText += errStr;
+                    let textContainer = botBodyEl.querySelector('.agent-markdown-text');
+                    if (textContainer) {
+                        textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
+                    }
+                    addMessageToCurrentThread('assistant', displayedText, recordedBadges, botMsgId);
+                } else {
+                    botBodyEl.innerHTML = typeof marked !== 'undefined' ? marked.parse(errStr) : errStr;
+                    addMessageToCurrentThread('assistant', errStr, [], botMsgId);
+                }
             }
             onGenerationComplete();
         }

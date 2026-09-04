@@ -1267,10 +1267,12 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
 
                         # Check if genuinely truncated after Gemini loop exhausted (at least 1000 chars generated)
                         if stream_started and len(accumulated_text) > 1000 and detect_truncation(accumulated_text) and not is_fallback and self.groq_key:
-                            logger.info(f"Gemini capacity reached mid-generation ({len(accumulated_text)} chars). Cleanly replacing with Groq Cloud (Qwen 3.8)...")
+                            logger.info(f"Gemini capacity reached mid-generation ({len(accumulated_text)} chars). Seamlessly continuing with Groq Cloud (Qwen 3.8)...")
+                            recent_tail = accumulated_text[-2000:]
+                            last_cutoff = accumulated_text[-80:].replace('\n', ' ')
                             yield {
-                                "type": "replace_content",
-                                "text": f"> 🔄 **Model Handover:** Google Gemini reached limit ({len(accumulated_text):,} chars). Seamlessly completing generation with **Groq Cloud (Qwen 3.8)**...\n\n"
+                                "type": "chunk",
+                                "text": f"\n\n> 🔄 **Model Handover:** Google Gemini limit reached ({len(accumulated_text):,} chars). Continuing generation with **Groq Cloud (Qwen 3.8)**...\n\n---\n\n"
                             }
                             yield from self._execute_openai_compatible(
                                 prompt=prompt,
@@ -1286,7 +1288,9 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                                 history=history,
                                 intent=intent,
                                 is_fallback=True,
-                                attachments=attachments
+                                attachments=attachments,
+                                continuation_tail=recent_tail,
+                                continuation_cutoff=last_cutoff
                             )
                             return
 
@@ -1301,12 +1305,14 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                         if "429" in last_err_text or "RESOURCE_EXHAUSTED" in last_err_text or "quota" in last_err_text.lower():
                             gemini_key_pool.mark_key_depleted(active_gemini_key, 429, last_err_text)
 
-                        # If text was already started and errored out, cleanly replace with Groq
+                        # If text was already started and errored out, seamlessly continue with Groq WITHOUT wiping previous content!
                         if stream_started and not is_fallback and self.groq_key:
-                            logger.info(f"Gemini failed mid-generation ({len(accumulated_text)} chars). Cleanly replacing with Groq Cloud (Qwen 3.8)...")
+                            logger.info(f"Gemini failed mid-generation ({len(accumulated_text)} chars). Seamlessly continuing with Groq Cloud (Qwen 3.8)...")
+                            recent_tail = accumulated_text[-2000:]
+                            last_cutoff = accumulated_text[-80:].replace('\n', ' ')
                             yield {
-                                "type": "replace_content",
-                                "text": f"> 🔄 **Model Handover:** Google Gemini limit reached ({len(accumulated_text):,} chars). Seamlessly completing generation with **Groq Cloud (Qwen 3.8)**...\n\n"
+                                "type": "chunk",
+                                "text": f"\n\n> 🔄 **Model Handover:** Google Gemini limit reached ({len(accumulated_text):,} chars). Continuing generation with **Groq Cloud (Qwen 3.8)**...\n\n---\n\n"
                             }
                             yield from self._execute_openai_compatible(
                                 prompt=prompt,
@@ -1322,11 +1328,17 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                                 history=history,
                                 intent=intent,
                                 is_fallback=True,
-                                attachments=attachments
+                                attachments=attachments,
+                                continuation_tail=recent_tail,
+                                continuation_cutoff=last_cutoff
                             )
                             return
 
                         if stream_started:
+                            # Gemini generated text and cannot continue with Groq: PRESERVE EVERYTHING!
+                            if accumulated_text.count('```') % 2 != 0:
+                                yield {"type": "chunk", "text": "\n```\n"}
+                            yield {"type": "chunk", "text": f"\n\n> ℹ️ *Generation limit reached. All {len(accumulated_text):,} characters generated above have been fully preserved.*"}
                             return
 
                         if "pro" in mod.lower() or "3.7" in mod.lower():
@@ -1620,16 +1632,9 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                     err_msg = err_body
                 
                 logger.warning(f"{provider_name} API Error ({resp.status_code}): {err_msg}")
-                
-            if resp.status_code != 200:
-                err_body = resp.text
-                try:
-                    err_json = resp.json()
-                    err_msg = err_json.get("error", {}).get("message", err_body)
-                except Exception:
-                    err_msg = err_body
-                
-                logger.warning(f"Groq API Error ({resp.status_code}): {err_msg}")
+                if continuation_tail:
+                    yield {"type": "chunk", "text": "\n```\n\n> ℹ️ *Generation limit reached. All generated sections and code above have been fully preserved.*"}
+                    return
                 yield {"type": "chunk", "text": format_friendly_error_banner(err_msg)}
                 return
 
@@ -1746,8 +1751,11 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                         )
                         return
 
-                if accumulated_text.count('```') % 2 != 0:
-                    yield {"type": "chunk", "text": "\n```\n"}
+                if accumulated_text:
+                    if accumulated_text.count('```') % 2 != 0:
+                        yield {"type": "chunk", "text": "\n```\n"}
+                    if detect_truncation(accumulated_text):
+                        yield {"type": "chunk", "text": f"\n\n> ℹ️ *Generation limit reached ({len(accumulated_text):,} chars). All sections generated above have been fully preserved.*"}
                 return
 
             data = resp.json()
