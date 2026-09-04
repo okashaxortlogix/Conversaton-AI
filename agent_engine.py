@@ -1049,19 +1049,78 @@ CRITICAL PRIME DIRECTIVES:
 {tool_block}
 """
 
-        # For full_build: ALWAYS deliver complete code block first followed by full CRM architecture
-        # DYNAMIC: Extract brand/industry context from the user's prompt instead of hardcoding
-        return base_prompt + f"""
+        # For full_build: Check if user prompt is specifically for a Single-Page Landing Page or a Multi-Step Funnel
+        is_landing_page = (
+            "asset type: single-page landing page" in p_lower or
+            "single-page landing page" in p_lower or
+            ("landing page" in p_lower and "funnel" not in p_lower and "multi-step" not in p_lower and "step" not in p_lower)
+        )
+
+        if is_landing_page:
+            return base_prompt + f"""
 {base_rules}
 =============================================================================
-TASK DIRECTIVE: COMPLETE PRODUCTION ARCHITECTURE & FULL CODE BUILD
+TASK DIRECTIVE: COMPLETE HIGH-CONVERTING SINGLE-PAGE LANDING PAGE & CRM ARCHITECTURE
 =============================================================================
-You are a Lead GoHighLevel Solutions Architect. The user is requesting a FULL PRODUCTION BUILD.
+You are a Lead GoHighLevel Solutions Architect & Front-End Engineer.
+The user is requesting a FULL PRODUCTION BUILD of a SINGLE-PAGE LANDING PAGE (Standalone Single Page, NOT a multi-step funnel).
 
 CRITICAL IDENTITY & ENTITY PRESERVATION RULE:
 - You MUST extract and preserve the exact business name, industry, offers, pricing, taglines, and colors from the user's prompt.
-- NEVER replace the user's business (e.g. Mastermind Coaching Academy) with a generic or different business (e.g. Apex Home Solutions, Gym, Real Estate).
-- ALL copy, headlines, prices, steps, and themes MUST match the user's prompt 100%.
+- ALL copy, headlines, sections, and brand colors MUST match the prompt 100%.
+
+Output all 5 sections in this exact order with ZERO preamble text:
+
+1. Complete Single-File HTML Landing Page (```html:descriptive_landing_page_name.html <!DOCTYPE html> ... </html>```)
+   • STRICT SINGLE CODE FILE: Generate STRICTLY ONE complete, self-contained code file in a single code block. All HTML, Tailwind CDN, custom styling, and interactive JavaScript must reside in this ONE file.
+   • ACCORDING FILE NAMING: Name the file accurately according to the user's brand and niche (e.g. `brightsmile_dental_landing_page.html`, `apex_fitness_landing_page.html`). Include descriptive `<title>Brand Name - Purpose</title>` and `<!-- filename: [descriptive_name].html -->`.
+   • CONTINUOUS SINGLE-PAGE LAYOUT (NO HIDDEN STEP TABS / NO switchStep):
+     - This is a standalone, single continuous page. DO NOT hide sections with `class="hidden"` or `switchStep(n)`!
+     - Include smooth scrolling: `html {{ scroll-behavior: smooth; }}`.
+     - STICKY NAVIGATION BAR: Fixed or sticky top bar with Brand Logo, Navigation Anchor Links (`#features`, `#about`, `#pricing`, `#faq`, `#contact`), and a high-contrast Primary CTA button.
+   • COMPLETE IMPLEMENTATION OF SECTIONS:
+     - Hero Header Section: High-converting headline, subhead, trust badge (e.g. "⭐️⭐️⭐️⭐️⭐️ 4.9/5 from 500+ happy clients"), primary CTA button, and hero visual or device mockup.
+     - Features & Value Benefits: 3-4 feature cards with modern icons, benefit titles, and clear value statements.
+     - Problem vs Solution / Why Choose Us: Pain points addressed and the transformation provided.
+     - Social Proof & Testimonials: 3+ realistic customer testimonial cards with star ratings and photos/initials.
+     - Pricing Table / Featured Offer Box: Clear pricing cards with feature checklists, highlighted popular tier, and instant action CTA.
+     - Interactive FAQ Accordion: 4-5 expandable Q&A items addressing common objections, with clean Vanilla JS click toggles.
+     - High-Converting Contact / Lead Capture Form: Form with Name, Email, E.164 Phone, and submit button with client-side feedback.
+     - Trust Badges & Guarantee Footer: Guarantee seal, secure badges, copyright, and clean footer links.
+   • Use Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com"></script>`) with utility classes.
+   • Code MUST be 100% complete and self-contained from `<!DOCTYPE html>` to `</html>` without truncation or placeholders.
+
+2. Landing Page Copywriting Strategy & Conversion Architecture (Compact Markdown Breakdown)
+   • Value Proposition, Target Audience Hook, Differentiators, and Primary CTA Action.
+
+3. HighLevel Form, Pipeline Stages, Custom Fields & Tags (Compact Markdown Tables)
+   • Pipeline Stages: Order | Stage Name | Exact Entry Trigger | Exit / Win Condition
+   • Contact Custom Fields: Field Name | Unique Key | Data Type | Notes
+   • Contact Tags Taxonomy: Tag Name | Application Trigger | Removal Trigger
+
+4. Automated Speed-to-Lead Follow-up & Confirmation Workflow
+   • Complete workflow with triggers, timing, and full SMS/Email copy.
+
+5. HighLevel Website/Funnel Embedding & Deployment Guide
+   • How to import this single-page landing page into GoHighLevel (Custom HTML element vs Page Builder).
+   • Form webhook connection and lead notification setup.
+
+DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
+{tool_block}
+"""
+
+        # For Multi-Step Funnels:
+        return base_prompt + f"""
+{base_rules}
+=============================================================================
+TASK DIRECTIVE: COMPLETE PRODUCTION MULTI-STEP FUNNEL & CRM ARCHITECTURE
+=============================================================================
+You are a Lead GoHighLevel Solutions Architect. The user is requesting a FULL PRODUCTION BUILD of a MULTI-STEP FUNNEL.
+
+CRITICAL IDENTITY & ENTITY PRESERVATION RULE:
+- You MUST extract and preserve the exact business name, industry, offers, pricing, taglines, and colors from the user's prompt.
+- Look at the requested number of funnel pages in the prompt (e.g. 2-Step, 3-Step, 4-Step, or 5-Step).
+- Generate EXACTLY the number of steps requested, honoring the page breakdown provided in the user's specifications.
 
 Output all 5 sections in this exact order with ZERO preamble text:
 
@@ -1094,8 +1153,7 @@ Output all 5 sections in this exact order with ZERO preamble text:
        }}
        ```
      - Make sure every CTA button has `onclick="switchStep(n)"` or the form submit handler calls `switchStep(n)`.
-   • Use Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com"></script>`) with utility classes.
-   • Fully build EVERY step as an isolated container with wired button triggers (ZERO DEAD LINKS / ZERO SCROLLING):
+   • Fully build EVERY step as an isolated container matching the requested page breakdown with wired button triggers (ZERO DEAD LINKS / ZERO SCROLLING):
      - Step 1: Opt-In Container `<div id="step-1" class="funnel-step">` (Hero, benefit bullets, lead form with client validation for name, email, and E.164 phone). The form MUST have `onsubmit="event.preventDefault(); switchStep(2);"` and the submit CTA button advances directly to Step 2!
      - Step 2: VSL Video Room Container `<div id="step-2" class="funnel-step hidden" style="display:none;">` (HTML5 video player with play/pause controls and 80% watch tracking). The main CTA button MUST have `onclick="switchStep(3)"` to advance directly to Step 3!
      - Step 3: TRUE 2-Step Order Form Container `<div id="step-3" class="funnel-step hidden" style="display:none;">`:

@@ -449,35 +449,35 @@
             <div class="funnel-wizard-container">
                 <!-- Left Persistent Panel -->
                 <div class="funnel-wizard-left-panel">
-                    <div class="funnel-brand-badge">
+                    <div class="funnel-brand-badge" id="wizard-brand-badge">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                         </svg>
                     </div>
 
-                    <h3 class="funnel-left-title">Let's build your<br><span class="highlight-purple">high-converting funnel</span> 🚀</h3>
-                    <p class="funnel-left-desc">I'll ask you a few quick questions to understand your goals and create a funnel that converts.</p>
+                    <h3 class="funnel-left-title" id="wizard-left-title">Let's build your<br><span class="highlight-purple">high-converting funnel</span> 🚀</h3>
+                    <p class="funnel-left-desc" id="wizard-left-desc">Choose how many pages you need, configure each step's content, and generate a complete multi-step funnel with zero scrolling.</p>
 
                     <div class="funnel-benefits-list">
                         <div class="benefit-item">
-                            <div class="benefit-icon">👤</div>
+                            <div class="benefit-icon" id="wizard-benefit-icon-1">🔄</div>
                             <div class="benefit-text">
-                                <strong>Personalized for your goals</strong>
-                                <span>Tailored funnel structure & content</span>
+                                <strong id="wizard-benefit-1-title">Multi-Step Architecture</strong>
+                                <span id="wizard-benefit-1-desc">Discrete pages with wired button progression</span>
                             </div>
                         </div>
                         <div class="benefit-item">
-                            <div class="benefit-icon">⭐</div>
+                            <div class="benefit-icon" id="wizard-benefit-icon-2">⭐</div>
                             <div class="benefit-text">
-                                <strong>Designed to convert</strong>
-                                <span>Proven strategies that drive results</span>
+                                <strong id="wizard-benefit-2-title">Designed to Convert</strong>
+                                <span id="wizard-benefit-2-desc">HighLevel workflows, forms, and triggers</span>
                             </div>
                         </div>
                         <div class="benefit-item">
                             <div class="benefit-icon">⏱️</div>
                             <div class="benefit-text">
-                                <strong>Saves you time</strong>
-                                <span>AI does the heavy lifting</span>
+                                <strong>Saves You Time</strong>
+                                <span>AI generates production-ready single file code</span>
                             </div>
                         </div>
                     </div>
@@ -532,41 +532,52 @@
 
                 <!-- Right Wizard Interactive Panel -->
                 <div class="funnel-wizard-right-panel">
-                    <!-- Modal Header with Progress Steps & Close -->
+                    <!-- Modal Header with Mode Switcher & Progress Steps -->
                     <div class="funnel-wizard-top-bar">
+                        <!-- Mode Pill Toggle (Funnel vs Landing Page) -->
+                        <div class="funnel-mode-pill-toggle">
+                            <button type="button" class="mode-pill-btn active" id="btn-mode-funnel" title="Multi-Step Conversion Funnel">
+                                <span>🌪️ Funnel</span>
+                            </button>
+                            <button type="button" class="mode-pill-btn" id="btn-mode-landing" title="Single Continuous Landing Page">
+                                <span>📄 Landing Page</span>
+                            </button>
+                        </div>
+
+                        <!-- Stepper Indicators -->
                         <div class="funnel-stepper">
                             <div class="stepper-step active" data-step="1">
                                 <div class="step-circle">1</div>
-                                <span class="step-title">Goal</span>
+                                <span class="step-title" id="stepper-title-1">Pages</span>
                             </div>
                             <div class="stepper-line"></div>
                             <div class="stepper-step" data-step="2">
                                 <div class="step-circle">2</div>
-                                <span class="step-title">Audience</span>
+                                <span class="step-title" id="stepper-title-2">Goal</span>
                             </div>
                             <div class="stepper-line"></div>
                             <div class="stepper-step" data-step="3">
                                 <div class="step-circle">3</div>
-                                <span class="step-title">Offer</span>
+                                <span class="step-title" id="stepper-title-3">Offer</span>
                             </div>
                             <div class="stepper-line"></div>
                             <div class="stepper-step" data-step="4">
                                 <div class="step-circle">4</div>
-                                <span class="step-title">Details</span>
+                                <span class="step-title" id="stepper-title-4">Details</span>
                             </div>
                             <div class="stepper-line"></div>
                             <div class="stepper-step" data-step="5">
                                 <div class="step-circle">5</div>
-                                <span class="step-title">Design</span>
+                                <span class="step-title" id="stepper-title-5">Design</span>
                             </div>
                             <div class="stepper-line"></div>
                             <div class="stepper-step" data-step="6">
                                 <div class="step-circle">6</div>
-                                <span class="step-title">Review</span>
+                                <span class="step-title" id="stepper-title-6">Review</span>
                             </div>
                         </div>
 
-                        <button type="button" class="funnel-close-btn" id="close-wizard-modal" title="Close Funnel Builder">
+                        <button type="button" class="funnel-close-btn" id="close-wizard-modal" title="Close Wizard">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
@@ -574,66 +585,130 @@
                     <!-- Steps Container -->
                     <div class="funnel-steps-content">
 
-                        <!-- STEP 1: GOAL -->
+                        <!-- STEP 1: FUNNEL PAGES (or LANDING PAGE PRIMARY GOAL) -->
                         <div class="funnel-step-panel active" id="wizard-step-1">
-                            <div class="step-tag">STEP 1 OF 6</div>
-                            <h2 class="step-heading">What's the main goal of your funnel? 🎯</h2>
-                            <p class="step-subheading">This helps me recommend the right funnel structure and content.</p>
+                            <!-- FUNNEL MODE: Step 1 (Number of Pages & Flow) -->
+                            <div id="funnel-mode-step-1" class="wizard-mode-view">
+                                <div class="step-tag">STEP 1 OF 6 • FUNNEL PAGES & STRUCTURE</div>
+                                <h2 class="step-heading">How many pages should your funnel have? 📐</h2>
+                                <p class="step-subheading">Choose your page count and review what each step should do.</p>
 
-                            <div class="funnel-cards-grid-2col" id="goal-options-grid">
-                                <div class="funnel-select-card selected" data-value="Generate Leads">
-                                    <div class="card-icon-wrap purple">👤</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Generate Leads</h4>
-                                        <p>Collect leads and grow my email list</p>
+                                <div class="funnel-cards-grid-2col" id="funnel-pages-count-grid">
+                                    <div class="funnel-select-card" data-pages="2" data-structure="2-Step Opt-in & Delivery">
+                                        <div class="card-icon-wrap purple">⚡</div>
+                                        <div class="card-text-wrap">
+                                            <h4>2-Step Funnel</h4>
+                                            <p>Lead Capture Opt-in ➔ Thank You Delivery</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
+                                    <div class="funnel-select-card" data-pages="3" data-structure="3-Step VSL & Booking Funnel">
+                                        <div class="card-icon-wrap blue">📅</div>
+                                        <div class="card-text-wrap">
+                                            <h4>3-Step Funnel</h4>
+                                            <p>Opt-in / Hook ➔ VSL & Offer ➔ Booking / Confirmation</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-pages="4" data-structure="4-Step Lead & Sales Funnel">
+                                        <div class="card-icon-wrap green">🛒</div>
+                                        <div class="card-text-wrap">
+                                            <h4>4-Step Funnel</h4>
+                                            <p>Opt-in ➔ VSL Pitch ➔ 2-Step Checkout ➔ Confirmation</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card selected" data-pages="5" data-structure="5-Step Full High-Converting Funnel">
+                                        <div class="card-icon-wrap orange">👑</div>
+                                        <div class="card-text-wrap">
+                                            <h4>5-Step Full Funnel</h4>
+                                            <p>Opt-in ➔ VSL Room ➔ Order Form ➔ OTO Upsell ➔ Thank You</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-pages="custom" data-structure="Custom Funnel Flow">
+                                        <div class="card-icon-wrap gray">✏️</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Custom Steps</h4>
+                                            <p>Define custom number of pages & specific flow</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
                                 </div>
-                                <div class="funnel-select-card" data-value="Sell a Product">
-                                    <div class="card-icon-wrap green">🛒</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Sell a Product</h4>
-                                        <p>Sell a product or service directly</p>
+
+                                <!-- Step-by-Step Page Breakdown & Flow Box -->
+                                <div class="funnel-breakdown-box">
+                                    <div class="funnel-breakdown-header">
+                                        <div class="funnel-breakdown-title">
+                                            <span>📑</span>
+                                            <span>What should each page/step contain?</span>
+                                        </div>
+                                        <span class="funnel-breakdown-hint">Customizable page breakdown</span>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="Book Appointments">
-                                    <div class="card-icon-wrap blue">📅</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Book Appointments</h4>
-                                        <p>Get bookings for consultations or calls</p>
-                                    </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="Promote a Webinar">
-                                    <div class="card-icon-wrap orange">📢</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Promote a Webinar</h4>
-                                        <p>Get registrations for my webinar or event</p>
-                                    </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="Download / Resource">
-                                    <div class="card-icon-wrap red">📥</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Download / Resource</h4>
-                                        <p>Offer a free download or lead magnet</p>
-                                    </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="Other">
-                                    <div class="card-icon-wrap gray">⋯</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Other</h4>
-                                        <p>Something else (not listed here)</p>
-                                    </div>
-                                    <div class="card-radio-check">✓</div>
+                                    <textarea id="funnel-step-breakdown-input" class="funnel-breakdown-textarea" rows="4" placeholder="Detail what is on each page/step...">Page 1 (Opt-in Lead Capture): High-converting hook headline, lead capture form (name, email, phone).
+Page 2 (VSL Video Room): Video player presenting the transformation, 80% watch tracking, and CTA.
+Page 3 (2-Step Order Checkout): Contact details + Payment details & bump offer.
+Page 4 (OTO Upsell Page): Special one-time discount offer ($49) with Accept and Bypass links.
+Page 5 (Thank You Page): Confirmation details, instant access, and calendar onboarding call.</textarea>
                                 </div>
                             </div>
 
-                            <div class="funnel-helper-msg">
-                                <span class="helper-icon">💡</span>
-                                <span>Not sure? Don't worry, you can change this later.</span>
+                            <!-- LANDING PAGE MODE: Step 1 (Primary Goal) -->
+                            <div id="landing-mode-step-1" class="wizard-mode-view" style="display:none;">
+                                <div class="step-tag">STEP 1 OF 6 • LANDING PAGE PRIMARY GOAL</div>
+                                <h2 class="step-heading">What is the primary action for this landing page? 🎯</h2>
+                                <p class="step-subheading">A landing page is a single focused page dedicated to one core conversion action.</p>
+
+                                <div class="funnel-cards-grid-2col" id="landing-goal-options-grid">
+                                    <div class="funnel-select-card selected" data-value="Lead Generation">
+                                        <div class="card-icon-wrap purple">👤</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Lead Generation</h4>
+                                            <p>Capture contact info via hero opt-in form & lead magnet</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Direct Product Sale">
+                                        <div class="card-icon-wrap green">🛒</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Direct Product Sale</h4>
+                                            <p>Showcase product/service with buy buttons & checkout</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Book Appointments">
+                                        <div class="card-icon-wrap blue">📅</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Book Appointments</h4>
+                                            <p>Schedule consultations or strategy calls via calendar</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Webinar Registration">
+                                        <div class="card-icon-wrap orange">📢</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Webinar / Event</h4>
+                                            <p>Drive registrations for an online workshop or event</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Download Resource">
+                                        <div class="card-icon-wrap red">📥</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Download Resource</h4>
+                                            <p>Deliver a free eBook, cheat sheet, or template</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Waitlist & VIP Access">
+                                        <div class="card-icon-wrap gray">🚀</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Waitlist & Early Access</h4>
+                                            <p>Build an exclusive VIP waitlist for upcoming launch</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="funnel-step-actions">
@@ -642,60 +717,137 @@
                             </div>
                         </div>
 
-                        <!-- STEP 2: AUDIENCE -->
+                        <!-- STEP 2: FUNNEL GOAL (or LANDING PAGE SECTIONS) -->
                         <div class="funnel-step-panel" id="wizard-step-2">
-                            <div class="step-tag">STEP 2 OF 6</div>
-                            <h2 class="step-heading">Who is your target audience? 👥</h2>
-                            <p class="step-subheading">Tell me who you're trying to reach.</p>
+                            <!-- FUNNEL MODE: Step 2 (Funnel Goal) -->
+                            <div id="funnel-mode-step-2" class="wizard-mode-view">
+                                <div class="step-tag">STEP 2 OF 6 • FUNNEL CONVERSION GOAL</div>
+                                <h2 class="step-heading">What's the main goal of your funnel? 🎯</h2>
+                                <p class="step-subheading">This helps recommend the right conversion triggers and copy.</p>
 
-                            <div class="funnel-stacked-list" id="audience-options-list">
-                                <div class="funnel-select-card selected" data-value="Business Owners">
-                                    <div class="card-icon-wrap purple">👤</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Business Owners</h4>
-                                        <p>Entrepreneurs and business owners</p>
+                                <div class="funnel-cards-grid-2col" id="goal-options-grid">
+                                    <div class="funnel-select-card selected" data-value="Generate Leads">
+                                        <div class="card-icon-wrap purple">👤</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Generate Leads</h4>
+                                            <p>Collect leads and grow my email list</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
+                                    <div class="funnel-select-card" data-value="Sell a Product">
+                                        <div class="card-icon-wrap green">🛒</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Sell a Product</h4>
+                                            <p>Sell a product or service directly</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Book Appointments">
+                                        <div class="card-icon-wrap blue">📅</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Book Appointments</h4>
+                                            <p>Get bookings for consultations or calls</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Promote a Webinar">
+                                        <div class="card-icon-wrap orange">📢</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Promote a Webinar</h4>
+                                            <p>Get registrations for my webinar or event</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Download / Resource">
+                                        <div class="card-icon-wrap red">📥</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Download / Resource</h4>
+                                            <p>Offer a free download or lead magnet</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Other">
+                                        <div class="card-icon-wrap gray">⋯</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Other</h4>
+                                            <p>Something else (not listed here)</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
                                 </div>
-                                <div class="funnel-select-card" data-value="Marketing Professionals">
-                                    <div class="card-icon-wrap blue">💼</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Marketing Professionals</h4>
-                                        <p>Marketers, agencies, and freelancers</p>
+                            </div>
+
+                            <!-- LANDING PAGE MODE: Step 2 (Sections to Include) -->
+                            <div id="landing-mode-step-2" class="wizard-mode-view" style="display:none;">
+                                <div class="step-tag">STEP 2 OF 6 • LANDING PAGE SECTIONS</div>
+                                <h2 class="step-heading">Which sections should be on your landing page? 📑</h2>
+                                <p class="step-subheading">Select all sections to include down this single continuous page (multi-select).</p>
+
+                                <div class="funnel-cards-grid-2col" id="landing-sections-grid">
+                                    <div class="funnel-select-card selected" data-section="Hero Header">
+                                        <div class="card-icon-wrap purple">👑</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Hero Header</h4>
+                                            <p>Headline, subhead, primary CTA & hero visual</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="Coaches & Consultants">
-                                    <div class="card-icon-wrap cyan">🎓</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Coaches & Consultants</h4>
-                                        <p>Coaches, consultants and trainers</p>
+                                    <div class="funnel-select-card selected" data-section="Features & Value Benefits">
+                                        <div class="card-icon-wrap blue">✨</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Features & Value Benefits</h4>
+                                            <p>3-4 feature cards with benefit descriptions & icons</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="E-commerce Sellers">
-                                    <div class="card-icon-wrap teal">🛍️</div>
-                                    <div class="card-text-wrap">
-                                        <h4>E-commerce Sellers</h4>
-                                        <p>Online store owners and sellers</p>
+                                    <div class="funnel-select-card selected" data-section="Problem vs Solution">
+                                        <div class="card-icon-wrap orange">💡</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Problem vs Solution</h4>
+                                            <p>Pain points addressed & transformation breakdown</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="Local Service Providers">
-                                    <div class="card-icon-wrap blue">🏪</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Local Service Providers</h4>
-                                        <p>Local businesses and service providers</p>
+                                    <div class="funnel-select-card selected" data-section="Social Proof & Testimonials">
+                                        <div class="card-icon-wrap green">⭐</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Social Proof & Testimonials</h4>
+                                            <p>5-star client reviews, ratings & customer proof</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
-                                </div>
-                                <div class="funnel-select-card" data-value="Other / Specific Audience">
-                                    <div class="card-icon-wrap gray">🌐</div>
-                                    <div class="card-text-wrap">
-                                        <h4>Other / Specific Audience</h4>
-                                        <p>I have a specific audience in mind</p>
+                                    <div class="funnel-select-card selected" data-section="Pricing Table & Packages">
+                                        <div class="card-icon-wrap teal">🏷️</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Pricing Table & Packages</h4>
+                                            <p>Tiered pricing cards with feature checklists & badges</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
                                     </div>
-                                    <div class="card-radio-check">✓</div>
+                                    <div class="funnel-select-card selected" data-section="Interactive FAQ Accordion">
+                                        <div class="card-icon-wrap cyan">❓</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Interactive FAQ Accordion</h4>
+                                            <p>Expandable Q&A answering common objections</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card selected" data-section="Contact & Lead Form">
+                                        <div class="card-icon-wrap red">📝</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Contact & Lead Form</h4>
+                                            <p>Embedded high-converting form with field validation</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card selected" data-section="Trust Badges & Guarantee">
+                                        <div class="card-icon-wrap dark">🛡️</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Trust Badges & Guarantee</h4>
+                                            <p>Risk-free guarantee seal & security credentials</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -706,31 +858,87 @@
                             </div>
                         </div>
 
-                        <!-- STEP 3: OFFER -->
+                        <!-- STEP 3: OFFER & TARGET AUDIENCE -->
                         <div class="funnel-step-panel" id="wizard-step-3">
-                            <div class="step-tag">STEP 3 OF 6</div>
-                            <h2 class="step-heading">What are you offering? 🎁</h2>
-                            <p class="step-subheading">What's the main offer or value you're providing?</p>
+                            <div class="step-tag" id="step-3-tag">STEP 3 OF 6 • OFFER & AUDIENCE</div>
+                            <h2 class="step-heading" id="step-3-heading">What are you offering & who is it for? 🎁</h2>
+                            <p class="step-subheading" id="step-3-subheading">Define your core offer and select your target audience.</p>
 
                             <div class="offer-textarea-container">
+                                <label style="font-size:12px; font-weight:700; color:#1e293b; margin-bottom:6px; display:block;">Core Offer / Value Proposition</label>
                                 <textarea 
                                     id="funnel-offer-input" 
                                     class="funnel-large-textarea" 
-                                    maxlength="120" 
-                                    placeholder="E.g. Free consultation, 20% off, Membership access, Online course, eBook, etc."
+                                    maxlength="140" 
+                                    placeholder="E.g. Free Dental Consultation & 3D Scan, 20% Off Launch Deal, Free Strategy Call, Instant eBook Guide..."
                                 >Free Consultation</textarea>
-                                <div class="char-counter" id="offer-char-counter">17/120</div>
+                                <div class="char-counter" id="offer-char-counter">17/140</div>
                             </div>
 
                             <div class="quick-examples-section">
-                                <div class="quick-examples-label">Quick Examples</div>
+                                <div class="quick-examples-label">Quick Offer Examples</div>
                                 <div class="quick-examples-pills" id="quick-offer-pills">
-                                    <button type="button" class="quick-pill" data-text="Free Consultation">Free Consultation</button>
+                                    <button type="button" class="quick-pill" data-text="Free Consultation & Strategy Audit">Free Consultation</button>
                                     <button type="button" class="quick-pill" data-text="20% Off First Order">20% Off First Order</button>
-                                    <button type="button" class="quick-pill" data-text="Free eBook">Free eBook</button>
-                                    <button type="button" class="quick-pill" data-text="Online Course">Online Course</button>
-                                    <button type="button" class="quick-pill" data-text="Membership Access">Membership Access</button>
-                                    <button type="button" class="quick-pill" data-text="Demo Call">Demo Call</button>
+                                    <button type="button" class="quick-pill" data-text="Free Comprehensive Guide & Template">Free eBook / Guide</button>
+                                    <button type="button" class="quick-pill" data-text="30-Day Risk-Free Trial">30-Day Free Trial</button>
+                                    <button type="button" class="quick-pill" data-text="VIP Early Access Pass">VIP Access Pass</button>
+                                    <button type="button" class="quick-pill" data-text="Live 1-on-1 Demo Session">Demo Session</button>
+                                </div>
+                            </div>
+
+                            <!-- Target Audience Selection -->
+                            <div style="margin-top:16px;">
+                                <label style="font-size:12px; font-weight:700; color:#1e293b; margin-bottom:8px; display:block;">Who is your primary target audience?</label>
+                                <div class="funnel-cards-grid-2col" id="audience-options-list">
+                                    <div class="funnel-select-card selected" data-value="Business Owners">
+                                        <div class="card-icon-wrap purple">👤</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Business Owners</h4>
+                                            <p>Founders & entrepreneurs</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Marketing Professionals">
+                                        <div class="card-icon-wrap blue">💼</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Marketing Teams</h4>
+                                            <p>Agencies & marketers</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Coaches & Consultants">
+                                        <div class="card-icon-wrap cyan">🎓</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Coaches & Trainers</h4>
+                                            <p>Consultants & experts</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="E-commerce Sellers">
+                                        <div class="card-icon-wrap teal">🛍️</div>
+                                        <div class="card-text-wrap">
+                                            <h4>E-commerce Sellers</h4>
+                                            <p>Online store owners</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="Local Service Providers">
+                                        <div class="card-icon-wrap orange">🏪</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Local Services</h4>
+                                            <p>Clinics, trades & local biz</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
+                                    <div class="funnel-select-card" data-value="General Consumers">
+                                        <div class="card-icon-wrap gray">🌐</div>
+                                        <div class="card-text-wrap">
+                                            <h4>Consumers / B2C</h4>
+                                            <p>Individual customers</p>
+                                        </div>
+                                        <div class="card-radio-check">✓</div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -743,9 +951,9 @@
 
                         <!-- STEP 4: BUSINESS DETAILS -->
                         <div class="funnel-step-panel" id="wizard-step-4">
-                            <div class="step-tag">STEP 4 OF 6</div>
+                            <div class="step-tag">STEP 4 OF 6 • BRAND & POSITIONING</div>
                             <h2 class="step-heading">Tell me more about your business 🏢</h2>
-                            <p class="step-subheading">This helps me create content that connects with your audience.</p>
+                            <p class="step-subheading">This helps me write custom high-converting copy that matches your voice.</p>
 
                             <div class="funnel-form-fields">
                                 <div class="funnel-field-group">
@@ -764,7 +972,7 @@
                                 </div>
 
                                 <div class="funnel-field-group">
-                                    <label for="funnel-biz-benefits">Any key benefits or features?</label>
+                                    <label for="funnel-biz-benefits">Any key benefits or differentiators?</label>
                                     <input type="text" id="funnel-biz-benefits" class="funnel-input" placeholder="E.g. Painless procedures, same-day results, 5-star rated." value="Painless procedures, same-day results, 5-star rated.">
                                 </div>
                             </div>
@@ -778,9 +986,9 @@
 
                         <!-- STEP 5: DESIGN -->
                         <div class="funnel-step-panel" id="wizard-step-5">
-                            <div class="step-tag">STEP 5 OF 6</div>
+                            <div class="step-tag">STEP 5 OF 6 • LOOK & FEEL</div>
                             <h2 class="step-heading">Choose the look & feel 🎨</h2>
-                            <p class="step-subheading">Select the style that best represents your brand.</p>
+                            <p class="step-subheading">Select the aesthetic that best matches your target market.</p>
 
                             <div class="funnel-cards-grid-3col" id="style-options-grid">
                                 <div class="funnel-select-card selected" data-style="Modern & Clean">
@@ -827,7 +1035,7 @@
                                     <div class="card-icon-wrap pink">✏️</div>
                                     <div class="card-text-wrap">
                                         <h4>Custom / My Style</h4>
-                                        <p>I have something specific in mind</p>
+                                        <p>Tailored custom aesthetics</p>
                                     </div>
                                     <div class="card-radio-check">✓</div>
                                 </div>
@@ -835,7 +1043,7 @@
 
                             <!-- Primary Color Section -->
                             <div class="funnel-color-section">
-                                <div class="color-section-label">Primary Color (Optional)</div>
+                                <div class="color-section-label">Primary Brand Color (Optional)</div>
                                 <div class="funnel-color-swatches" id="funnel-color-swatches">
                                     <button type="button" class="color-dot active" data-color="#6C5CE7" style="background-color: #6C5CE7;" title="Purple">✓</button>
                                     <button type="button" class="color-dot" data-color="#0984E3" style="background-color: #0984E3;" title="Blue"></button>
@@ -861,27 +1069,37 @@
 
                         <!-- STEP 6: REVIEW -->
                         <div class="funnel-step-panel" id="wizard-step-6">
-                            <div class="step-tag">STEP 6 OF 6</div>
-                            <h2 class="step-heading">Let's review your funnel plan ✅</h2>
-                            <p class="step-subheading">Here's what I've got so far. You can edit anything before we create it.</p>
+                            <div class="step-tag">STEP 6 OF 6 • SPECIFICATIONS REVIEW</div>
+                            <h2 class="step-heading" id="rev-screen-heading">Let's review your build plan ✅</h2>
+                            <p class="step-subheading" id="rev-screen-subheading">Here are your selected specifications. Everything will be compiled into your AI prompt.</p>
 
                             <div class="funnel-review-list" id="funnel-review-list">
-                                <div class="review-item" data-goto-step="1">
-                                    <div class="review-icon-wrap purple">🎯</div>
+                                <!-- Asset Type -->
+                                <div class="review-item">
+                                    <div class="review-icon-wrap purple" id="rev-asset-icon">🌪️</div>
                                     <div class="review-content">
-                                        <div class="review-label">Goal</div>
-                                        <div class="review-value" id="rev-goal-val">Generate Leads</div>
+                                        <div class="review-label">Asset Type</div>
+                                        <div class="review-value" id="rev-asset-type-val">Multi-Step Funnel</div>
                                     </div>
-                                    <button type="button" class="review-edit-btn" data-step="1" title="Edit Goal">✏️</button>
+                                </div>
+
+                                <!-- Dynamic Structure Item (Funnel Pages OR Landing Page Sections) -->
+                                <div class="review-item" data-goto-step="1" id="rev-structure-item">
+                                    <div class="review-icon-wrap blue" id="rev-structure-icon">📐</div>
+                                    <div class="review-content">
+                                        <div class="review-label" id="rev-structure-label">Funnel Pages & Steps</div>
+                                        <div class="review-value" id="rev-structure-val">5-Step Full Funnel (Opt-in ➔ VSL ➔ Order Form ➔ OTO ➔ Thank You)</div>
+                                    </div>
+                                    <button type="button" class="review-edit-btn" data-step="1" title="Edit Structure">✏️</button>
                                 </div>
 
                                 <div class="review-item" data-goto-step="2">
-                                    <div class="review-icon-wrap green">👥</div>
+                                    <div class="review-icon-wrap purple">🎯</div>
                                     <div class="review-content">
-                                        <div class="review-label">Audience</div>
-                                        <div class="review-value" id="rev-audience-val">Business Owners</div>
+                                        <div class="review-label" id="rev-goal-label">Primary Goal</div>
+                                        <div class="review-value" id="rev-goal-val">Generate Leads</div>
                                     </div>
-                                    <button type="button" class="review-edit-btn" data-step="2" title="Edit Audience">✏️</button>
+                                    <button type="button" class="review-edit-btn" data-step="2" title="Edit Goal">✏️</button>
                                 </div>
 
                                 <div class="review-item" data-goto-step="3">
@@ -891,6 +1109,15 @@
                                         <div class="review-value" id="rev-offer-val">Free Consultation</div>
                                     </div>
                                     <button type="button" class="review-edit-btn" data-step="3" title="Edit Offer">✏️</button>
+                                </div>
+
+                                <div class="review-item" data-goto-step="3">
+                                    <div class="review-icon-wrap green">👥</div>
+                                    <div class="review-content">
+                                        <div class="review-label">Target Audience</div>
+                                        <div class="review-value" id="rev-audience-val">Business Owners</div>
+                                    </div>
+                                    <button type="button" class="review-edit-btn" data-step="3" title="Edit Audience">✏️</button>
                                 </div>
 
                                 <div class="review-item" data-goto-step="4">
@@ -944,7 +1171,7 @@
 
                             <div class="funnel-step-actions space-between">
                                 <button type="button" class="btn-funnel-back" id="step-6-back-btn">← Back</button>
-                                <button type="button" class="btn-create-funnel" id="funnel-create-btn">Create My Funnel ✨</button>
+                                <button type="button" class="btn-create-funnel" id="funnel-create-btn">Create My Multi-Step Funnel 🚀</button>
                             </div>
                         </div>
 

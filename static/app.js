@@ -2218,20 +2218,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     // ========================================================
-    // AI FUNNEL BUILDER — MULTI-STEP QUESTIONNAIRE ENGINE
+    // AI BUILDER WIZARD — DUAL-MODE QUESTIONNAIRE ENGINE
+    // (Funnel vs Landing Page Specialized Flow)
     // ========================================================
     const wizardModal = document.getElementById('builder-wizard-modal');
     const closeWizardModalBtn = document.getElementById('close-wizard-modal');
     const headerWizardLauncherBtn = document.getElementById('header-wizard-launcher-btn');
     const sidebarWizardBtn = document.getElementById('sidebar-wizard-btn');
     const openWizardChipBtn = document.getElementById('open-wizard-chip-btn');
+    const btnModeFunnel = document.getElementById('btn-mode-funnel');
+    const btnModeLanding = document.getElementById('btn-mode-landing');
 
     const TOTAL_FUNNEL_STEPS = 6;
     let currentFunnelStep = 1;
 
-    // Funnel Builder State
-    const funnelState = {
-        goal: 'Generate Leads',
+    // Presets for Funnel Steps Breakdown
+    const FUNNEL_STEP_PRESETS = {
+        '2': `Page 1 (Opt-in Lead Capture): Hero hook headline, value bullets, and contact form (name, email, phone).\nPage 2 (Thank You Page): Confirmation message, next steps, and asset download link.`,
+        '3': `Page 1 (Opt-in Hook): Lead magnet capture form and high-converting problem-solution hook.\nPage 2 (VSL & Offer Room): Video player presenting the core offer, proof, and CTA to schedule/apply.\nPage 3 (Booking & Confirmation): Calendar scheduler embed, onboarding call details, and instant access link.`,
+        '4': `Page 1 (Lead Capture Opt-in): Attention-grabbing headline, lead magnet opt-in form.\nPage 2 (VSL Video Room): Video sales presentation with 80% watch tracking and CTA button.\nPage 3 (2-Step Order Form): Contact info + Payment details & bump offer ($37).\nPage 4 (Confirmation & Thank You): Order confirmation, receipt details, and community access link.`,
+        '5': `Page 1 (Opt-in Lead Capture): High-converting hook headline, lead capture form (name, email, phone).\nPage 2 (VSL Video Room): Video player presenting the transformation, 80% watch tracking, and CTA.\nPage 3 (2-Step Order Checkout): Contact details + Payment details & bump offer.\nPage 4 (OTO Upsell Page): Special one-time discount offer ($49) with Accept and Bypass links.\nPage 5 (Thank You Page): Confirmation details, instant access, and calendar onboarding call.`,
+        'custom': `Page 1: Opt-in lead capture\nPage 2: Video sales presentation\nPage 3: Order form or application\nPage 4: Special upsell or consultation\nPage 5: Thank you & onboarding steps`
+    };
+
+    // Unified Wizard State
+    const wizardState = {
+        mode: 'funnel', // 'funnel' or 'landing'
+
+        // Funnel Specifics
+        funnelPages: '5',
+        funnelStructure: '5-Step Full High-Converting Funnel',
+        funnelStepBreakdown: FUNNEL_STEP_PRESETS['5'],
+        funnelGoal: 'Generate Leads',
+
+        // Landing Page Specifics
+        landingGoal: 'Lead Generation',
+        landingSections: [
+            'Hero Header',
+            'Features & Value Benefits',
+            'Problem vs Solution',
+            'Social Proof & Testimonials',
+            'Pricing Table & Packages',
+            'Interactive FAQ Accordion',
+            'Contact & Lead Form',
+            'Trust Badges & Guarantee'
+        ],
+
+        // Shared Configuration
         audience: 'Business Owners',
         offer: 'Free Consultation',
         businessName: 'BrightSmile Dental',
@@ -2246,10 +2279,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function openWizardModal(promptContext = '', defaultMode = '') {
         currentFunnelStep = 1;
 
-        if (promptContext && promptContext.trim()) {
-            parsePromptToFunnelState(promptContext.trim());
+        // Auto-detect mode if not explicitly passed
+        if (defaultMode) {
+            wizardState.mode = defaultMode;
+        } else if (promptContext) {
+            const lower = promptContext.toLowerCase();
+            if (/\b(landing\s*page|landingpage|single\s*page|one\s*page|lead\s*page|sales\s*page)\b/i.test(lower) && !/\bfunnel\b/i.test(lower)) {
+                wizardState.mode = 'landing';
+            } else {
+                wizardState.mode = 'funnel';
+            }
         }
 
+        if (promptContext && promptContext.trim()) {
+            parsePromptToWizardState(promptContext.trim());
+        }
+
+        applyWizardModeUI(wizardState.mode);
         syncStateToUI();
         renderFunnelStep(1);
 
@@ -2264,84 +2310,206 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Parse natural language hints to prepopulate funnel fields
-    function parsePromptToFunnelState(prompt) {
+    // Switch between Funnel and Landing Page modes
+    function setWizardMode(mode) {
+        wizardState.mode = mode;
+        applyWizardModeUI(mode);
+        syncStateToUI();
+        renderFunnelStep(currentFunnelStep);
+    }
+
+    function applyWizardModeUI(mode) {
+        const isFunnel = (mode === 'funnel');
+
+        // Toggle Mode Pills
+        if (btnModeFunnel) btnModeFunnel.classList.toggle('active', isFunnel);
+        if (btnModeLanding) btnModeLanding.classList.toggle('active', !isFunnel);
+
+        // Left Panel Updates
+        const leftTitle = document.getElementById('wizard-left-title');
+        const leftDesc = document.getElementById('wizard-left-desc');
+        const benefit1Title = document.getElementById('wizard-benefit-1-title');
+        const benefit1Desc = document.getElementById('wizard-benefit-1-desc');
+        const benefit2Title = document.getElementById('wizard-benefit-2-title');
+        const benefit2Desc = document.getElementById('wizard-benefit-2-desc');
+        const brandBadge = document.getElementById('wizard-brand-badge');
+
+        if (isFunnel) {
+            if (leftTitle) leftTitle.innerHTML = `Let's build your<br><span class="highlight-purple">multi-step funnel</span> 🚀`;
+            if (leftDesc) leftDesc.textContent = `Choose how many pages you need, configure each step's content, and generate a complete multi-step funnel with zero scrolling.`;
+            if (benefit1Title) benefit1Title.textContent = `Multi-Step Architecture`;
+            if (benefit1Desc) benefit1Desc.textContent = `Discrete pages with wired button progression`;
+            if (benefit2Title) benefit2Title.textContent = `Designed to Convert`;
+            if (benefit2Desc) benefit2Desc.textContent = `HighLevel workflows, forms, and triggers`;
+            if (brandBadge) brandBadge.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>`;
+        } else {
+            if (leftTitle) leftTitle.innerHTML = `Let's build your<br><span class="highlight-purple">single landing page</span> ✨`;
+            if (leftDesc) leftDesc.textContent = `Choose your primary conversion goal, select all key sections for this single page, and generate clean modern code.`;
+            if (benefit1Title) benefit1Title.textContent = `Single Page Flow`;
+            if (benefit1Desc) benefit1Desc.textContent = `Clean continuous layout with smooth navigation`;
+            if (benefit2Title) benefit2Title.textContent = `Conversion Sections`;
+            if (benefit2Desc) benefit2Desc.textContent = `Hero, Features, Testimonials, FAQ & Lead Form`;
+            if (brandBadge) brandBadge.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>`;
+        }
+
+        // Stepper Title Updates
+        const st1 = document.getElementById('stepper-title-1');
+        const st2 = document.getElementById('stepper-title-2');
+        if (st1) st1.textContent = isFunnel ? 'Pages' : 'Goal';
+        if (st2) st2.textContent = isFunnel ? 'Goal' : 'Sections';
+
+        // Step 1 Views
+        const funnelStep1 = document.getElementById('funnel-mode-step-1');
+        const landingStep1 = document.getElementById('landing-mode-step-1');
+        if (funnelStep1) funnelStep1.style.display = isFunnel ? 'block' : 'none';
+        if (landingStep1) landingStep1.style.display = isFunnel ? 'none' : 'block';
+
+        // Step 2 Views
+        const funnelStep2 = document.getElementById('funnel-mode-step-2');
+        const landingStep2 = document.getElementById('landing-mode-step-2');
+        if (funnelStep2) funnelStep2.style.display = isFunnel ? 'block' : 'none';
+        if (landingStep2) landingStep2.style.display = isFunnel ? 'none' : 'block';
+
+        // Review Button
+        const createBtn = document.getElementById('funnel-create-btn');
+        if (createBtn) {
+            createBtn.textContent = isFunnel ? 'Create My Multi-Step Funnel 🚀' : 'Create My Landing Page ✨';
+        }
+    }
+
+    // Parse natural language hints to prepopulate fields
+    function parsePromptToWizardState(prompt) {
         const lower = prompt.toLowerCase();
+
+        // Detect Funnel Page Count
+        if (lower.includes('2 page') || lower.includes('2 step') || lower.includes('two page') || lower.includes('two step')) {
+            wizardState.funnelPages = '2';
+            wizardState.funnelStructure = '2-Step Opt-in & Delivery';
+            wizardState.funnelStepBreakdown = FUNNEL_STEP_PRESETS['2'];
+        } else if (lower.includes('3 page') || lower.includes('3 step') || lower.includes('three page') || lower.includes('three step')) {
+            wizardState.funnelPages = '3';
+            wizardState.funnelStructure = '3-Step VSL & Booking Funnel';
+            wizardState.funnelStepBreakdown = FUNNEL_STEP_PRESETS['3'];
+        } else if (lower.includes('4 page') || lower.includes('4 step') || lower.includes('four page') || lower.includes('four step')) {
+            wizardState.funnelPages = '4';
+            wizardState.funnelStructure = '4-Step Lead & Sales Funnel';
+            wizardState.funnelStepBreakdown = FUNNEL_STEP_PRESETS['4'];
+        } else if (lower.includes('5 page') || lower.includes('5 step') || lower.includes('five page') || lower.includes('five step')) {
+            wizardState.funnelPages = '5';
+            wizardState.funnelStructure = '5-Step Full High-Converting Funnel';
+            wizardState.funnelStepBreakdown = FUNNEL_STEP_PRESETS['5'];
+        }
 
         // Detect Goal
         if (lower.includes('appointment') || lower.includes('booking') || lower.includes('consultation') || lower.includes('call')) {
-            funnelState.goal = 'Book Appointments';
+            wizardState.funnelGoal = 'Book Appointments';
+            wizardState.landingGoal = 'Book Appointments';
         } else if (lower.includes('webinar') || lower.includes('event') || lower.includes('workshop')) {
-            funnelState.goal = 'Promote a Webinar';
+            wizardState.funnelGoal = 'Promote a Webinar';
+            wizardState.landingGoal = 'Webinar Registration';
         } else if (lower.includes('sell') || lower.includes('product') || lower.includes('checkout') || lower.includes('order')) {
-            funnelState.goal = 'Sell a Product';
+            wizardState.funnelGoal = 'Sell a Product';
+            wizardState.landingGoal = 'Direct Product Sale';
         } else if (lower.includes('download') || lower.includes('ebook') || lower.includes('magnet') || lower.includes('guide')) {
-            funnelState.goal = 'Download / Resource';
+            wizardState.funnelGoal = 'Download / Resource';
+            wizardState.landingGoal = 'Download Resource';
+        } else if (lower.includes('waitlist') || lower.includes('early access')) {
+            wizardState.landingGoal = 'Waitlist & VIP Access';
         } else if (lower.includes('lead') || lower.includes('opt-in') || lower.includes('optin') || lower.includes('email')) {
-            funnelState.goal = 'Generate Leads';
+            wizardState.funnelGoal = 'Generate Leads';
+            wizardState.landingGoal = 'Lead Generation';
         }
 
         // Detect Audience
         if (lower.includes('e-commerce') || lower.includes('ecommerce') || lower.includes('shopify') || lower.includes('store')) {
-            funnelState.audience = 'E-commerce Sellers';
+            wizardState.audience = 'E-commerce Sellers';
         } else if (lower.includes('coach') || lower.includes('consultant') || lower.includes('trainer')) {
-            funnelState.audience = 'Coaches & Consultants';
+            wizardState.audience = 'Coaches & Consultants';
         } else if (lower.includes('agency') || lower.includes('marketer') || lower.includes('freelancer')) {
-            funnelState.audience = 'Marketing Professionals';
+            wizardState.audience = 'Marketing Professionals';
         } else if (lower.includes('local') || lower.includes('clinic') || lower.includes('dental') || lower.includes('gym') || lower.includes('real estate') || lower.includes('roofing') || lower.includes('plumber')) {
-            funnelState.audience = 'Local Service Providers';
+            wizardState.audience = 'Local Service Providers';
         } else if (lower.includes('business') || lower.includes('owner') || lower.includes('b2b') || lower.includes('founder')) {
-            funnelState.audience = 'Business Owners';
+            wizardState.audience = 'Business Owners';
         }
 
-        // Detect Business Name if user said "for [Brand]"
+        // Detect Brand Name if user said "for [Brand]"
         const forMatch = prompt.match(/\b(?:for|called|named|brand)\s+([A-Z][A-Za-z0-9\s&'-]{2,25})/i);
         if (forMatch && forMatch[1]) {
-            funnelState.businessName = forMatch[1].trim();
+            wizardState.businessName = forMatch[1].trim();
         } else if (lower.includes('dental') || lower.includes('dentist')) {
-            funnelState.businessName = 'BrightSmile Dental';
-            funnelState.problemSolved = 'We help people get confident smiles with advanced care.';
-            funnelState.whyChooseYou = 'Experienced team, advanced technology, personalized care.';
-            funnelState.keyBenefits = 'Painless procedures, same-day results, 5-star rated.';
-            funnelState.offer = 'Free Dental Consultation & 3D Scan';
+            wizardState.businessName = 'BrightSmile Dental';
+            wizardState.problemSolved = 'We help people get confident smiles with advanced care.';
+            wizardState.whyChooseYou = 'Experienced team, advanced technology, personalized care.';
+            wizardState.keyBenefits = 'Painless procedures, same-day results, 5-star rated.';
+            wizardState.offer = 'Free Dental Consultation & 3D Scan';
         } else if (lower.includes('gym') || lower.includes('fitness')) {
-            funnelState.businessName = 'Apex Fitness Club';
-            funnelState.problemSolved = 'We help busy professionals lose fat and gain lean muscle.';
-            funnelState.whyChooseYou = 'Custom nutrition plans, 1-on-1 coaching, 24/7 accountability.';
-            funnelState.keyBenefits = 'Guaranteed 12-week body transformation, modern equipment.';
-            funnelState.offer = 'Free 7-Day VIP Gym Pass';
+            wizardState.businessName = 'Apex Fitness Club';
+            wizardState.problemSolved = 'We help busy professionals lose fat and gain lean muscle.';
+            wizardState.whyChooseYou = 'Custom nutrition plans, 1-on-1 coaching, 24/7 accountability.';
+            wizardState.keyBenefits = 'Guaranteed 12-week body transformation, modern equipment.';
+            wizardState.offer = 'Free 7-Day VIP Gym Pass';
         } else if (lower.includes('real estate') || lower.includes('realtor')) {
-            funnelState.businessName = 'Apex Realty Group';
-            funnelState.problemSolved = 'We help families find their dream homes without the stress.';
-            funnelState.whyChooseYou = 'Top 1% local producers, VIP off-market access, fast closing.';
-            funnelState.keyBenefits = 'Free home valuation, 0% listing fee option.';
-            funnelState.offer = 'Free Home Valuation & Buyer Guide';
+            wizardState.businessName = 'Apex Realty Group';
+            wizardState.problemSolved = 'We help families find their dream homes without the stress.';
+            wizardState.whyChooseYou = 'Top 1% local producers, VIP off-market access, fast closing.';
+            wizardState.keyBenefits = 'Free home valuation, 0% listing fee option.';
+            wizardState.offer = 'Free Home Valuation & Buyer Guide';
         }
     }
 
     // Synchronize State object with UI inputs and cards
     function syncStateToUI() {
-        // Step 1: Goal cards
-        document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(card => {
-            const val = card.getAttribute('data-value');
-            card.classList.toggle('selected', val === funnelState.goal);
-        });
+        const isFunnel = (wizardState.mode === 'funnel');
 
-        // Step 2: Audience cards
-        document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(card => {
-            const val = card.getAttribute('data-value');
-            card.classList.toggle('selected', val === funnelState.audience);
-        });
+        if (isFunnel) {
+            // Step 1: Funnel Pages Count Cards
+            document.querySelectorAll('#funnel-pages-count-grid .funnel-select-card').forEach(card => {
+                const pages = card.getAttribute('data-pages');
+                card.classList.toggle('selected', pages === wizardState.funnelPages);
+            });
+
+            // Step 1: Funnel Step Breakdown Textarea
+            const breakdownInput = document.getElementById('funnel-step-breakdown-input');
+            if (breakdownInput && wizardState.funnelStepBreakdown) {
+                breakdownInput.value = wizardState.funnelStepBreakdown;
+            }
+
+            // Step 2: Funnel Goal cards
+            document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(card => {
+                const val = card.getAttribute('data-value');
+                card.classList.toggle('selected', val === wizardState.funnelGoal);
+            });
+        } else {
+            // Step 1: Landing Page Goal cards
+            document.querySelectorAll('#landing-goal-options-grid .funnel-select-card').forEach(card => {
+                const val = card.getAttribute('data-value');
+                card.classList.toggle('selected', val === wizardState.landingGoal);
+            });
+
+            // Step 2: Landing Page Sections multi-select cards
+            document.querySelectorAll('#landing-sections-grid .funnel-select-card').forEach(card => {
+                const sectionName = card.getAttribute('data-section');
+                const isSelected = wizardState.landingSections.includes(sectionName);
+                card.classList.toggle('selected', isSelected);
+            });
+        }
 
         // Step 3: Offer input & counter
         const offerInput = document.getElementById('funnel-offer-input');
         const offerCounter = document.getElementById('offer-char-counter');
         if (offerInput) {
-            offerInput.value = funnelState.offer;
+            offerInput.value = wizardState.offer;
             if (offerCounter) {
-                offerCounter.textContent = `${offerInput.value.length}/120`;
+                offerCounter.textContent = `${offerInput.value.length}/140`;
             }
         }
+
+        // Step 3: Audience cards
+        document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(card => {
+            const val = card.getAttribute('data-value');
+            card.classList.toggle('selected', val === wizardState.audience);
+        });
 
         // Step 4: Business Details
         const bizNameInput = document.getElementById('funnel-biz-name');
@@ -2349,20 +2517,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const bizChooseInput = document.getElementById('funnel-biz-choose');
         const bizBenefitsInput = document.getElementById('funnel-biz-benefits');
 
-        if (bizNameInput) bizNameInput.value = funnelState.businessName;
-        if (bizProblemInput) bizProblemInput.value = funnelState.problemSolved;
-        if (bizChooseInput) bizChooseInput.value = funnelState.whyChooseYou;
-        if (bizBenefitsInput) bizBenefitsInput.value = funnelState.keyBenefits;
+        if (bizNameInput) bizNameInput.value = wizardState.businessName;
+        if (bizProblemInput) bizProblemInput.value = wizardState.problemSolved;
+        if (bizChooseInput) bizChooseInput.value = wizardState.whyChooseYou;
+        if (bizBenefitsInput) bizBenefitsInput.value = wizardState.keyBenefits;
 
         // Step 5: Design Style & Colors
         document.querySelectorAll('#style-options-grid .funnel-select-card').forEach(card => {
             const style = card.getAttribute('data-style');
-            card.classList.toggle('selected', style === funnelState.designStyle);
+            card.classList.toggle('selected', style === wizardState.designStyle);
         });
 
         document.querySelectorAll('#funnel-color-swatches .color-dot').forEach(dot => {
             const c = dot.getAttribute('data-color');
-            const isActive = (c && c.toLowerCase() === funnelState.primaryColor.toLowerCase());
+            const isActive = (c && c.toLowerCase() === wizardState.primaryColor.toLowerCase());
             dot.classList.toggle('active', isActive);
             if (!dot.classList.contains('custom-rainbow')) {
                 dot.textContent = isActive ? '✓' : '';
@@ -2375,29 +2543,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Read current inputs into state
     function syncUIToState() {
+        const isFunnel = (wizardState.mode === 'funnel');
+
+        if (isFunnel) {
+            const breakdownInput = document.getElementById('funnel-step-breakdown-input');
+            if (breakdownInput && breakdownInput.value.trim()) {
+                wizardState.funnelStepBreakdown = breakdownInput.value.trim();
+            }
+        }
+
         const offerInput = document.getElementById('funnel-offer-input');
         if (offerInput && offerInput.value.trim()) {
-            funnelState.offer = offerInput.value.trim();
+            wizardState.offer = offerInput.value.trim();
         }
 
         const bizNameInput = document.getElementById('funnel-biz-name');
         if (bizNameInput && bizNameInput.value.trim()) {
-            funnelState.businessName = bizNameInput.value.trim();
+            wizardState.businessName = bizNameInput.value.trim();
         }
 
         const bizProblemInput = document.getElementById('funnel-biz-problem');
         if (bizProblemInput && bizProblemInput.value.trim()) {
-            funnelState.problemSolved = bizProblemInput.value.trim();
+            wizardState.problemSolved = bizProblemInput.value.trim();
         }
 
         const bizChooseInput = document.getElementById('funnel-biz-choose');
         if (bizChooseInput && bizChooseInput.value.trim()) {
-            funnelState.whyChooseYou = bizChooseInput.value.trim();
+            wizardState.whyChooseYou = bizChooseInput.value.trim();
         }
 
         const bizBenefitsInput = document.getElementById('funnel-biz-benefits');
         if (bizBenefitsInput && bizBenefitsInput.value.trim()) {
-            funnelState.keyBenefits = bizBenefitsInput.value.trim();
+            wizardState.keyBenefits = bizBenefitsInput.value.trim();
         }
     }
 
@@ -2447,6 +2624,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update Step 6 Review UI
     function updateReviewListUI() {
+        const isFunnel = (wizardState.mode === 'funnel');
+
+        const revAssetIcon = document.getElementById('rev-asset-icon');
+        const revAssetType = document.getElementById('rev-asset-type-val');
+        const revStructureIcon = document.getElementById('rev-structure-icon');
+        const revStructureLabel = document.getElementById('rev-structure-label');
+        const revStructureVal = document.getElementById('rev-structure-val');
+        const revGoalLabel = document.getElementById('rev-goal-label');
         const revGoal = document.getElementById('rev-goal-val');
         const revAudience = document.getElementById('rev-audience-val');
         const revOffer = document.getElementById('rev-offer-val');
@@ -2456,27 +2641,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const revStyle = document.getElementById('rev-style-val');
         const revColorPreview = document.getElementById('rev-color-preview');
         const revColorHex = document.getElementById('rev-color-hex');
+        const createBtn = document.getElementById('funnel-create-btn');
 
-        if (revGoal) revGoal.textContent = funnelState.goal;
-        if (revAudience) revAudience.textContent = funnelState.audience;
-        if (revOffer) revOffer.textContent = funnelState.offer;
-        if (revBizName) revBizName.textContent = funnelState.businessName;
-        if (revProblem) revProblem.textContent = funnelState.problemSolved;
-        if (revWhyChoose) revWhyChoose.textContent = funnelState.whyChooseYou;
-        if (revStyle) revStyle.textContent = funnelState.designStyle;
-        if (revColorPreview) revColorPreview.style.backgroundColor = funnelState.primaryColor;
-        if (revColorHex) revColorHex.textContent = funnelState.primaryColor;
+        if (isFunnel) {
+            if (revAssetIcon) revAssetIcon.textContent = '🌪️';
+            if (revAssetType) revAssetType.textContent = 'Multi-Step Funnel (Discrete Steps, No Scroll)';
+            if (revStructureIcon) revStructureIcon.textContent = '📐';
+            if (revStructureLabel) revStructureLabel.textContent = 'Pages & Step Flow';
+            if (revStructureVal) revStructureVal.textContent = `${wizardState.funnelStructure} (${wizardState.funnelPages} Steps)`;
+            if (revGoalLabel) revGoalLabel.textContent = 'Funnel Goal';
+            if (revGoal) revGoal.textContent = wizardState.funnelGoal;
+            if (createBtn) createBtn.textContent = 'Create My Multi-Step Funnel 🚀';
+        } else {
+            if (revAssetIcon) revAssetIcon.textContent = '📄';
+            if (revAssetType) revAssetType.textContent = 'Single Continuous Landing Page';
+            if (revStructureIcon) revStructureIcon.textContent = '📑';
+            if (revStructureLabel) revStructureLabel.textContent = 'Included Page Sections';
+            if (revStructureVal) revStructureVal.textContent = wizardState.landingSections.join(', ') || 'Hero, Features, Testimonials, FAQ, Lead Form';
+            if (revGoalLabel) revGoalLabel.textContent = 'Primary Goal';
+            if (revGoal) revGoal.textContent = wizardState.landingGoal;
+            if (createBtn) createBtn.textContent = 'Create My Landing Page ✨';
+        }
+
+        if (revAudience) revAudience.textContent = wizardState.audience;
+        if (revOffer) revOffer.textContent = wizardState.offer;
+        if (revBizName) revBizName.textContent = wizardState.businessName;
+        if (revProblem) revProblem.textContent = wizardState.problemSolved;
+        if (revWhyChoose) revWhyChoose.textContent = wizardState.whyChooseYou;
+        if (revStyle) revStyle.textContent = wizardState.designStyle;
+        if (revColorPreview) revColorPreview.style.backgroundColor = wizardState.primaryColor;
+        if (revColorHex) revColorHex.textContent = wizardState.primaryColor;
     }
 
     // Setup Event Listeners for Wizard Components
     function initFunnelWizardEvents() {
+        // Mode toggle pill listeners
+        if (btnModeFunnel) btnModeFunnel.addEventListener('click', () => setWizardMode('funnel'));
+        if (btnModeLanding) btnModeLanding.addEventListener('click', () => setWizardMode('landing'));
+
         // Close buttons
         if (closeWizardModalBtn) closeWizardModalBtn.addEventListener('click', closeWizardModal);
         if (headerWizardLauncherBtn) headerWizardLauncherBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
         if (sidebarWizardBtn) sidebarWizardBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
         if (openWizardChipBtn) openWizardChipBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
 
-        // Stepper circle clicks (allow jumping to previously visited or earlier steps)
+        // Stepper circle clicks (allow jumping to any step)
         document.querySelectorAll('.funnel-stepper .stepper-step').forEach(stepEl => {
             stepEl.addEventListener('click', () => {
                 const s = parseInt(stepEl.getAttribute('data-step') || '1');
@@ -2484,12 +2693,29 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Step 1: Goal Card Selection
-        document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(card => {
+        // Step 1: Funnel Pages Count Selection
+        document.querySelectorAll('#funnel-pages-count-grid .funnel-select-card').forEach(card => {
             card.addEventListener('click', () => {
-                document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('#funnel-pages-count-grid .funnel-select-card').forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
-                funnelState.goal = card.getAttribute('data-value') || 'Generate Leads';
+                const pages = card.getAttribute('data-pages') || '5';
+                const structure = card.getAttribute('data-structure') || `${pages}-Step Funnel`;
+                wizardState.funnelPages = pages;
+                wizardState.funnelStructure = structure;
+                if (FUNNEL_STEP_PRESETS[pages]) {
+                    wizardState.funnelStepBreakdown = FUNNEL_STEP_PRESETS[pages];
+                    const breakdownInput = document.getElementById('funnel-step-breakdown-input');
+                    if (breakdownInput) breakdownInput.value = wizardState.funnelStepBreakdown;
+                }
+            });
+        });
+
+        // Step 1: Landing Page Goal Selection
+        document.querySelectorAll('#landing-goal-options-grid .funnel-select-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#landing-goal-options-grid .funnel-select-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                wizardState.landingGoal = card.getAttribute('data-value') || 'Lead Generation';
             });
         });
 
@@ -2498,12 +2724,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (step1NextBtn) step1NextBtn.addEventListener('click', () => renderFunnelStep(2));
         if (step1SkipBtn) step1SkipBtn.addEventListener('click', () => renderFunnelStep(2));
 
-        // Step 2: Audience Card Selection
-        document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(card => {
+        // Step 2: Funnel Goal Selection
+        document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(card => {
             card.addEventListener('click', () => {
-                document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(c => c.classList.remove('selected'));
+                document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
-                funnelState.audience = card.getAttribute('data-value') || 'Business Owners';
+                wizardState.funnelGoal = card.getAttribute('data-value') || 'Generate Leads';
+            });
+        });
+
+        // Step 2: Landing Page Sections Multi-Select
+        document.querySelectorAll('#landing-sections-grid .funnel-select-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const section = card.getAttribute('data-section');
+                if (card.classList.contains('selected')) {
+                    // Prevent deselecting all
+                    if (wizardState.landingSections.length > 2) {
+                        card.classList.remove('selected');
+                        wizardState.landingSections = wizardState.landingSections.filter(s => s !== section);
+                    }
+                } else {
+                    card.classList.add('selected');
+                    if (!wizardState.landingSections.includes(section)) {
+                        wizardState.landingSections.push(section);
+                    }
+                }
             });
         });
 
@@ -2520,9 +2765,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (offerInput) {
             offerInput.addEventListener('input', () => {
                 if (offerCounter) {
-                    offerCounter.textContent = `${offerInput.value.length}/120`;
+                    offerCounter.textContent = `${offerInput.value.length}/140`;
                 }
-                funnelState.offer = offerInput.value.trim() || 'High-Converting Offer';
+                wizardState.offer = offerInput.value.trim() || 'High-Converting Offer';
             });
         }
 
@@ -2531,9 +2776,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const text = pill.getAttribute('data-text') || pill.textContent.trim();
                 if (offerInput) {
                     offerInput.value = text;
-                    if (offerCounter) offerCounter.textContent = `${text.length}/120`;
-                    funnelState.offer = text;
+                    if (offerCounter) offerCounter.textContent = `${text.length}/140`;
+                    wizardState.offer = text;
                 }
+            });
+        });
+
+        // Step 3: Audience Card Selection
+        document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                wizardState.audience = card.getAttribute('data-value') || 'Business Owners';
             });
         });
 
@@ -2557,7 +2811,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.addEventListener('click', () => {
                 document.querySelectorAll('#style-options-grid .funnel-select-card').forEach(c => c.classList.remove('selected'));
                 card.classList.add('selected');
-                funnelState.designStyle = card.getAttribute('data-style') || 'Modern & Clean';
+                wizardState.designStyle = card.getAttribute('data-style') || 'Modern & Clean';
             });
         });
 
@@ -2566,7 +2820,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dot.addEventListener('click', () => {
                 if (dot.classList.contains('custom-rainbow')) return;
                 const color = dot.getAttribute('data-color') || '#6C5CE7';
-                funnelState.primaryColor = color;
+                wizardState.primaryColor = color;
                 document.querySelectorAll('#funnel-color-swatches .color-dot').forEach(d => {
                     d.classList.remove('active');
                     if (!d.classList.contains('custom-rainbow')) d.textContent = '';
@@ -2580,7 +2834,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const customColorPicker = document.getElementById('funnel-custom-color-picker');
         if (customColorPicker) {
             customColorPicker.addEventListener('input', () => {
-                funnelState.primaryColor = customColorPicker.value;
+                wizardState.primaryColor = customColorPicker.value;
                 document.querySelectorAll('#funnel-color-swatches .color-dot').forEach(d => {
                     d.classList.remove('active');
                     if (!d.classList.contains('custom-rainbow')) d.textContent = '';
@@ -2608,14 +2862,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.funnel-review-list .review-item').forEach(item => {
             item.addEventListener('click', () => {
                 const targetStep = parseInt(item.getAttribute('data-goto-step') || '1');
-                renderFunnelStep(targetStep);
+                if (targetStep) renderFunnelStep(targetStep);
             });
         });
 
         const step6BackBtn = document.getElementById('step-6-back-btn');
         if (step6BackBtn) step6BackBtn.addEventListener('click', () => renderFunnelStep(5));
 
-        // Step 6: Final CTA "Create My Funnel ✨"
+        // Step 6: Final CTA Button
         const createFunnelBtn = document.getElementById('funnel-create-btn');
         if (createFunnelBtn) {
             createFunnelBtn.addEventListener('click', () => {
@@ -2624,30 +2878,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Submit Funnel Generation & Compile AI Prompt
+    // Submit Funnel or Landing Page Generation & Compile Specialized AI Prompt
     function submitFunnelGeneration() {
         syncUIToState();
         closeWizardModal();
 
-        const compiledPrompt = `Build a complete GoHighLevel High-Converting Funnel & CRM Architecture based strictly on my strategic requirements.
+        const isFunnel = (wizardState.mode === 'funnel');
+        let compiledPrompt = '';
 
-🎯 Funnel Plan & Specifications:
-- Main Goal: ${funnelState.goal}
-- Target Audience: ${funnelState.audience}
-- Core Offer: ${funnelState.offer}
-- Business / Brand Name: ${funnelState.businessName}
-- Problem Solved: ${funnelState.problemSolved}
-- Why Choose Us: ${funnelState.whyChooseYou}
-- Key Benefits / Features: ${funnelState.keyBenefits}
-- Design Style & Look: ${funnelState.designStyle}
-- Primary Brand Color: ${funnelState.primaryColor}
+        if (isFunnel) {
+            compiledPrompt = `Build a complete GoHighLevel Multi-Step High-Converting Funnel & CRM Architecture based strictly on my specifications.
+
+🎯 Asset Type: Multi-Step Funnel
+- Number of Funnel Pages: ${wizardState.funnelPages} Steps (${wizardState.funnelStructure})
+- Step-by-Step Page Breakdown & Flow:
+${wizardState.funnelStepBreakdown}
+- Main Funnel Goal: ${wizardState.funnelGoal}
+- Target Audience: ${wizardState.audience}
+- Core Offer: ${wizardState.offer}
+- Business / Brand Name: ${wizardState.businessName}
+- Problem Solved: ${wizardState.problemSolved}
+- Why Choose Us: ${wizardState.whyChooseYou}
+- Key Benefits / Features: ${wizardState.keyBenefits}
+- Design Style & Look: ${wizardState.designStyle}
+- Primary Brand Color: ${wizardState.primaryColor}
 
 Please deliver:
-1. Complete Multi-Step Funnel Flow Architecture (Landing/Opt-in ➔ VSL/Sales ➔ Booking/Checkout ➔ Confirmation).
-2. Production-ready, responsive, beautifully styled HTML/CSS code for the funnel landing page reflecting the ${funnelState.designStyle} aesthetic and ${funnelState.primaryColor} brand accent.
-3. High-converting copywriting tailored for ${funnelState.audience} solving "${funnelState.problemSolved}".
-4. GoHighLevel Pipeline stages, Smart Tags, and Contact Custom Fields schema.
-5. Automated CRM Speed-to-Lead Follow-up & Abandonment Recovery Workflow.`;
+1. Complete Single-File HTML App with strictly ${wizardState.funnelPages} isolated steps (#step-1, #step-2, ... #step-${wizardState.funnelPages}) and wired button progression (switchStep). ONLY Step 1 must be visible on initial load; subsequent steps MUST have class="funnel-step hidden" style="display:none;". Strictly ZERO vertical scrolling across steps!
+2. Funnel Step Map & URLs table.
+3. HighLevel Pipeline stages, Custom Fields, and Tags schema.
+4. Production-Ready HighLevel Workflow Automations for lead nurture and step recovery.
+5. Step-by-step GoHighLevel Implementation & Deployment Guide.`;
+        } else {
+            compiledPrompt = `Build a complete GoHighLevel High-Converting Single-Page Landing Page & CRM Architecture based strictly on my specifications.
+
+📄 Asset Type: Single-Page Landing Page (Standalone Page, NOT a multi-step funnel)
+- Primary Conversion Goal: ${wizardState.landingGoal}
+- Key Sections to Include on Single Page:
+${wizardState.landingSections.map(s => '  • ' + s).join('\n')}
+- Core Offer & Value Proposition: ${wizardState.offer}
+- Target Audience: ${wizardState.audience}
+- Business / Brand Name: ${wizardState.businessName}
+- Problem Solved: ${wizardState.problemSolved}
+- Why Choose Us: ${wizardState.whyChooseYou}
+- Key Benefits / Features: ${wizardState.keyBenefits}
+- Design Style & Look: ${wizardState.designStyle}
+- Primary Brand Color: ${wizardState.primaryColor}
+
+Please deliver:
+1. Complete Single-File HTML Landing Page (<!DOCTYPE html> ... </html>) in a single code block. This is a single continuous page (NOT a multi-step hidden tab funnel). Include a sticky navigation bar with section anchors, Hero section, and all ${wizardState.landingSections.length} requested sections (${wizardState.landingSections.join(', ')}) with modern Tailwind CSS styling, responsive layout, interactive FAQ accordion, and lead capture form.
+2. High-converting copywriting and conversion architecture.
+3. GoHighLevel Form, Custom Fields, Pipeline & Lead Notification Tags.
+4. Automated Speed-to-Lead Follow-up & Confirmation Workflow.
+5. HighLevel Website/Page Deployment & Embedding Guide.`;
+        }
 
         if (userInput) {
             userInput.value = compiledPrompt;

@@ -4323,6 +4323,98 @@ body.dark-theme .agent-markdown-text code:not(pre code) {
     padding-bottom: 18px;
     border-bottom: 1px solid #f1f5f9;
     margin-bottom: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* Mode Pill Toggle (Funnel vs Landing Page) */
+.funnel-mode-pill-toggle {
+    display: flex;
+    align-items: center;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 30px;
+    padding: 3px;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.funnel-mode-pill-toggle .mode-pill-btn {
+    border: none;
+    background: transparent;
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.funnel-mode-pill-toggle .mode-pill-btn:hover {
+    color: #1E293B;
+}
+
+.funnel-mode-pill-toggle .mode-pill-btn.active {
+    background: #6C5CE7;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(108, 92, 231, 0.35);
+}
+
+/* Funnel Step Breakdown Box */
+.funnel-breakdown-box {
+    margin-top: 14px;
+    background: #F8FAFC;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 16px;
+}
+
+.funnel-breakdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.funnel-breakdown-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1E293B;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.funnel-breakdown-hint {
+    font-size: 11px;
+    color: #64748B;
+}
+
+.funnel-breakdown-textarea {
+    width: 100%;
+    min-height: 90px;
+    background: #FFFFFF;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #1E293B;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.funnel-breakdown-textarea:focus {
+    border-color: #6C5CE7;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
 }
 
 .funnel-stepper {
