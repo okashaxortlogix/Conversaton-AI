@@ -176,12 +176,24 @@ class ModelUsageTracker:
             "last_used": None
         })
 
-        spec = MODEL_SPECS.get(model_id, {
+        spec = dict(MODEL_SPECS.get(model_id, {
             "tpm_limit": 70000,
             "rpm_limit": 30,
             "rpd_limit": 1000,
             "badge_capacity": "Standard"
-        })
+        }))
+
+        # Dynamically scale Gemini model capacity by number of keys in rotation pool
+        if "gemini" in model_id:
+            try:
+                from key_pool_manager import gemini_key_pool
+                k_count = max(1, len(gemini_key_pool.keys_state))
+                spec["tpm_limit"] = spec["tpm_limit"] * k_count
+                spec["rpm_limit"] = spec["rpm_limit"] * k_count
+                spec["rpd_limit"] = spec["rpd_limit"] * k_count
+                spec["badge_capacity"] = f"{k_count}M TPM • {k_count * 15} RPM ({k_count} Keys)"
+            except Exception:
+                pass
 
         # Calculate current minute TPM (tokens in last 60 seconds)
         events = self.sliding_window.get(model_id, [])

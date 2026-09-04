@@ -1,10 +1,12 @@
 """
 Key Pool Manager for OpenRouter, Gemini, and AI Providers.
-Provides intelligent key polling, credit tracking, automatic shifting on quota depletion (402/429),
-and seamless failover across multiple API keys.
+Provides intelligent key discovery (single/multi/numbered env vars), credit tracking,
+true round-robin key rotation across requests to maximize token & rate limits,
+instant failover on quota exhaustion (429/402), and automatic cooldown recovery.
 """
 
 import os
+import re
 import time
 import json
 import logging
@@ -16,25 +18,128 @@ logger = logging.getLogger("key_pool_manager")
 logger.setLevel(logging.INFO)
 
 
+def _natural_sort_key(s: str):
+    """Natural sort key helper to sort GEMINI_API_KEY_1, GEMINI_API_KEY_2, GEMINI_API_KEY_10 cleanly."""
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
+
+
+def collect_gemini_keys() -> List[str]:
+    """
+    Intelligently discovers and parses all Google Gemini API keys from environment variables.
+    Handles all Railway / Docker / local configurations:
+      1. GEMINI_API_KEYS (comma, semicolon, newline, pipe separated, or JSON array)
+      2. GEMINI_API_KEY (single key or delimited list)
+      3. GEMINI_KEYS, GEMINI_KEY, GOOGLE_API_KEYS, GOOGLE_API_KEY, GOOGLE_KEYS
+      4. Numbered / suffix variables: GEMINI_API_KEY_1, GEMINI_API_KEY_2, GEMINI_KEY_01, GOOGLE_API_KEY_1, etc.
+      5. Any env variable matching regex r'^(GEMINI|GOOGLE).*(API_)?KEY'
+    Strips quotes/backticks/whitespace, rejects dummy placeholders, and validates key format.
+    """
+    keys: List[str] = []
+    seen = set()
+
+    # Discover all matching environment variable names
+    candidate_var_names = []
+    for var_name in sorted(os.environ.keys(), key=_natural_sort_key):
+        upper = var_name.upper()
+        if re.search(r'^(GEMINI|GOOGLE).*(API_)?KEY', upper):
+            candidate_var_names.append(var_name)
+
+    # Priority order: standard pool variables first, then specific numbered/named variables
+    priority = [
+        'GEMINI_API_KEYS', 'GEMINI_API_KEY', 'GEMINI_KEYS', 'GEMINI_KEY',
+        'GOOGLE_API_KEYS', 'GOOGLE_API_KEY', 'GOOGLE_KEYS'
+    ]
+    ordered_vars = [v for v in priority if v in os.environ] + [v for v in candidate_var_names if v not in priority]
+
+    for var in ordered_vars:
+        val = os.environ.get(var, "").strip()
+        if not val:
+            continue
+
+        # Check for JSON array format e.g. ["key1", "key2"]
+        if val.startswith("[") and val.endswith("]"):
+            try:
+                parsed_list = json.loads(val)
+                if isinstance(parsed_list, list):
+                    for item in parsed_list:
+                        clean = str(item).strip().strip("'\"`")
+                        if _is_valid_gemini_key(clean, seen):
+                            seen.add(clean)
+                            keys.append(clean)
+                    continue
+            except Exception:
+                pass
+
+        # Split on commas, semicolons, newlines, pipes
+        parts = re.split(r'[\r\n,;|]+', val)
+        for p in parts:
+            clean = p.strip().strip("'\"`")
+            if _is_valid_gemini_key(clean, seen):
+                seen.add(clean)
+                keys.append(clean)
+
+    logger.info(f"collect_gemini_keys discovered {len(keys)} unique valid Gemini key(s).")
+    return keys
+
+
+def _is_valid_gemini_key(k: str, seen_set: set) -> bool:
+    """Validates that a string is a legitimate Gemini/Google API key and not already seen or a dummy value."""
+    if not k or len(k) < 20:
+        return False
+    if k in seen_set:
+        return False
+    lower = k.lower()
+    if any(placeholder in lower for placeholder in [
+        "your_gemini_api_key_here", "placeholder", "undefined", "null", "none", "xxxx"
+    ]):
+        return False
+    # Standard Google AI Studio keys start with 'AIzaSy' or 'AQ.' or are standard length alphanumeric keys
+    if k.startswith("AIzaSy") or k.startswith("AQ.") or len(k) >= 30:
+        return True
+    return False
+
+
+def collect_openrouter_keys() -> List[str]:
+    """
+    Intelligently discovers and parses all OpenRouter API keys from environment variables.
+    Handles OPENROUTER_API_KEYS, OPENROUTER_API_KEY, OPENROUTER_API_KEY_1, etc.
+    """
+    keys: List[str] = []
+    seen = set()
+
+    candidate_vars = []
+    for var_name in sorted(os.environ.keys(), key=_natural_sort_key):
+        if "OPENROUTER" in var_name.upper() and "KEY" in var_name.upper():
+            candidate_vars.append(var_name)
+
+    priority = ['OPENROUTER_API_KEYS', 'OPENROUTER_API_KEY', 'OPENROUTER_KEYS']
+    ordered_vars = [v for v in priority if v in os.environ] + [v for v in candidate_vars if v not in priority]
+
+    for var in ordered_vars:
+        val = os.environ.get(var, "").strip()
+        if not val:
+            continue
+        parts = re.split(r'[\r\n,;|]+', val)
+        for p in parts:
+            clean = p.strip().strip("'\"`")
+            if clean and clean not in seen and clean.startswith("sk-or-v1-"):
+                seen.add(clean)
+                keys.append(clean)
+
+    logger.info(f"collect_openrouter_keys discovered {len(keys)} unique OpenRouter key(s).")
+    return keys
+
+
 class OpenRouterKeyPool:
     """
     Manages a pool of OpenRouter API keys with auto-polling, credit monitoring,
-    and automatic shifting to healthy keys when credits are low or exhausted.
+    round-robin load distribution, and automatic shifting to healthy keys.
     """
     def __init__(self, keys: Optional[List[str]] = None):
         self._lock = threading.Lock()
         self.keys_state: List[Dict[str, Any]] = []
         self._current_index = 0
-        
-        raw_keys = keys or []
-        if not raw_keys:
-            env_pool = os.getenv("OPENROUTER_API_KEYS", "").strip()
-            single_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-            if env_pool:
-                raw_keys.extend([k.strip() for k in env_pool.split(",") if k.strip()])
-            elif single_key:
-                raw_keys.append(single_key)
-        
+        raw_keys = keys if keys is not None else collect_openrouter_keys()
         self.set_keys(raw_keys)
 
     def set_keys(self, raw_keys: List[str]):
@@ -68,8 +173,36 @@ class OpenRouterKeyPool:
             self._current_index = 0
             logger.info(f"OpenRouterKeyPool initialized with {len(self.keys_state)} keys.")
 
-    def get_active_key(self) -> Optional[str]:
-        """Returns the currently active, healthy API key from the pool."""
+    def reload_from_env(self):
+        """Refreshes keys from environment while preserving existing usage statistics."""
+        fresh_keys = collect_openrouter_keys()
+        with self._lock:
+            existing_stats = {e["key"]: e for e in self.keys_state}
+            new_state = []
+            for k in fresh_keys:
+                if k in existing_stats:
+                    new_state.append(existing_stats[k])
+                else:
+                    new_state.append({
+                        "key": k,
+                        "masked": f"{k[:16]}...{k[-4:]}",
+                        "is_active": True,
+                        "is_depleted": False,
+                        "total_credits": 0.0,
+                        "total_usage": 0.0,
+                        "remaining_credits": 0.0,
+                        "last_status_code": 200,
+                        "last_error": "",
+                        "last_checked": 0,
+                        "success_count": 0,
+                        "failure_count": 0
+                    })
+            self.keys_state = new_state
+            if self._current_index >= len(self.keys_state):
+                self._current_index = 0
+
+    def get_active_key(self, rotate: bool = True) -> Optional[str]:
+        """Returns the currently active, healthy API key from the pool with optional round-robin advance."""
         with self._lock:
             if not self.keys_state:
                 return None
@@ -79,15 +212,19 @@ class OpenRouterKeyPool:
                 idx = (self._current_index + i) % n
                 entry = self.keys_state[idx]
                 if entry["is_active"] and not entry["is_depleted"]:
-                    self._current_index = idx
+                    if rotate:
+                        self._current_index = (idx + 1) % n
+                    else:
+                        self._current_index = idx
                     return entry["key"]
             
             logger.warning("All OpenRouter keys in pool were marked depleted. Resetting pool for fresh retry...")
             for entry in self.keys_state:
                 entry["is_depleted"] = False
             
-            self._current_index = 0
-            return self.keys_state[0]["key"]
+            chosen = self.keys_state[0]["key"]
+            self._current_index = 1 % n if rotate else 0
+            return chosen
 
     def mark_key_depleted(self, key: str, status_code: int = 402, error_msg: str = ""):
         """Marks a specific key as depleted or rate-limited, and shifts to next key."""
@@ -184,22 +321,19 @@ class OpenRouterKeyPool:
 
 class GeminiKeyPool:
     """
-    Manages a pool of Google Gemini API keys with automatic failover on 429 quota exhaustion.
+    High-Throughput Pool Manager for Google Gemini API keys.
+    Provides:
+      - Multi-key discovery from environment variables (comma/newline/JSON or numbered keys)
+      - Fair round-robin rotation across requests to multiply TPM / RPM capacity
+      - Seamless automatic shift/failover on 429 quota exhaustion
+      - 65-second automatic cooldown recovery (aligns with Gemini per-minute RPM window)
+      - Real-time health statistics and monitoring summary
     """
     def __init__(self, keys: Optional[List[str]] = None):
         self._lock = threading.Lock()
         self.keys_state: List[Dict[str, Any]] = []
         self._current_index = 0
-        
-        raw_keys = keys or []
-        if not raw_keys:
-            env_pool = os.getenv("GEMINI_API_KEYS", "").strip()
-            single_key = os.getenv("GEMINI_API_KEY", "").strip()
-            if env_pool:
-                raw_keys.extend([k.strip() for k in env_pool.split(",") if k.strip()])
-            elif single_key:
-                raw_keys.append(single_key)
-        
+        raw_keys = keys if keys is not None else collect_gemini_keys()
         self.set_keys(raw_keys)
 
     def set_keys(self, raw_keys: List[str]):
@@ -208,8 +342,8 @@ class GeminiKeyPool:
             seen = set()
             clean_keys = []
             for k in raw_keys:
-                k_clean = k.strip()
-                if k_clean and k_clean not in seen and (k_clean.startswith("AIzaSy") or k_clean.startswith("AQ.") or len(k_clean) > 20):
+                k_clean = k.strip().strip("'\"`")
+                if _is_valid_gemini_key(k_clean, seen):
                     seen.add(k_clean)
                     clean_keys.append(k_clean)
 
@@ -220,7 +354,7 @@ class GeminiKeyPool:
                     "masked": f"{k[:12]}...{k[-4:]}",
                     "is_active": True,
                     "is_depleted": False,
-                    "depleted_at": 0,
+                    "depleted_at": 0.0,
                     "last_status_code": 200,
                     "last_error": "",
                     "success_count": 0,
@@ -228,42 +362,84 @@ class GeminiKeyPool:
                 })
             
             self._current_index = 0
-            logger.info(f"GeminiKeyPool initialized with {len(self.keys_state)} keys.")
+            logger.info(f"GeminiKeyPool initialized with {len(self.keys_state)} active rotating keys.")
 
-    def get_active_key(self) -> Optional[str]:
-        """Returns the currently active, healthy Gemini key from the pool. Auto-recovers keys after cooldown."""
+    def reload_from_env(self):
+        """Refreshes keys from environment while preserving existing health states."""
+        fresh_keys = collect_gemini_keys()
+        with self._lock:
+            existing_stats = {e["key"]: e for e in self.keys_state}
+            new_state = []
+            for k in fresh_keys:
+                if k in existing_stats:
+                    new_state.append(existing_stats[k])
+                else:
+                    new_state.append({
+                        "key": k,
+                        "masked": f"{k[:12]}...{k[-4:]}",
+                        "is_active": True,
+                        "is_depleted": False,
+                        "depleted_at": 0.0,
+                        "last_status_code": 200,
+                        "last_error": "",
+                        "success_count": 0,
+                        "failure_count": 0
+                    })
+            self.keys_state = new_state
+            if self._current_index >= len(self.keys_state):
+                self._current_index = 0
+            logger.info(f"GeminiKeyPool reloaded from environment: {len(self.keys_state)} total keys.")
+
+    def get_active_key(self, rotate: bool = True) -> Optional[str]:
+        """
+        Returns the next healthy Gemini key from the pool.
+        When rotate=True, advances the pointer so subsequent requests hit subsequent keys (Round-Robin).
+        Auto-recovers rate-limited keys once their 65-second cooldown expires.
+        """
         with self._lock:
             if not self.keys_state:
                 return None
-            
+
             now = time.time()
             n = len(self.keys_state)
-            
-            # Auto-recover keys depleted more than 65 seconds ago (RPM cooldown)
+
+            # Auto-recover keys depleted more than 65 seconds ago (Gemini RPM cooldown window)
             for entry in self.keys_state:
                 if entry["is_depleted"] and entry.get("depleted_at", 0) > 0:
                     elapsed = now - entry["depleted_at"]
-                    if elapsed > 65:  # RPM limits reset within ~60s
+                    if elapsed > 65:
                         entry["is_depleted"] = False
+                        entry["depleted_at"] = 0.0
                         entry["last_error"] = ""
                         logger.info(f"Gemini key {entry['masked']} auto-recovered after {elapsed:.0f}s cooldown.")
-            
+
+            # Find the next healthy, non-depleted key starting at _current_index
             for i in range(n):
                 idx = (self._current_index + i) % n
                 entry = self.keys_state[idx]
                 if entry["is_active"] and not entry["is_depleted"]:
-                    self._current_index = idx
+                    if rotate:
+                        # Advance pointer to the next key for subsequent requests (fair round-robin)
+                        self._current_index = (idx + 1) % n
+                    else:
+                        self._current_index = idx
                     return entry["key"]
-            
-            logger.warning("All Gemini keys in pool were marked depleted. Resetting pool for retry...")
+
+            # If all keys were marked depleted, reset the pool so requests can retry
+            logger.warning("All Gemini keys in pool were marked depleted. Resetting pool for fresh attempt...")
             for entry in self.keys_state:
                 entry["is_depleted"] = False
-            
-            self._current_index = 0
-            return self.keys_state[0]["key"]
+                entry["depleted_at"] = 0.0
+
+            chosen = self.keys_state[0]["key"]
+            self._current_index = 1 % n if rotate else 0
+            return chosen
 
     def mark_key_depleted(self, key: str, status_code: int = 429, error_msg: str = ""):
-        """Marks a specific Gemini key as depleted/rate-limited and shifts pointer. Records timestamp for auto-recovery."""
+        """
+        Marks a specific Gemini key as depleted/rate-limited and shifts the pointer to the next key.
+        Records depleted_at timestamp so it auto-recovers after 65 seconds.
+        """
         with self._lock:
             for entry in self.keys_state:
                 if entry["key"] == key:
@@ -276,13 +452,13 @@ class GeminiKeyPool:
                         f"Gemini Key {entry['masked']} marked DEPLETED (Status {status_code}: {error_msg}). "
                         f"Shifting to next available key in pool."
                     )
-            
+
             n = len(self.keys_state)
             for i in range(1, n + 1):
                 idx = (self._current_index + i) % n
                 if not self.keys_state[idx]["is_depleted"]:
                     self._current_index = idx
-                    logger.info(f"GeminiKeyPool shifted to key: {self.keys_state[idx]['masked']}")
+                    logger.info(f"GeminiKeyPool shifted pointer to key: {self.keys_state[idx]['masked']}")
                     return
 
     def record_success(self, key: str):
@@ -296,40 +472,56 @@ class GeminiKeyPool:
                     entry["last_status_code"] = 200
 
     def get_pool_status(self) -> List[Dict[str, Any]]:
+        """Returns public status summary of all keys in the pool."""
         with self._lock:
+            now = time.time()
             summary = []
             for idx, entry in enumerate(self.keys_state):
+                cooldown_remaining = 0
+                if entry["is_depleted"] and entry.get("depleted_at", 0) > 0:
+                    cooldown_remaining = max(0, int(65 - (now - entry["depleted_at"])))
+
                 summary.append({
                     "index": idx,
                     "masked_key": entry["masked"],
                     "is_current": (idx == self._current_index),
                     "is_active": entry["is_active"],
                     "is_depleted": entry["is_depleted"],
+                    "cooldown_remaining": cooldown_remaining,
                     "last_status_code": entry["last_status_code"],
                     "success_count": entry["success_count"],
                     "failure_count": entry["failure_count"]
                 })
             return summary
 
+    def get_summary(self) -> Dict[str, Any]:
+        """Returns high-level aggregate metrics for the pool."""
+        with self._lock:
+            total = len(self.keys_state)
+            healthy = sum(1 for e in self.keys_state if e["is_active"] and not e["is_depleted"])
+            depleted = total - healthy
+            active_key_masked = ""
+            if self.keys_state:
+                curr = self.keys_state[self._current_index % total]
+                active_key_masked = curr["masked"]
+
+            return {
+                "total_keys": total,
+                "healthy_keys": healthy,
+                "depleted_keys": depleted,
+                "active_key_masked": active_key_masked,
+                "effective_tpm_limit": total * 1_000_000,
+                "effective_rpm_limit": total * 15,
+                "effective_rpd_limit": total * 1500
+            }
+
 
 def _init_default_openrouter_pool() -> OpenRouterKeyPool:
-    env_keys_str = os.getenv("OPENROUTER_API_KEYS", "")
-    keys_list = [k.strip() for k in env_keys_str.split(",") if k.strip()]
-    if not keys_list:
-        single_key = os.getenv("OPENROUTER_API_KEY", "").strip()
-        if single_key:
-            keys_list = [single_key]
-    return OpenRouterKeyPool(keys_list)
+    return OpenRouterKeyPool()
 
 
 def _init_default_gemini_pool() -> GeminiKeyPool:
-    env_keys_str = os.getenv("GEMINI_API_KEYS", "")
-    keys_list = [k.strip() for k in env_keys_str.split(",") if k.strip()]
-    if not keys_list:
-        single_key = os.getenv("GEMINI_API_KEY", "").strip()
-        if single_key:
-            keys_list = [single_key]
-    return GeminiKeyPool(keys_list)
+    return GeminiKeyPool()
 
 
 # Global singleton instances loaded dynamically from environment

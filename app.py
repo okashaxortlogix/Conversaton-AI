@@ -47,10 +47,11 @@ _CONN_CACHE_TTL = 300  # 5 minutes
 import time as _time
 
 def _get_engine() -> GHLAgentExecutionEngine:
-    """Returns a singleton engine instance, recreated only if API keys change."""
+    """Returns a singleton engine instance, recreated only if API keys configuration changes."""
     global _engine_instance, _engine_keys_hash
     keys = get_server_keys()
-    current_hash = f"{keys['gemini']}|{keys['groq']}|{keys['openrouter']}|{keys['rapidapi']}"
+    pool_fingerprint = f"{len(gemini_key_pool.keys_state)}|{len(openrouter_key_pool.keys_state)}"
+    current_hash = f"{pool_fingerprint}|{keys['groq']}|{keys['rapidapi']}"
     if _engine_instance is None or current_hash != _engine_keys_hash:
         _engine_instance = GHLAgentExecutionEngine(
             gemini_key=keys["gemini"],
@@ -75,8 +76,8 @@ def _set_connection_cache(location_id: str, result: Dict[str, Any]):
 
 def get_server_keys() -> Dict[str, str]:
     """Load API keys for Gemini, Groq, RapidAPI, and active OpenRouter key from the dynamic pool."""
-    active_or_key = openrouter_key_pool.get_active_key() or os.getenv("OPENROUTER_API_KEY", "").strip()
-    active_gemini_key = gemini_key_pool.get_active_key() or os.getenv("GEMINI_API_KEY", "").strip()
+    active_or_key = openrouter_key_pool.get_active_key(rotate=False) or os.getenv("OPENROUTER_API_KEY", "").strip()
+    active_gemini_key = gemini_key_pool.get_active_key(rotate=False) or os.getenv("GEMINI_API_KEY", "").strip()
     return {
         "gemini": active_gemini_key,
         "groq": os.getenv("GROQ_API_KEY", "").strip(),
@@ -394,10 +395,17 @@ async def admin_create_user(req: Dict[str, Any], request: Request):
 @app.get("/health")
 async def health_check():
     keys = get_server_keys()
+    gemini_summary = gemini_key_pool.get_summary()
     return {
         "status": "online",
         "service": "Conversation AI Copilot",
         "port": 7861,
+        "gemini_pool": {
+            "total_keys": gemini_summary["total_keys"],
+            "healthy_keys": gemini_summary["healthy_keys"],
+            "effective_tpm_limit": gemini_summary["effective_tpm_limit"],
+            "effective_rpm_limit": gemini_summary["effective_rpm_limit"]
+        },
         "providers": {
             "gemini": bool(keys["gemini"] and keys["gemini"] != "YOUR_GEMINI_API_KEY_HERE"),
             "groq": bool(keys["groq"] and keys["groq"] != "YOUR_GROQ_API_KEY_HERE"),
@@ -420,11 +428,13 @@ async def get_models_catalog():
         stats = usage_tracker.get_model_stats(m["id"])
         m_copy["usage"] = stats
         
-        # Exact quota summary per model
+        # Exact quota summary per model (scaled dynamically by key pool capacity)
         if m.get("provider") == "gemini":
-            m_copy["quota_limit"] = f"1M TPM • 15 RPM ({gemini_pool_count} Active Keys)"
+            effective_tpm = f"{gemini_pool_count}M TPM"
+            effective_rpm = f"{gemini_pool_count * 15} RPM"
+            m_copy["quota_limit"] = f"{effective_tpm} • {effective_rpm} ({gemini_pool_count} Rotating Keys)"
             m_copy["pool_count"] = gemini_pool_count
-            m_copy["quota_summary"] = f"1M TPM • 15 RPM ({gemini_pool_count} Keys)"
+            m_copy["quota_summary"] = f"{effective_tpm} • {effective_rpm} ({gemini_pool_count} Keys)"
         elif m.get("provider") == "openrouter":
             m_copy["quota_limit"] = f"60k TPM • {openrouter_pool_count}-Key Pool"
             m_copy["pool_count"] = openrouter_pool_count
@@ -471,11 +481,29 @@ async def get_all_usage_stats():
         res[m["id"]] = usage_tracker.get_model_stats(m["id"])
     return {"success": True, "stats": res}
 
+@app.get("/api/gemini/pool-status")
+async def get_gemini_pool_status():
+    """Returns real-time rotation state and health status for Gemini key pool."""
+    active_k = gemini_key_pool.get_active_key(rotate=False)
+    masked_key = f"{active_k[:12]}...{active_k[-4:]}" if active_k else ""
+    summary = gemini_key_pool.get_summary()
+    return {
+        "success": True,
+        "active_key_masked": masked_key,
+        "total_keys": summary["total_keys"],
+        "healthy_keys": summary["healthy_keys"],
+        "depleted_keys": summary["depleted_keys"],
+        "effective_tpm_limit": summary["effective_tpm_limit"],
+        "effective_rpm_limit": summary["effective_rpm_limit"],
+        "effective_rpd_limit": summary["effective_rpd_limit"],
+        "pool": gemini_key_pool.get_pool_status()
+    }
+
 @app.get("/api/openrouter/pool-status")
 async def get_openrouter_pool_status():
     """Returns real-time credit status and active rotation state for OpenRouter key pool."""
     openrouter_key_pool.poll_all_keys()
-    active_k = openrouter_key_pool.get_active_key()
+    active_k = openrouter_key_pool.get_active_key(rotate=False)
     masked_key = f"{active_k[:12]}...{active_k[-4:]}" if active_k else ""
     return {
         "success": True,

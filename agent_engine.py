@@ -1208,7 +1208,7 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
         attachments: Optional[List[Dict[str, Any]]] = None
     ) -> Generator[Dict[str, Any], None, None]:
         from key_pool_manager import gemini_key_pool
-        active_gemini_key = gemini_key_pool.get_active_key() or self.gemini_key
+        active_gemini_key = gemini_key_pool.get_active_key(rotate=False) or self.gemini_key
         if not active_gemini_key:
             yield {"type": "chunk", "text": "⚠️ **Error:** Gemini API Key is not configured on server."}
             return
@@ -1258,7 +1258,7 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
             
             num_keys = len(gemini_key_pool.keys_state) or 1
             for key_attempt in range(num_keys):
-                active_gemini_key = gemini_key_pool.get_active_key() or self.gemini_key
+                active_gemini_key = gemini_key_pool.get_active_key(rotate=True) or self.gemini_key
                 if not active_gemini_key:
                     break
                 current_client = genai.Client(api_key=active_gemini_key)
@@ -1362,6 +1362,9 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                         logger.warning(f"Gemini streaming with {mod} on key {active_gemini_key[:8]} failed: {e_mod}")
                         if "429" in last_err_text or "RESOURCE_EXHAUSTED" in last_err_text or "quota" in last_err_text.lower():
                             gemini_key_pool.mark_key_depleted(active_gemini_key, 429, last_err_text)
+                            if not stream_started:
+                                logger.info(f"Gemini key rate-limited/depleted. Shifting to next pool key (attempt {key_attempt + 1}/{num_keys})...")
+                                break  # Break out of candidate_models to try next key in key_attempt!
 
                         # If text was already started and errored out, seamlessly continue with Groq WITHOUT wiping previous content!
                         if stream_started and not is_fallback and self.groq_key:
@@ -1435,34 +1438,49 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                 yield {"type": "chunk", "text": f"⚠️ **Service Notice:** Google Gemini is temporarily unavailable ({last_err_text[:120] if last_err_text else 'busy'}). Please retry in a few moments."}
             return
 
-        # Tool Execution Mode when GHL is connected
+        # Tool Execution Mode when GHL is connected (with Key Pool Rotation & Failover)
         response = None
         last_exception = None
+        num_keys = len(gemini_key_pool.keys_state) or 1
 
-        for mod in candidate_models:
-            try:
-                config_args = {
-                    "system_instruction": system_instruction,
-                    "temperature": 0.1,
-                    "max_output_tokens": 8192,
-                    "tools": [{"function_declarations": GHL_TOOLS_DECLARATIONS}]
-                }
-                if "3.7" in mod or "think" in mod:
-                    try:
-                        config_args["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
-                    except Exception:
-                        pass
-
-                response = self.gemini_client.models.generate_content(
-                    model=mod,
-                    contents=contents,
-                    config=types.GenerateContentConfig(**config_args)
-                )
-                last_exception = None
+        for key_attempt in range(num_keys):
+            active_gemini_key = gemini_key_pool.get_active_key(rotate=True) or self.gemini_key
+            if not active_gemini_key:
                 break
-            except Exception as e_mod:
-                last_exception = e_mod
-                logger.warning(f"Gemini model {mod} failed: {e_mod}, trying next fallback...")
+            current_client = genai.Client(api_key=active_gemini_key)
+
+            for mod in candidate_models:
+                try:
+                    config_args = {
+                        "system_instruction": system_instruction,
+                        "temperature": 0.1,
+                        "max_output_tokens": 8192,
+                        "tools": [{"function_declarations": GHL_TOOLS_DECLARATIONS}]
+                    }
+                    if "3.7" in mod or "think" in mod:
+                        try:
+                            config_args["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+                        except Exception:
+                            pass
+
+                    response = current_client.models.generate_content(
+                        model=mod,
+                        contents=contents,
+                        config=types.GenerateContentConfig(**config_args)
+                    )
+                    last_exception = None
+                    gemini_key_pool.record_success(active_gemini_key)
+                    break
+                except Exception as e_mod:
+                    last_exception = e_mod
+                    err_s = str(e_mod)
+                    logger.warning(f"Gemini tool mode model {mod} on key {active_gemini_key[:8]} failed: {e_mod}")
+                    if "429" in err_s or "RESOURCE_EXHAUSTED" in err_s or "quota" in err_s.lower():
+                        gemini_key_pool.mark_key_depleted(active_gemini_key, 429, err_s)
+                        break
+
+            if response is not None:
+                break
 
         if response is None or last_exception is not None:
             # Fallback for tool execution: OpenRouter first, then Groq

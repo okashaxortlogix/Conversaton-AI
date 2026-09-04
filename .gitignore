@@ -23,9 +23,15 @@ wheels/
 
 # Virtual Environment
 venv/
+venv_size/
+*venv*/
 ENV/
 env.bak/
 venv.bak/
+*.exe
+*.dll
+*.bat
+*.ps1
 
 # Environment Variables
 .env

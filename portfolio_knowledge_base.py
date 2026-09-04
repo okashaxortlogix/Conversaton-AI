@@ -244,7 +244,11 @@ class PortfolioKnowledgeBase:
 
     def _compute_and_save_embeddings(self):
         """Generates embeddings using Gemini API (if available) or saves metadata for keyword/cosine search."""
-        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+        try:
+            from key_pool_manager import gemini_key_pool
+            api_key = gemini_key_pool.get_active_key(rotate=False) or os.getenv("GEMINI_API_KEY", "").strip()
+        except Exception:
+            api_key = os.getenv("GEMINI_API_KEY", "").strip()
         client = None
         if api_key:
             try:
@@ -291,7 +295,11 @@ class PortfolioKnowledgeBase:
 
         # Try semantic embedding matching if Gemini is available
         query_vec = None
-        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+        try:
+            from key_pool_manager import gemini_key_pool
+            api_key = gemini_key_pool.get_active_key(rotate=False) or os.getenv("GEMINI_API_KEY", "").strip()
+        except Exception:
+            api_key = os.getenv("GEMINI_API_KEY", "").strip()
         if api_key:
             try:
                 from google import genai
