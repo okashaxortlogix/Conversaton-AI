@@ -1183,111 +1183,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         form.addEventListener('submit', function(e) {
                             e.preventDefault();
                             
-                            var fNameInput = form.querySelector('[name="first_name"]');
-                            var phoneInput = form.querySelector('[name="phone"]');
-                            var goalInput = form.querySelector('[name="fitness_goal"], [name="service_type"], [name="membership_tier_interest"]');
-                            
-                            var fName = (fNameInput && fNameInput.value) ? fNameInput.value.trim() : 'Champion';
-                            var phone = (phoneInput && phoneInput.value) ? phoneInput.value.trim() : 'your mobile phone';
-                            var goal = (goalInput && goalInput.value) ? goalInput.value.trim() : 'your program';
+                            // Check if page has multi-step tab navigation (switchStep)
+                            if (typeof window.switchStep === 'function') {
+                                var activeStepEl = document.querySelector('.step-container:not(.hidden), [id^="step-"]:not(.hidden)');
+                                var currentStepNum = 1;
+                                if (activeStepEl && activeStepEl.id) {
+                                    var match = activeStepEl.id.match(/\d+/);
+                                    if (match) currentStepNum = parseInt(match[0]);
+                                }
+                                window.switchStep(currentStepNum + 1);
+                                return;
+                            }
 
+                            // Clean, elegant submission confirmation (NO fake phone calls or dialers)
                             var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
                             if (submitBtn) {
                                 submitBtn.disabled = true;
-                                submitBtn.innerHTML = '⚡ Dispatching Call...';
+                                submitBtn.innerHTML = '✓ Submitted Successfully!';
                             }
 
-                            setTimeout(function() {
-                                var formCard = form.closest('.glass-card, .glass-form-card') || form.parentElement;
-                                if (formCard) {
-                                    formCard.innerHTML = '<div style="text-align: center; padding: 20px 10px; font-family: sans-serif; position: relative;">' +
-                                        '<style>' +
-                                        '@keyframes radarPulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }' +
-                                        '@keyframes slideInSms { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }' +
-                                        '</style>' +
-                                        '<div style="width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-size: 32px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; animation: radarPulse 2s infinite; cursor: pointer;" title="Active Outbound Ring">📞</div>' +
-                                        '<h3 style="color: #fff; font-size: 1.4rem; font-weight: 800; margin-bottom: 4px;">Calling You Right Now!</h3>' +
-                                        '<p style="color: #10b981; font-weight: 700; font-size: 0.95rem; margin-bottom: 14px;">⚡ Live Priority Callback Dispatched</p>' +
-                                        
-                                        '<div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">' +
-                                            '<div style="text-align: left;"><span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Connecting In:</span><div style="font-size: 1.2rem; font-weight: 800; color: #10b981;" id="live-call-timer">00:48s</div></div>' +
-                                            '<div style="display: flex; gap: 4px; align-items: center;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; animation: radarPulse 1s infinite;"></span><span style="font-size: 0.8rem; color: #cbd5e1; font-weight: 600;">Dialing Rep...</span></div>' +
-                                        '</div>' +
-
-                                        '<p style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; margin-bottom: 16px;">Hey <strong>' + fName + '</strong>, Coach Alex is dialing <strong>' + phone + '</strong> regarding your <em>' + goal + '</em>. Please answer when your phone rings!</p>' +
-
-                                        '<!-- Simulated HighLevel SMS Inbound Demo Card -->' +
-                                        '<div id="simulated-sms-box" style="background: rgba(18, 24, 38, 0.95); border: 1px solid rgba(59, 130, 246, 0.4); border-radius: 12px; padding: 12px 14px; text-align: left; margin-bottom: 16px; animation: slideInSms 0.4s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.4);">' +
-                                            '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
-                                                '<span style="font-size: 0.75rem; font-weight: 700; color: #60a5fa; display: flex; align-items: center; gap: 6px;">💬 HighLevel Instant SMS Dispatched (T+0s)</span>' +
-                                                '<span style="font-size: 0.7rem; color: #94a3b8;">Just Now</span>' +
-                                            '</div>' +
-                                            '<p style="font-size: 0.82rem; color: #f8fafc; line-height: 1.4; margin: 0;">"Hey ' + fName + '! This is Coach Alex from IronPulse Fitness. Dialing your phone right now for your ' + goal + ' consultation. Keep phone handy!"</p>' +
-                                        '</div>' +
-
-                                        '<div style="display: flex; gap: 8px; margin-bottom: 14px;">' +
-                                            '<button type="button" id="switch-to-cal-btn" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 10px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: all 0.15s;">📅 Pick a Specific Time on Calendar ➔</button>' +
-                                        '</div>' +
-
-                                        '<div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; font-size: 0.78rem; color: #94a3b8; display: flex; justify-content: space-between;">' +
-                                            '<span>Response Guarantee: <strong>&lt; 60s</strong></span>' +
-                                            '<span>Status: <strong style="color: #10b981;">Active Outbound Call</strong></span>' +
-                                        '</div>' +
-                                    '</div>';
-
-                                    // Start Live Countdown Timer
-                                    var timeLeft = 48;
-                                    var timerInterval = setInterval(function() {
-                                        timeLeft--;
-                                        var timerEl = document.getElementById('live-call-timer');
-                                        if (timerEl) {
-                                            timerEl.textContent = '00:' + (timeLeft < 10 ? '0' : '') + timeLeft + 's';
-                                            if (timeLeft <= 0) {
-                                                clearInterval(timerInterval);
-                                                timerEl.textContent = 'Connected!';
-                                                timerEl.style.color = '#38bdf8';
-                                            }
-                                        } else {
-                                            clearInterval(timerInterval);
-                                        }
-                                    }, 1000);
-
-                                    // Switch to Calendar Handler
-                                    var switchCalBtn = document.getElementById('switch-to-cal-btn');
-                                    if (switchCalBtn) {
-                                        switchCalBtn.addEventListener('click', function() {
-                                            clearInterval(timerInterval);
-                                            formCard.innerHTML = '<div style="text-align: left; animation: fadeIn 0.35s ease; font-family: sans-serif;">' +
-                                                '<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 8px 12px; border-radius: 8px; color: #10b981; font-size: 0.8rem; font-weight: 700;">' +
-                                                    '<span>✓ Details Captured for ' + fName + ' (' + phone + ')</span>' +
-                                                '</div>' +
-                                                '<h3 style="color: #fff; font-size: 1.25rem; font-weight: 700; margin-bottom: 4px;">Select Consultation Date & Time</h3>' +
-                                                '<p style="color: #94a3b8; font-size: 0.82rem; margin-bottom: 14px;">Pick a 15-minute 1-on-1 coaching slot with Head Coach Alex:</p>' +
-                                                '<div id="interactive-ghl-calendar" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 14px; padding: 18px; color: #fff; text-align: center;">' +
-                                                    '<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; font-size: 0.8rem;">' +
-                                                        '<span style="color: #94a3b8; font-weight: 600;">M</span><span style="color: #94a3b8; font-weight: 600;">T</span><span style="color: #94a3b8; font-weight: 600;">W</span><span style="color: #94a3b8; font-weight: 600;">T</span><span style="color: #94a3b8; font-weight: 600;">F</span><span style="color: #94a3b8; font-weight: 600;">S</span><span style="color: #94a3b8; font-weight: 600;">S</span>' +
-                                                        '<button type="button" class="mock-date-btn" data-date="Oct 14" style="padding: 7px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">14</button>' +
-                                                        '<button type="button" class="mock-date-btn" data-date="Oct 15" style="padding: 7px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">15</button>' +
-                                                        '<button type="button" class="mock-date-btn" data-date="Oct 16" style="padding: 7px 4px; border-radius: 6px; background: #0284c7; border: 1px solid #38bdf8; color: #fff; font-weight: 700; cursor: pointer;">16</button>' +
-                                                        '<button type="button" class="mock-date-btn" data-date="Oct 17" style="padding: 7px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">17</button>' +
-                                                        '<button type="button" class="mock-date-btn" data-date="Oct 18" style="padding: 7px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">18</button>' +
-                                                        '<button type="button" class="mock-date-btn" data-date="Oct 19" style="padding: 7px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">19</button>' +
-                                                        '<button type="button" class="mock-date-btn" data-date="Oct 20" style="padding: 7px 4px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #cbd5e1; cursor: pointer;">20</button>' +
-                                                    '</div>' +
-                                                    '<div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; text-align: left;">Available Consultation Times (EST):</div>' +
-                                                    '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">' +
-                                                        '<button type="button" class="mock-time-btn" data-time="09:30 AM" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; padding: 9px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">09:30 AM</button>' +
-                                                        '<button type="button" class="mock-time-btn" data-time="11:00 AM" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; padding: 9px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">11:00 AM</button>' +
-                                                        '<button type="button" class="mock-time-btn" data-time="02:00 PM" style="background: #0284c7; border: 1px solid #38bdf8; color: #fff; padding: 9px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 0.85rem;">02:00 PM ✓</button>' +
-                                                        '<button type="button" class="mock-time-btn" data-time="04:30 PM" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(56, 189, 248, 0.3); color: #fff; padding: 9px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">04:30 PM</button>' +
-                                                    '</div>' +
-                                                    '<button type="button" id="mock-confirm-booking-btn" style="width: 100%; background: linear-gradient(135deg, #0ea5e9, #2563eb); border: none; color: #fff; padding: 11px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; cursor: pointer;">Confirm Consultation Time ➔</button>' +
-                                                '</div>' +
-                                            '</div>';
-                                        });
-                                    }
-                                }
-                            }, 500);
+                            var existingSuccess = form.querySelector('.mock-submit-success');
+                            if (!existingSuccess) {
+                                var successCard = document.createElement('div');
+                                successCard.className = 'mock-submit-success';
+                                successCard.style.cssText = 'padding: 16px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; color: #10b981; font-weight: 700; text-align: center; margin-top: 16px; font-family: sans-serif; animation: fadeIn 0.3s ease;';
+                                successCard.innerHTML = '<div style="font-size: 24px; margin-bottom: 6px;">✅</div><h4 style="color: #fff; margin-bottom: 4px; font-size: 1.05rem;">Information Received!</h4><p style="color: #cbd5e1; font-size: 0.82rem; font-weight: normal; margin: 0;">Thank you! Your submission has been captured successfully.</p>';
+                                form.appendChild(successCard);
+                            }
                         });
                     });
                 });
@@ -3054,6 +2976,14 @@ Please deliver:
                                 const inlineTrigger = resultBadge.querySelector('.inline-connect-trigger');
                                 if (inlineTrigger) {
                                     inlineTrigger.addEventListener('click', openGhlModal);
+                                }
+                            } else if (data.type === 'replace_content') {
+                                removeThinkingState();
+                                typewriterQueue = '';
+                                displayedText = data.text || '';
+                                let textContainer = botBodyEl.querySelector('.agent-markdown-text');
+                                if (textContainer) {
+                                    textContainer.innerHTML = typeof marked !== 'undefined' ? marked.parse(displayedText) : escapeHtml(displayedText);
                                 }
                             } else if (data.type === 'chunk') {
                                 enqueueIncomingChunk(data.text || '');

@@ -992,7 +992,8 @@ CRITICAL PRIME DIRECTIVES:
 3. CLEAN & COMPLETE FEATURE REMOVAL (e.g. INBOUND CALL, PHONE INPUT, TOP BANNER, SECTION):
    • When the user asks to REMOVE any feature, element, step, or text (for example: "remove inbound call", "remove phone field", "remove top bar", "remove extra text", "remove video section"):
      - You must THOROUGHLY and CLEANLY REMOVE that item completely from the HTML markup.
-     - REMOVE any related JavaScript logic, countdown timers, event listeners, variables, or functions associated with that feature (e.g. if removing inbound call, eliminate all call-simulation timers, dial buttons, and call state handlers).
+     - REMOVE any related JavaScript logic, countdown timers, event listeners, variables, or functions associated with that feature.
+     - ZERO CALL SIMULATION WIDGETS: If the user says "remove the inbound call function", the lead form MUST simply capture data and cleanly advance to the next step (e.g. switchStep) or show a simple confirmation message. NEVER output phone call widgets, dialer popups, audio simulation, or "Calling You Right Now" scripts.
      - REMOVE any CSS rules specifically dedicated to that removed item.
      - NEVER leave orphaned empty containers, broken references, or half-deleted markup.
      - Output the clean, fully functional single file with the feature completely excised.
@@ -1206,14 +1207,10 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
 
                         # Check if genuinely truncated after Gemini loop exhausted (at least 1000 chars generated)
                         if stream_started and len(accumulated_text) > 1000 and detect_truncation(accumulated_text) and not is_fallback and self.groq_key:
-                            recent_tail = accumulated_text[-2000:]
-                            last_cutoff = accumulated_text[-80:].replace('\n', ' ')
-                            logger.info(f"Gemini capacity reached mid-generation. Handing off to Groq Cloud...")
-                            close_code = "\n```\n" if accumulated_text.count('```') % 2 != 0 else ""
-                            reopen_code = "```html\n" if accumulated_text.count('```') % 2 != 0 else ""
+                            logger.info(f"Gemini capacity reached mid-generation ({len(accumulated_text)} chars). Cleanly replacing with Groq Cloud (Qwen 3.8)...")
                             yield {
-                                "type": "chunk",
-                                "text": f"{close_code}\n\n> 🔄 **Model Handover:** Google Gemini generated the initial architecture ({len(accumulated_text):,} chars). Reaching quota limit — **Groq Cloud (Qwen 3.8)** is now seamlessly continuing generation from this exact point...\n\n---\n\n{reopen_code}"
+                                "type": "replace_content",
+                                "text": f"> 🔄 **Model Handover:** Google Gemini reached limit ({len(accumulated_text):,} chars). Seamlessly completing generation with **Groq Cloud (Qwen 3.8)**...\n\n"
                             }
                             yield from self._execute_openai_compatible(
                                 prompt=prompt,
@@ -1229,9 +1226,7 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                                 history=history,
                                 intent=intent,
                                 is_fallback=True,
-                                attachments=attachments,
-                                continuation_tail=recent_tail,
-                                continuation_cutoff=last_cutoff
+                                attachments=attachments
                             )
                             return
 
@@ -1246,35 +1241,12 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                         if "429" in last_err_text or "RESOURCE_EXHAUSTED" in last_err_text or "quota" in last_err_text.lower():
                             gemini_key_pool.mark_key_depleted(active_gemini_key, 429, last_err_text)
 
-                        # If text was already started and errored out, seamlessly hand over to Groq
+                        # If text was already started and errored out, cleanly replace with Groq
                         if stream_started and not is_fallback and self.groq_key:
-                            if len(accumulated_text) < 300:
-                                logger.info(f"Gemini failed early ({len(accumulated_text)} chars). Cleanly routing fresh query to Groq Cloud...")
-                                yield from self._execute_openai_compatible(
-                                    prompt=prompt,
-                                    ghl=ghl,
-                                    is_ghl_connected=is_ghl_connected,
-                                    system_instruction=system_instruction,
-                                    model_name="qwen/qwen3.8-27b",
-                                    api_url="https://api.groq.com/openai/v1/chat/completions",
-                                    api_key=self.groq_key,
-                                    provider_name="Groq Cloud",
-                                    location_id=location_id,
-                                    access_token=access_token,
-                                    history=history,
-                                    intent=intent,
-                                    is_fallback=True,
-                                    attachments=attachments
-                                )
-                                return
-
-                            recent_tail = accumulated_text[-2000:]
-                            last_cutoff = accumulated_text[-80:].replace('\n', ' ')
-                            close_code = "\n```\n" if accumulated_text.count('```') % 2 != 0 else ""
-                            reopen_code = "```html\n" if accumulated_text.count('```') % 2 != 0 else ""
+                            logger.info(f"Gemini failed mid-generation ({len(accumulated_text)} chars). Cleanly replacing with Groq Cloud (Qwen 3.8)...")
                             yield {
-                                "type": "chunk",
-                                "text": f"{close_code}\n\n> 🔄 **Model Handover:** Google Gemini limit reached ({len(accumulated_text):,} chars generated). Seamlessly continuing with **Groq Cloud (Qwen 3.8)**...\n\n---\n\n{reopen_code}"
+                                "type": "replace_content",
+                                "text": f"> 🔄 **Model Handover:** Google Gemini limit reached ({len(accumulated_text):,} chars). Seamlessly completing generation with **Groq Cloud (Qwen 3.8)**...\n\n"
                             }
                             yield from self._execute_openai_compatible(
                                 prompt=prompt,
@@ -1290,9 +1262,7 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                                 history=history,
                                 intent=intent,
                                 is_fallback=True,
-                                attachments=attachments,
-                                continuation_tail=recent_tail,
-                                continuation_cutoff=last_cutoff
+                                attachments=attachments
                             )
                             return
 
