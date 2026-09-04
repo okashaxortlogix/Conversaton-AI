@@ -1891,6 +1891,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeWizardModalBtn = document.getElementById('close-wizard-modal');
     const cancelWizardModalBtn = document.getElementById('cancel-wizard-modal');
     const wizardNextBtn = document.getElementById('wizard-next-btn');
+    const wizardNextStepBtn = document.getElementById('wizard-next-step-btn');
     const wizardBackBtn = document.getElementById('wizard-back-btn');
     const wizardQuickBtn = document.getElementById('wizard-quick-btn');
     const wizardValidationBar = document.getElementById('wizard-validation-bar');
@@ -1898,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnModeFunnel = document.getElementById('btn-mode-funnel');
     const btnModeLanding = document.getElementById('btn-mode-landing');
 
-    const TOTAL_WIZARD_STEPS = 6;
+    const TOTAL_WIZARD_STEPS = 7;
     let currentWizardStep = 1;
     let currentNicheKey = 'fitness';
     let currentWizardMode = 'funnel'; // 'funnel' | 'landing_page'
@@ -1909,7 +1910,9 @@ document.addEventListener('DOMContentLoaded', () => {
             currentWizardMode = 'funnel';
             btnModeFunnel.classList.add('active');
             if (btnModeLanding) btnModeLanding.classList.remove('active');
+            if (wizardNextBtn) wizardNextBtn.textContent = '🚀 Generate Funnel Bundle';
             applyNicheConfiguration(currentNicheKey);
+            populateSummaryCard();
         });
     }
 
@@ -1918,7 +1921,9 @@ document.addEventListener('DOMContentLoaded', () => {
             currentWizardMode = 'landing_page';
             btnModeLanding.classList.add('active');
             if (btnModeFunnel) btnModeFunnel.classList.remove('active');
+            if (wizardNextBtn) wizardNextBtn.textContent = '🚀 Generate Landing Page';
             applyNicheConfiguration(currentNicheKey);
+            populateSummaryCard();
         });
     }
 
@@ -3545,7 +3550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const lower = (promptContext || '').toLowerCase();
         if (defaultMode) {
             currentWizardMode = defaultMode;
-        } else if (lower.includes('funnel') || lower.includes('vsl') || lower.includes('tripwire') || lower.includes('webinar') || lower.includes('challenge')) {
+        } else if (lower.includes('funnel') || lower.includes('vsl') || lower.includes('tripwire') || lower.includes('webinar') || lower.includes('challenge') || lower.includes('sales page')) {
             currentWizardMode = 'funnel';
         } else if (lower.includes('landing') || lower.includes('website') || lower.includes('one pager') || lower.includes('lead page')) {
             currentWizardMode = 'landing_page';
@@ -3554,36 +3559,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Update toggle pill buttons in modal header
-        const btnFunnel = document.getElementById('btn-mode-funnel');
-        const btnLanding = document.getElementById('btn-mode-landing');
-        if (btnFunnel && btnLanding) {
-            btnFunnel.classList.toggle('active', currentWizardMode === 'funnel');
-            btnLanding.classList.toggle('active', currentWizardMode === 'landing_page');
+        if (btnModeFunnel && btnModeLanding) {
+            btnModeFunnel.classList.toggle('active', currentWizardMode === 'funnel');
+            btnModeLanding.classList.toggle('active', currentWizardMode === 'landing_page');
+        }
+
+        if (wizardNextBtn) {
+            wizardNextBtn.textContent = (currentWizardMode === 'funnel') ? '🚀 Generate Funnel Bundle' : '🚀 Generate Landing Page';
+        }
+
+        // Pre-fill user prompt into concept & instructions if provided
+        const conceptInput = document.getElementById('wiz-custom-concept');
+        const customInstructionsInput = document.getElementById('wiz-custom-instructions');
+        if (promptContext && promptContext.trim()) {
+            const cleanQuery = promptContext.trim();
+            if (conceptInput && !conceptInput.value.trim()) {
+                conceptInput.value = cleanQuery;
+            }
+            if (customInstructionsInput && !customInstructionsInput.value.trim() && cleanQuery.length > 25) {
+                customInstructionsInput.value = `User original specification: "${cleanQuery}"`;
+            }
         }
 
         // Detect niche from prompt context if provided
         const detectedNicheKey = resolveNicheKey(promptContext);
         currentNicheKey = detectedNicheKey;
 
-        // Highlight matching Step 1 card
-        const nicheCards = document.querySelectorAll('#wizard-step-1 .wizard-option-card');
+        // Highlight matching niche card
+        const nicheCards = document.querySelectorAll('#niche-options-grid .wizard-option-card');
         nicheCards.forEach(c => {
             c.classList.remove('selected');
             const val = c.getAttribute('data-value') || '';
-            if (resolveNicheKey(val) === detectedNicheKey) {
+            const nKey = c.getAttribute('data-niche') || '';
+            if (nKey === detectedNicheKey || resolveNicheKey(val) === detectedNicheKey) {
                 c.classList.add('selected');
             }
         });
 
-        // If none selected, default to first card
-        if (!document.querySelector('#wizard-step-1 .wizard-option-card.selected') && nicheCards[0]) {
+        // If none selected, default to first niche card
+        if (!document.querySelector('#niche-options-grid .wizard-option-card.selected') && nicheCards[0]) {
             nicheCards[0].classList.add('selected');
         }
 
-        // Apply dynamic questions and options for this niche across steps 2-5
+        // Apply dynamic niche defaults
         applyNicheConfiguration(detectedNicheKey);
 
-        renderWizardStep(1, 'none');
+        renderWizardTab(1);
         if (wizardModal) wizardModal.classList.remove('hidden');
     }
 
@@ -3605,18 +3626,180 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function renderWizardTab(tabNum) {
+        currentWizardStep = tabNum;
+        hideValidation();
+
+        // Switch panels
+        for (let i = 1; i <= TOTAL_WIZARD_STEPS; i++) {
+            const panel = document.getElementById(`wizard-step-${i}`);
+            if (panel) {
+                panel.classList.toggle('active', i === tabNum);
+            }
+        }
+
+        // Switch tab navigation pill buttons
+        document.querySelectorAll('.wizard-tab-nav-btn').forEach(btn => {
+            const t = parseInt(btn.getAttribute('data-tab') || '1');
+            btn.classList.toggle('active', t === tabNum);
+        });
+
+        // Navigation button labels
+        if (wizardBackBtn) wizardBackBtn.disabled = (tabNum === 1);
+        if (wizardNextStepBtn) {
+            wizardNextStepBtn.textContent = (tabNum === TOTAL_WIZARD_STEPS) ? 'Review Summary' : 'Next Tab →';
+        }
+        if (wizardNextBtn) {
+            const isFunnel = (currentWizardMode === 'funnel');
+            wizardNextBtn.textContent = isFunnel ? '🚀 Generate Funnel Bundle' : '🚀 Generate Landing Page';
+        }
+
+        // Populate summary when reaching Tab 7
+        if (tabNum === 7) {
+            populateSummaryCard();
+        }
+    }
+
+    // Tab Navigation Bar Clicks
+    document.querySelectorAll('.wizard-tab-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabNum = parseInt(btn.getAttribute('data-tab') || '1');
+            renderWizardTab(tabNum);
+        });
+    });
+
+    // Archetype Cards selection
+    document.querySelectorAll('#archetype-options-grid .wizard-option-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('#archetype-options-grid .wizard-option-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            const conceptInput = document.getElementById('wiz-custom-concept');
+            const arch = card.getAttribute('data-archetype') || '';
+            if (conceptInput && !conceptInput.value.trim()) {
+                conceptInput.value = arch;
+            }
+        });
+    });
+
+    // Niche Cards selection
+    document.querySelectorAll('#niche-options-grid .wizard-option-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('#niche-options-grid .wizard-option-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            const nKey = card.getAttribute('data-niche') || 'fitness';
+            currentNicheKey = nKey;
+            applyNicheConfiguration(nKey);
+            const customNicheInput = document.getElementById('wiz-custom-niche-input');
+            if (customNicheInput && nKey !== 'custom' && !customNicheInput.value.trim()) {
+                const title = card.querySelector('h5')?.textContent || '';
+                customNicheInput.placeholder = `e.g. ${title} specialist`;
+            }
+        });
+    });
+
+    // Section Toggle Chips
+    document.querySelectorAll('.section-toggle-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            chip.classList.toggle('active');
+        });
+    });
+
+    // Section Toolbar Buttons
+    const btnSelectAllSections = document.getElementById('btn-select-all-sections');
+    if (btnSelectAllSections) {
+        btnSelectAllSections.addEventListener('click', () => {
+            document.querySelectorAll('.section-toggle-chip').forEach(c => c.classList.add('active'));
+        });
+    }
+
+    const btnSelectHighConverting = document.getElementById('btn-select-high-converting-sections');
+    if (btnSelectHighConverting) {
+        btnSelectHighConverting.addEventListener('click', () => {
+            const highConverting = [
+                'Hero Banner with Compelling Hook & CTA',
+                'Video Sales Letter (VSL) / Video Player',
+                'Social Proof & Client Testimonials Wall',
+                'Feature Highlights & Benefits Matrix',
+                '2-Step High-Converting Order Form',
+                'Interactive FAQ Accordion',
+                'Trust Badges & Security Seals'
+            ];
+            document.querySelectorAll('.section-toggle-chip').forEach(c => {
+                const sec = c.getAttribute('data-section') || '';
+                c.classList.toggle('active', highConverting.includes(sec));
+            });
+        });
+    }
+
+    const btnClearSections = document.getElementById('btn-clear-sections');
+    if (btnClearSections) {
+        btnClearSections.addEventListener('click', () => {
+            document.querySelectorAll('.section-toggle-chip').forEach(c => c.classList.remove('active'));
+        });
+    }
+
+    // Style Cards selection
+    document.querySelectorAll('#style-options-grid .wizard-option-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('#style-options-grid .wizard-option-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+        });
+    });
+
+    // Color Swatch buttons
+    document.querySelectorAll('.color-swatch-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const color = btn.getAttribute('data-color') || '#10b981';
+            const colorInput = document.getElementById('wiz-brand-color');
+            const colorHex = document.getElementById('brand-color-hex');
+            if (colorInput) colorInput.value = color;
+            if (colorHex) colorHex.textContent = color;
+        });
+    });
+
+    const wizBrandColorInput = document.getElementById('wiz-brand-color');
+    if (wizBrandColorInput) {
+        wizBrandColorInput.addEventListener('input', () => {
+            const hex = wizBrandColorInput.value;
+            const colorHex = document.getElementById('brand-color-hex');
+            if (colorHex) colorHex.textContent = hex;
+        });
+    }
+
     function populateSummaryCard() {
         const card = document.getElementById('wizard-summary-card');
         if (!card) return;
 
         const isFunnel = (currentWizardMode === 'funnel');
-        const s1 = document.querySelector('#wizard-step-1 .wizard-option-card.selected');
-        const s2 = document.querySelector('#wizard-step-2 .wizard-option-card.selected');
-        const s3 = document.querySelector('#wizard-step-3 .wizard-option-card.selected');
+        const customConcept = document.getElementById('wiz-custom-concept')?.value.trim() || '';
+        const archetypeCard = document.querySelector('#archetype-options-grid .wizard-option-card.selected');
+        const archetype = archetypeCard ? (archetypeCard.querySelector('h5')?.textContent || archetypeCard.getAttribute('data-archetype')) : 'Lead Magnet & Squeeze';
+        const displayConcept = customConcept || archetype;
 
-        const niche = s1 ? (s1.querySelector('h5')?.textContent || s1.getAttribute('data-value')) : 'Not selected';
-        const objective = s2 ? (s2.querySelector('h5')?.textContent || s2.getAttribute('data-value')) : 'Not selected';
-        const style = s3 ? (s3.querySelector('h5')?.textContent || s3.getAttribute('data-value')) : 'Not selected';
+        const nicheCard = document.querySelector('#niche-options-grid .wizard-option-card.selected');
+        const rawNiche = nicheCard ? (nicheCard.querySelector('h5')?.textContent || nicheCard.getAttribute('data-value')) : 'Fitness & Gym';
+        const customNiche = document.getElementById('wiz-custom-niche-input')?.value.trim() || '';
+        const displayNiche = customNiche || rawNiche.split('(')[0].trim();
+
+        const audience = document.getElementById('wiz-target-audience')?.value.trim() || 'General Target Market';
+        const brandName = document.getElementById('wiz-brand-name')?.value.trim() || `${displayNiche} Official`;
+        const tagline = document.getElementById('wiz-brand-tagline')?.value.trim() || 'High-Converting Offer';
+        const corePrice = document.getElementById('wiz-core-price')?.value.trim() || 'Standard Pricing';
+        const upsellPrice = document.getElementById('wiz-upsell-price')?.value.trim() || '';
+        const guarantee = document.getElementById('wiz-guarantee')?.value.trim() || '100% Risk-Free Guarantee';
+
+        const activeSections = [];
+        document.querySelectorAll('.section-toggle-chip.active').forEach(chip => {
+            const t = chip.querySelector('.chip-text')?.textContent.trim();
+            if (t) activeSections.push(t);
+        });
+
+        const styleCard = document.querySelector('#style-options-grid .wizard-option-card.selected');
+        const style = styleCard ? (styleCard.querySelector('h5')?.textContent || styleCard.getAttribute('data-style')) : 'Modern Cyber Dark';
+        const brandColor = document.getElementById('wiz-brand-color')?.value || '#10b981';
+        const copyTone = document.getElementById('wiz-copy-tone')?.value || 'Bold & Persuasive';
 
         const automations = [];
         document.querySelectorAll('#step-4-checkboxes-list input[type="checkbox"]:checked').forEach(cb => {
@@ -3624,250 +3807,223 @@ document.addEventListener('DOMContentLoaded', () => {
             if (labelEl) automations.push(labelEl.textContent.trim());
         });
 
-        const brandName = document.getElementById('wiz-brand-name')?.value.trim() || 'AI Generated';
-        const brandTagline = document.getElementById('wiz-brand-tagline')?.value.trim() || 'AI Generated';
-        const brandColor = document.getElementById('wiz-brand-color')?.value || '#10b981';
-        const brandLogo = document.getElementById('wiz-brand-logo')?.value.trim() || 'None';
-
-        const corePrice = document.getElementById('wiz-core-price')?.value.trim() || '';
-        const upsellPrice = document.getElementById('wiz-upsell-price')?.value.trim() || '';
         const customInstructions = document.getElementById('wiz-custom-instructions')?.value.trim() || '';
-        const customNicheInput = document.getElementById('wiz-custom-niche-input')?.value.trim() || '';
-        const displayNiche = (niche.includes('Custom') && customNicheInput) ? customNicheInput : niche;
 
         card.innerHTML = `
             <div class="summary-section">
                 <span class="summary-icon">${isFunnel ? '🌪️' : '📄'}</span>
                 <div class="summary-content">
-                    <div class="summary-label">Asset Type</div>
-                    <div class="summary-value">${isFunnel ? 'Multi-Step High-Converting Funnel' : 'Single High-Converting Landing Page'}</div>
+                    <div class="summary-label">Asset Type & Concept</div>
+                    <div class="summary-value">
+                        <strong>${isFunnel ? 'Multi-Step High-Converting Funnel' : 'Single High-Converting Landing Page'}</strong>
+                        <div style="font-size:12.5px; color:#93c5fd; margin-top:2px;">"${escapeHtml(displayConcept)}"</div>
+                    </div>
                 </div>
             </div>
             <div class="summary-section">
                 <span class="summary-icon">🏢</span>
                 <div class="summary-content">
-                    <div class="summary-label">Industry / Niche</div>
-                    <div class="summary-value">${escapeHtml(displayNiche)}</div>
+                    <div class="summary-label">Niche & Target Audience</div>
+                    <div class="summary-value">${escapeHtml(displayNiche)} — <span style="font-size:12px; color:#cbd5e1;">Targeting: ${escapeHtml(audience)}</span></div>
                 </div>
             </div>
             <div class="summary-section">
-                <span class="summary-icon">🎯</span>
+                <span class="summary-icon">💎</span>
                 <div class="summary-content">
-                    <div class="summary-label">${isFunnel ? 'Multi-Step Funnel Flow' : 'Primary Conversion Goal / CTA'}</div>
-                    <div class="summary-value">${escapeHtml(objective)}</div>
+                    <div class="summary-label">Offer, Pricing & Guarantee</div>
+                    <div class="summary-value">
+                        <strong>${escapeHtml(brandName)}</strong>: "${escapeHtml(tagline)}"<br>
+                        <span class="summary-tag" style="background:rgba(16,185,129,0.15); color:#10b981;">Core: ${escapeHtml(corePrice)}</span>
+                        ${upsellPrice ? `<span class="summary-tag" style="background:rgba(99,102,241,0.15); color:#818cf8;">Upsell: ${escapeHtml(upsellPrice)}</span>` : ''}
+                        <div style="font-size:12px; color:#94a3b8; margin-top:4px;">🛡️ ${escapeHtml(guarantee)}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="summary-section">
+                <span class="summary-icon">🧩</span>
+                <div class="summary-content">
+                    <div class="summary-label">Key Sections Included (${activeSections.length})</div>
+                    <div class="summary-value">
+                        ${activeSections.length > 0 ? activeSections.map(s => `<span class="summary-tag">${escapeHtml(s)}</span>`).join('') : 'All Standard Sections Included'}
+                    </div>
                 </div>
             </div>
             <div class="summary-section">
                 <span class="summary-icon">🎨</span>
                 <div class="summary-content">
-                    <div class="summary-label">Design Theme</div>
-                    <div class="summary-value">${escapeHtml(style)}</div>
+                    <div class="summary-label">Aesthetic, Accent Color & Tone</div>
+                    <div class="summary-value">
+                        ${escapeHtml(style)} • Tone: <strong>${escapeHtml(copyTone)}</strong>
+                        <span style="display:inline-flex; align-items:center; gap:5px; margin-left:8px;">
+                            <span style="width:12px; height:12px; border-radius:50%; background:${brandColor}; display:inline-block; border:1px solid rgba(255,255,255,0.2);"></span>
+                            <code>${brandColor}</code>
+                        </span>
+                    </div>
                 </div>
             </div>
             <div class="summary-section">
                 <span class="summary-icon">⚙️</span>
                 <div class="summary-content">
-                    <div class="summary-label">Connected Automations & Custom Fields</div>
-                    <div class="summary-value">${automations.length > 0 ? automations.map(a => `<span class="summary-tag">${escapeHtml(a)}</span>`).join('') : 'None selected'}</div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <span class="summary-icon">✏️</span>
-                <div class="summary-content">
-                    <div class="summary-label">Brand & Pricing Specifications</div>
+                    <div class="summary-label">CRM Automations & Pipelines (${automations.length})</div>
                     <div class="summary-value">
-                        <strong>${escapeHtml(brandName)}</strong> — "${escapeHtml(brandTagline)}"<br>
-                        ${corePrice ? `<span class="summary-tag" style="background:rgba(16,185,129,0.15); color:#10b981;">Core: ${escapeHtml(corePrice)}</span> ` : ''}
-                        ${upsellPrice ? `<span class="summary-tag" style="background:rgba(99,102,241,0.15); color:#818cf8;">VIP: ${escapeHtml(upsellPrice)}</span> ` : ''}
-                        <span style="display:inline-flex; align-items:center; gap:5px; margin-top:4px;">
-                            <span style="width:12px; height:12px; border-radius:50%; background:${brandColor}; display:inline-block; border:1px solid rgba(255,255,255,0.2);"></span>
-                            <code>${brandColor}</code>
-                        </span>
-                        ${customInstructions ? `<div style="margin-top:6px; font-size:12px; color:#cbd5e1; font-style:italic;">"${escapeHtml(customInstructions)}"</div>` : ''}
+                        ${automations.length > 0 ? automations.map(a => `<span class="summary-tag">${escapeHtml(a)}</span>`).join('') : 'Standard Speed-to-Lead Workflows'}
                     </div>
                 </div>
             </div>
+            ${customInstructions ? `
+            <div class="summary-section">
+                <span class="summary-icon">✍️</span>
+                <div class="summary-content">
+                    <div class="summary-label">Unrestricted Custom Instructions</div>
+                    <div class="summary-value" style="font-size:12px; color:#cbd5e1; font-style:italic;">"${escapeHtml(customInstructions)}"</div>
+                </div>
+            </div>` : ''}
         `;
-    }
-
-    function renderWizardStep(step, direction) {
-        currentWizardStep = step;
-        hideValidation();
-
-        // Slide animation
-        for (let i = 1; i <= TOTAL_WIZARD_STEPS; i++) {
-            const panel = document.getElementById(`wizard-step-${i}`);
-            if (!panel) continue;
-
-            if (i === step) {
-                panel.classList.add('active');
-                panel.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right');
-                if (direction === 'forward') panel.classList.add('slide-in-right');
-                else if (direction === 'backward') panel.classList.add('slide-in-left');
-            } else {
-                panel.classList.remove('active', 'slide-in-right', 'slide-in-left');
-            }
-        }
-
-        // Node indicators
-        document.querySelectorAll('.wizard-step-node').forEach(node => {
-            const nodeStep = parseInt(node.getAttribute('data-step') || '1');
-            node.classList.remove('active', 'completed');
-            const numSpan = node.querySelector('.step-num');
-            if (nodeStep < step) {
-                node.classList.add('completed');
-                if (numSpan) numSpan.textContent = '✓';
-            } else if (nodeStep === step) {
-                node.classList.add('active');
-                if (numSpan) numSpan.textContent = String(nodeStep);
-            } else {
-                node.classList.add('active');
-                if (numSpan) numSpan.textContent = String(nodeStep);
-            }
-        });
-
-        // Connector lines
-        document.querySelectorAll('.wizard-step-connector').forEach((conn, idx) => {
-            if (idx + 1 < step) conn.classList.add('completed');
-            else conn.classList.remove('completed');
-        });
-
-        // Navigation button labels
-        if (wizardBackBtn) wizardBackBtn.disabled = (step === 1);
-        if (wizardNextBtn) {
-            const isFunnel = (currentWizardMode === 'funnel');
-            wizardNextBtn.textContent = (step === TOTAL_WIZARD_STEPS) ? (isFunnel ? '🚀 Generate Funnel Bundle' : '🚀 Generate Landing Page') : 'Next Step →';
-        }
-
-        // Summary on step 6
-        if (step === 6) populateSummaryCard();
-    }
-
-    function validateCurrentStep() {
-        if (currentWizardStep >= 1 && currentWizardStep <= 3) {
-            const panel = document.getElementById(`wizard-step-${currentWizardStep}`);
-            if (panel) {
-                const selected = panel.querySelector('.wizard-option-card.selected');
-                if (!selected) {
-                    showValidation('Please select an option before proceeding to the next step.');
-                    return false;
-                }
-            }
-        }
-        if (currentWizardStep === 4) {
-            const anyChecked = document.querySelector('#step-4-checkboxes-list input[type="checkbox"]:checked');
-            if (!anyChecked) {
-                showValidation('Please select at least one automation workflow.');
-                return false;
-            }
-        }
-        return true;
     }
 
     if (wizardBackBtn) {
         wizardBackBtn.addEventListener('click', () => {
             if (currentWizardStep > 1) {
-                renderWizardStep(currentWizardStep - 1, 'backward');
+                renderWizardTab(currentWizardStep - 1);
+            }
+        });
+    }
+
+    if (wizardNextStepBtn) {
+        wizardNextStepBtn.addEventListener('click', () => {
+            if (currentWizardStep < TOTAL_WIZARD_STEPS) {
+                renderWizardTab(currentWizardStep + 1);
+            } else {
+                renderWizardTab(7);
             }
         });
     }
 
     if (wizardNextBtn) {
         wizardNextBtn.addEventListener('click', () => {
-            if (currentWizardStep < TOTAL_WIZARD_STEPS) {
-                if (!validateCurrentStep()) return;
-                renderWizardStep(currentWizardStep + 1, 'forward');
-            } else {
-                submitWizardBuild();
-            }
+            submitWizardBuild();
         });
     }
 
     if (wizardQuickBtn) {
         wizardQuickBtn.addEventListener('click', () => {
-            // Pick AI Recommended options for current niche
+            // Intelligent 1-Click Smart Auto-Fill
             const config = NICHE_CONFIGURATIONS[currentNicheKey] || NICHE_CONFIGURATIONS['fitness'];
             const isFunnel = (currentWizardMode === 'funnel');
-            const step2Cfg = isFunnel ? config.step2_funnel : config.step2_landing;
 
-            // Step 2 & 3: select AI recommended cards
-            const s2Cards = document.querySelectorAll('#step-2-options-grid .wizard-option-card');
-            s2Cards.forEach((c, idx) => {
-                c.classList.toggle('selected', idx === (step2Cfg ? step2Cfg.aiRecIdx : 0));
-            });
+            // 1. Concept
+            const conceptInput = document.getElementById('wiz-custom-concept');
+            if (conceptInput && !conceptInput.value.trim()) {
+                conceptInput.value = isFunnel ? `High-Converting ${config.name} Multi-Step Funnel (Opt-in ➔ VSL ➔ Booking ➔ Upsell)` : `High-Converting ${config.name} Lead Generation Landing Page`;
+            }
 
-            const s3Cards = document.querySelectorAll('#step-3-options-grid .wizard-option-card');
-            s3Cards.forEach((c, idx) => {
-                c.classList.toggle('selected', idx === (config.step3 ? config.step3.aiRecIdx : 0));
-            });
+            // 2. Audience & Niche
+            const audienceInput = document.getElementById('wiz-target-audience');
+            if (audienceInput && !audienceInput.value.trim()) {
+                audienceInput.value = `High-intent clients looking for ${config.name} solutions`;
+            }
 
-            // Step 4: check all automations
-            document.querySelectorAll('#step-4-checkboxes-list input[type="checkbox"]').forEach(cb => cb.checked = true);
-
-            // Step 5: fill niche brand defaults
+            // 3. Brand & Pricing
             const nameInput = document.getElementById('wiz-brand-name');
-            if (nameInput) nameInput.value = config.step5.defaultBrandName;
+            if (nameInput && !nameInput.value.trim()) nameInput.value = config.step5.defaultBrandName;
             const tagInput = document.getElementById('wiz-brand-tagline');
-            if (tagInput) tagInput.value = config.step5.defaultTagline;
+            if (tagInput && !tagInput.value.trim()) tagInput.value = config.step5.defaultTagline;
             const colorInput = document.getElementById('wiz-brand-color');
             if (colorInput) colorInput.value = config.step5.defaultColor;
+            const colorHex = document.getElementById('brand-color-hex');
+            if (colorHex) colorHex.textContent = config.step5.defaultColor;
 
-            submitWizardBuild();
+            const corePrice = document.getElementById('wiz-core-price');
+            if (corePrice && !corePrice.value.trim()) corePrice.value = isFunnel ? '$997 Core Program (or Free Consultation)' : 'Free 7-Day Access';
+            const upsellPrice = document.getElementById('wiz-upsell-price');
+            if (upsellPrice && !upsellPrice.value.trim()) upsellPrice.value = '$297 VIP Upgrade';
+            const guarantee = document.getElementById('wiz-guarantee');
+            if (guarantee && !guarantee.value.trim()) guarantee.value = '100% 30-Day Money-Back Guarantee, Zero Questions Asked';
+
+            // 4. Key Sections: enable high-converting set
+            document.querySelectorAll('.section-toggle-chip').forEach(c => c.classList.add('active'));
+
+            // 5. CRM Checkboxes
+            document.querySelectorAll('#step-4-checkboxes-list input[type="checkbox"]').forEach(cb => cb.checked = true);
+
+            // Jump to review tab & populate
+            renderWizardTab(7);
+            showValidation('⚡ Smart specifications populated! Review below or click Generate Funnel Bundle.');
         });
     }
 
     function submitWizardBuild() {
         const isFunnel = (currentWizardMode === 'funnel');
-        const step1Selected = document.querySelector('#wizard-step-1 .wizard-option-card.selected');
-        const step2Selected = document.querySelector('#wizard-step-2 .wizard-option-card.selected');
-        const step3Selected = document.querySelector('#wizard-step-3 .wizard-option-card.selected');
 
-        const rawNiche = step1Selected ? (step1Selected.querySelector('h5')?.textContent || step1Selected.getAttribute('data-value')) : 'Fitness & Gym Studio';
-        const rawObjective = step2Selected ? (step2Selected.querySelector('h5')?.textContent || step2Selected.getAttribute('data-value')) : (isFunnel ? 'VSL & 1-on-1 Assessment Funnel' : '7-Day Free VIP Pass');
-        const rawStyle = step3Selected ? (step3Selected.querySelector('h5')?.textContent || step3Selected.getAttribute('data-value')) : 'Modern Dark Glassmorphism';
+        // Concept
+        const customConcept = document.getElementById('wiz-custom-concept')?.value.trim() || '';
+        const archCard = document.querySelector('#archetype-options-grid .wizard-option-card.selected');
+        const archetype = archCard ? (archCard.querySelector('h5')?.textContent || archCard.getAttribute('data-archetype')) : 'Lead Magnet & Squeeze';
+        const cleanConcept = customConcept || archetype;
 
-        const customNicheInput = document.getElementById('wiz-custom-niche-input')?.value.trim() || '';
-        const cleanNiche = (rawNiche.includes('Custom') && customNicheInput) ? customNicheInput : rawNiche.split('(')[0].trim();
-        const cleanObjective = rawObjective.split('(')[0].trim();
-        const cleanStyle = rawStyle.split('(')[0].trim();
+        // Niche & Audience
+        const nicheCard = document.querySelector('#niche-options-grid .wizard-option-card.selected');
+        const rawNiche = nicheCard ? (nicheCard.querySelector('h5')?.textContent || nicheCard.getAttribute('data-value')) : 'Fitness & Gym Studio';
+        const customNiche = document.getElementById('wiz-custom-niche-input')?.value.trim() || '';
+        const cleanNiche = customNiche || rawNiche.split('(')[0].trim();
+        const targetAudience = document.getElementById('wiz-target-audience')?.value.trim() || '';
 
+        // Offer & Brand
+        const brandName = document.getElementById('wiz-brand-name')?.value.trim() || `${cleanNiche} Official`;
+        const brandTagline = document.getElementById('wiz-brand-tagline')?.value.trim() || 'Transformative Results Guaranteed';
+        const corePrice = document.getElementById('wiz-core-price')?.value.trim() || '';
+        const upsellPrice = document.getElementById('wiz-upsell-price')?.value.trim() || '';
+        const guarantee = document.getElementById('wiz-guarantee')?.value.trim() || '';
+
+        // Sections
+        const activeSections = [];
+        document.querySelectorAll('.section-toggle-chip.active').forEach(chip => {
+            const title = chip.querySelector('.chip-text')?.textContent.trim();
+            if (title) activeSections.push(title);
+        });
+
+        // Aesthetic, Color & Tone
+        const styleCard = document.querySelector('#style-options-grid .wizard-option-card.selected');
+        const cleanStyle = styleCard ? (styleCard.querySelector('h5')?.textContent || styleCard.getAttribute('data-style')).split('(')[0].trim() : 'Modern Cyber Dark';
+        const brandColor = document.getElementById('wiz-brand-color')?.value || '#10b981';
+        const copyTone = document.getElementById('wiz-copy-tone')?.value || 'Bold & Persuasive';
+        const brandLogo = document.getElementById('wiz-brand-logo')?.value.trim() || '';
+
+        // Automations
         const automations = [];
         document.querySelectorAll('#step-4-checkboxes-list input[type="checkbox"]:checked').forEach(cb => {
             const title = cb.closest('.wizard-checkbox-card')?.querySelector('strong')?.textContent.trim();
             if (title) automations.push(title);
         });
 
-        // Brand customization & custom user properties
-        const config = NICHE_CONFIGURATIONS[currentNicheKey] || NICHE_CONFIGURATIONS['fitness'];
-        const brandName = document.getElementById('wiz-brand-name')?.value.trim() || (cleanNiche + ' Official');
-        const brandTagline = document.getElementById('wiz-brand-tagline')?.value.trim() || config.step5.defaultTagline;
-        const brandColor = document.getElementById('wiz-brand-color')?.value || config.step5.defaultColor;
-        const brandLogo = document.getElementById('wiz-brand-logo')?.value.trim() || '';
-
-        const corePrice = document.getElementById('wiz-core-price')?.value.trim() || '';
-        const upsellPrice = document.getElementById('wiz-upsell-price')?.value.trim() || '';
+        // Custom Instructions
         const customInstructions = document.getElementById('wiz-custom-instructions')?.value.trim() || '';
 
         closeWizardModal();
 
-        let brandSection = `\n\nBrand & Custom Specifications:`;
-        brandSection += `\n- Business Name: ${brandName}`;
-        brandSection += `\n- Hero Tagline: ${brandTagline}`;
-        brandSection += `\n- Primary Brand Color: ${brandColor}`;
-        if (corePrice) brandSection += `\n- Core Program / Product Price: ${corePrice}`;
-        if (upsellPrice) brandSection += `\n- VIP Upgrade / Upsell Price: ${upsellPrice}`;
-        if (brandLogo) brandSection += `\n- Logo URL: ${brandLogo}`;
-        if (customInstructions) brandSection += `\n\nSpecial User Requirements & Custom Properties:\n${customInstructions}`;
+        let specDetails = `\n\nDetailed Specifications:`;
+        specDetails += `\n- Business Name: ${brandName}`;
+        specDetails += `\n- Primary Offer Hook: ${brandTagline}`;
+        if (targetAudience) specDetails += `\n- Target Audience / Ideal Prospect: ${targetAudience}`;
+        if (corePrice) specDetails += `\n- Core Offer Price & Structure: ${corePrice}`;
+        if (upsellPrice) specDetails += `\n- VIP Upgrade / Order Bump Price: ${upsellPrice}`;
+        if (guarantee) specDetails += `\n- Risk Reversal Guarantee: ${guarantee}`;
+        specDetails += `\n- Visual Theme: ${cleanStyle} (${brandColor})`;
+        specDetails += `\n- Copywriting Voice & Tone: ${copyTone}`;
+        if (activeSections.length > 0) specDetails += `\n- Required Sections & Flow Components: ${activeSections.join(', ')}`;
+        if (brandLogo) specDetails += `\n- Logo URL: ${brandLogo}`;
+        if (customInstructions) specDetails += `\n\nSpecial User Requirements & Freedom Instructions:\n${customInstructions}`;
 
         const compiledPrompt = isFunnel ?
             `Build a complete GoHighLevel Multi-Step High-Converting Funnel and CRM Architecture for a ${cleanNiche} business based strictly on the user's custom specifications.
 
 Configuration:
-- Asset Type: Multi-Step Conversion Funnel (Opt-in ➔ VSL ➔ Booking/Checkout ➔ Upsell ➔ Thank You)
+- Asset Type: Multi-Step Conversion Funnel (${cleanConcept})
 - Target Industry: ${cleanNiche}
-- Funnel Flow Structure: ${cleanObjective}
+- Funnel Flow Concept: ${cleanConcept}
 - Visual Design Aesthetic: ${cleanStyle}
-- Connected Automations & Drop-off Recovery: ${automations.join(', ')}${brandSection}
+- Primary Accent Color: ${brandColor}
+- Connected Automations & Drop-off Recovery: ${automations.join(', ')}${specDetails}
 
 Please provide the complete multi-step funnel architecture, step-by-step URLs/pages, production-ready responsive HTML/CSS code for each step, HighLevel Pipeline stages taxonomy, Contact Custom Fields & Tags schema, and 2-step abandoned cart / drop-off Workflow automations.`
             :
@@ -3876,9 +4032,10 @@ Please provide the complete multi-step funnel architecture, step-by-step URLs/pa
 Configuration:
 - Asset Type: Single High-Converting Landing Page
 - Target Industry: ${cleanNiche}
-- Primary Conversion Goal / CTA: ${cleanObjective}
+- Landing Page Concept: ${cleanConcept}
 - Visual Design Aesthetic: ${cleanStyle}
-- Connected Automations: ${automations.join(', ')}${brandSection}
+- Primary Accent Color: ${brandColor}
+- Connected Automations: ${automations.join(', ')}${specDetails}
 
 Please provide the production-ready responsive HTML/CSS landing page code, HighLevel Pipeline stages taxonomy, Contact Custom Fields & Tags schema, and step-by-step Workflow automation configuration.`;
 
@@ -4087,24 +4244,50 @@ Please provide the production-ready responsive HTML/CSS landing page code, HighL
         });
     });
 
+    function isFunnelOrLandingRequest(text) {
+        if (!text) return false;
+        const lower = text.toLowerCase().trim();
+
+        // Never intercept prompts that originated from our specifications studio or already contain full configurations
+        if (lower.includes('configuration:') ||
+            lower.includes('custom wizard specifications:') ||
+            lower.includes('detailed specifications:') ||
+            lower.includes('build a complete gohighlevel') ||
+            lower.includes('special user requirements & freedom') ||
+            lower.includes('funnel flow concept:') ||
+            lower.includes('asset type:')) {
+            return false;
+        }
+
+        // Target asset keywords
+        const hasFunnel = /\b(funnel|funnels|sales\s*funnel|vsl|tripwire|squeeze\s*page|optin\s*page|opt-in\s*page)\b/i.test(lower);
+        const hasLanding = /\b(landing\s*page|landingpage|lead\s*page|sales\s*page|one\s*pager|website|webpage)\b/i.test(lower);
+
+        if (!hasFunnel && !hasLanding) return false;
+
+        // Intent / Action verbs (English + Roman Urdu/Hindi)
+        const hasAction = /\b(make|create|build|design|generate|setup|set\s*up|develop|want|need|construct|architect|give\s*me|bana|bna|banani|chahiye|banao|karo|krdo|kardo|ready|tayyar)\b/i.test(lower);
+
+        if (hasAction && (hasFunnel || hasLanding)) return true;
+
+        // Short queries e.g. "funnel", "landing page", "new funnel", "create a funnel"
+        if (/^(a\s+)?(new\s+)?(funnel|landing\s*page|sales\s*page|vsl\s*funnel)[\s\.\?!]*$/i.test(lower)) return true;
+
+        // Questions / Requests: "can you make a funnel", "i want a landing page", "help me build a funnel"
+        if (/\b(can\s+you|could\s+you|i\s+want|i\s+need|i\s+would\s+like|help\s+me|how\s+to\s+build)\b.*?\b(funnel|landing\s*page)\b/i.test(lower)) return true;
+
+        // Niche combos: "fitness funnel", "real estate landing page", "ecommerce funnel"
+        if (/\b(fitness|gym|real\s*estate|agency|coaching|ecommerce|restaurant|dental|contractor|crypto|saas|b2b)\s+(funnel|landing\s*page)\b/i.test(lower)) return true;
+
+        return false;
+    }
+
     async function handleSendPrompt(promptOverride = null, existingElementId = null) {
         const prompt = promptOverride || userInput.value.trim();
         if (!prompt) return;
 
-        // Auto-open Smart Asset Wizard for landing page/funnel requests (only if not already generating)
-        const lower = prompt.toLowerCase().trim();
-        const isFromWizard = prompt.includes('custom wizard specifications:') || prompt.includes('Configuration:');
-        const isGenericBuild = !isFromWizard && (
-            /^(build|create|make|design|generate)\s+(me\s+)?(a\s+)?(landing\s*page|website|funnel|crm\s*setup|lead\s*page)[\s\.\?!]*$/i.test(lower) ||
-            /^(landing\s*page|funnel)\s*(bana\s*do|bna\s*do|create\s*kro|build\s*kro)[\s\.\?!]*$/i.test(lower) ||
-            lower.startsWith('make me a funnel') ||
-            lower.startsWith('create a funnel') ||
-            lower.startsWith('build a funnel') ||
-            lower.startsWith('build me a landing page') ||
-            lower.startsWith('create a landing page')
-        );
-
-        if (isGenericBuild && !isGenerating) {
+        // Auto-open Smart Specifications Studio for funnel or landing page requests (unless already generating)
+        if (!isGenerating && isFunnelOrLandingRequest(prompt)) {
             userInput.value = '';
             userInput.style.height = 'auto';
             if (sendBtn) sendBtn.disabled = false;

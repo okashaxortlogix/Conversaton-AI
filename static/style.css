@@ -3247,6 +3247,291 @@ body.dark-theme .agent-markdown-text code:not(pre code) {
 }
 
 /* ==========================================================================
+   Funnel & Landing Page Specifications Studio Modern Styling
+   ========================================================================== */
+
+.studio-modal-box {
+    max-width: 880px;
+    width: 96%;
+    max-height: 88vh;
+    backdrop-filter: blur(20px);
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 35px rgba(59, 130, 246, 0.15);
+}
+
+.studio-modal-body {
+    padding: 20px 24px;
+    max-height: calc(88vh - 180px);
+    overflow-y: auto;
+}
+
+/* Navigation Tabs Bar */
+.wizard-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    background: rgba(15, 23, 42, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.wizard-tabs-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.wizard-tab-nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard-tab-nav-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.wizard-tab-nav-btn.active {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+    border-color: rgba(99, 102, 241, 0.5);
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.2);
+}
+
+/* Freedom Concept Input Box */
+.studio-concept-box {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(147, 51, 234, 0.08) 100%);
+    border: 1.5px solid rgba(99, 102, 241, 0.35);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.studio-concept-box label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #93c5fd;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.studio-text-input,
+.studio-select-input,
+.studio-textarea {
+    width: 100%;
+    padding: 11px 14px;
+    background: #0b1120;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9px;
+    color: #f8fafc;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.studio-text-input:focus,
+.studio-select-input:focus,
+.studio-textarea:focus {
+    border-color: #6366f1;
+    background: #0f172a;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.studio-textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.section-label-row {
+    margin-bottom: 10px;
+}
+
+.section-badge-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #94a3b8;
+    display: inline-block;
+}
+
+.studio-form-row {
+    display: flex;
+    gap: 14px;
+}
+
+.studio-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.studio-form-group label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+/* Sections & Badges Grid */
+.sections-toggle-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.mini-tool-btn {
+    padding: 5px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.mini-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.sections-badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+}
+
+.section-toggle-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+}
+
+.section-toggle-chip .chip-icon {
+    font-size: 16px;
+    margin-right: 8px;
+}
+
+.section-toggle-chip .chip-text {
+    flex: 1;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.section-toggle-chip .chip-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: transparent;
+    transition: all 0.15s ease;
+}
+
+.section-toggle-chip:hover {
+    border-color: rgba(99, 102, 241, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.section-toggle-chip.active {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.section-toggle-chip.active .chip-text {
+    color: #10b981;
+}
+
+.section-toggle-chip.active .chip-check {
+    background: #10b981;
+    border-color: #10b981;
+    color: #ffffff;
+}
+
+/* Color Swatches */
+.color-swatch-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.color-swatch-btn:hover {
+    transform: scale(1.2);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.color-swatch-btn.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+
+/* Studio Generate Button */
+.studio-generate-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
+    transition: all 0.2s ease !important;
+}
+
+.studio-generate-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6) !important;
+}
+
+@media (max-width: 680px) {
+    .studio-form-row {
+        flex-direction: column;
+    }
+    .wizard-tabs-bar {
+        padding: 8px 12px;
+    }
+    .wizard-tab-nav-btn {
+        padding: 6px 10px;
+        font-size: 11.5px;
+    }
+    .sections-badges-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================================
    Claude-Style Artifact Drawer & Code Studio Styles
    ========================================================================== */
 

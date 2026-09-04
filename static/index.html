@@ -443,15 +443,15 @@
         </div>
     </div>
 
-    <!-- Smart Asset & Landing Page Builder Wizard Modal -->
+    <!-- Smart Asset & Landing Page Specifications Studio Modal -->
     <div class="modal-overlay hidden" id="builder-wizard-modal">
-        <div class="modal-box wizard-modal-box">
+        <div class="modal-box wizard-modal-box studio-modal-box">
             <div class="modal-header wizard-modal-header-top">
                 <div class="modal-title-group">
                     <div class="brand-logo-icon wizard-logo-icon" id="wizard-brand-icon">🚀</div>
                     <div>
-                        <h3 class="wizard-header-title" id="wizard-title-text">Smart Multi-Step Funnel & CRM Wizard</h3>
-                        <p class="wizard-header-subtitle" id="wizard-subtitle-text">Configure your high-converting multi-step funnel, pipeline & automations in 6 quick steps</p>
+                        <h3 class="wizard-header-title" id="wizard-title-text">Funnel & Landing Page Specifications Studio</h3>
+                        <p class="wizard-header-subtitle" id="wizard-subtitle-text">Ask for your specifications with zero limitations. Customize every detail or launch with smart defaults.</p>
                     </div>
                 </div>
                 <!-- Asset Type Toggle -->
@@ -463,249 +463,481 @@
                         📄 Single Landing Page
                     </button>
                 </div>
-                <button class="icon-btn modal-close-btn" id="close-wizard-modal">
+                <button class="icon-btn modal-close-btn" id="close-wizard-modal" title="Close specifications">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
 
-            <!-- Progress Bar & Step Dots (6 Steps) -->
-            <div class="wizard-progress-bar-wrapper">
-                <div class="wizard-step-indicators">
-                    <div class="wizard-step-node active" data-step="1">
-                        <span class="step-num">1</span>
-                        <span class="step-label">Niche</span>
-                    </div>
-                    <div class="wizard-step-connector"></div>
-                    <div class="wizard-step-node" data-step="2">
-                        <span class="step-num">2</span>
-                        <span class="step-label">Goal / CTA</span>
-                    </div>
-                    <div class="wizard-step-connector"></div>
-                    <div class="wizard-step-node" data-step="3">
-                        <span class="step-num">3</span>
-                        <span class="step-label">Design</span>
-                    </div>
-                    <div class="wizard-step-connector"></div>
-                    <div class="wizard-step-node" data-step="4">
-                        <span class="step-num">4</span>
-                        <span class="step-label">Automations</span>
-                    </div>
-                    <div class="wizard-step-connector"></div>
-                    <div class="wizard-step-node" data-step="5">
-                        <span class="step-num">5</span>
-                        <span class="step-label">Brand</span>
-                    </div>
-                    <div class="wizard-step-connector"></div>
-                    <div class="wizard-step-node" data-step="6">
-                        <span class="step-num">6</span>
-                        <span class="step-label">Review</span>
-                    </div>
-                </div>
+            <!-- Modern Interactive Navigation Tabs (Clickable anytime, non-blocking) -->
+            <div class="wizard-tabs-bar">
+                <button type="button" class="wizard-tab-nav-btn active" data-tab="1">
+                    <span class="tab-icon">🎯</span>
+                    <span class="tab-title">Type & Concept</span>
+                </button>
+                <button type="button" class="wizard-tab-nav-btn" data-tab="2">
+                    <span class="tab-icon">🏢</span>
+                    <span class="tab-title">Niche & Audience</span>
+                </button>
+                <button type="button" class="wizard-tab-nav-btn" data-tab="3">
+                    <span class="tab-icon">💎</span>
+                    <span class="tab-title">Offer & Pricing</span>
+                </button>
+                <button type="button" class="wizard-tab-nav-btn" data-tab="4">
+                    <span class="tab-icon">🧩</span>
+                    <span class="tab-title">Sections & Flow</span>
+                </button>
+                <button type="button" class="wizard-tab-nav-btn" data-tab="5">
+                    <span class="tab-icon">🎨</span>
+                    <span class="tab-title">Style & Colors</span>
+                </button>
+                <button type="button" class="wizard-tab-nav-btn" data-tab="6">
+                    <span class="tab-icon">⚙️</span>
+                    <span class="tab-title">CRM & Automations</span>
+                </button>
+                <button type="button" class="wizard-tab-nav-btn" data-tab="7">
+                    <span class="tab-icon">✍️</span>
+                    <span class="tab-title">Custom Freedom</span>
+                </button>
             </div>
 
-            <!-- Validation Warning Banner -->
+            <!-- Optional Toast/Validation Warning Banner -->
             <div class="wizard-validation-bar hidden" id="wizard-validation-bar">
-                <span class="validation-icon">⚠️</span>
-                <span class="validation-text" id="wizard-validation-text">Please select an option to continue.</span>
+                <span class="validation-icon">💡</span>
+                <span class="validation-text" id="wizard-validation-text"></span>
             </div>
 
-            <div class="modal-body wizard-modal-body">
+            <div class="modal-body wizard-modal-body studio-modal-body">
                 <!-- Step Slide Container -->
                 <div class="wizard-slide-container" id="wizard-slide-container">
 
-                    <!-- STEP 1: Niche / Industry (8 Options) -->
-                    <div class="wizard-step-panel active" id="wizard-step-1" data-direction="none">
-                        <h4 class="step-panel-title">Step 1: Select your Industry or Business Model</h4>
-                        <p class="step-panel-desc">Tailor copy hooks, high-converting offer structures, and form fields for your specific market.</p>
-                        <div class="wizard-options-grid" data-group="niche">
-                            <div class="wizard-option-card" data-value="Fitness & Gym (Free VIP Pass / Membership Trials)" data-ai-rec="true">
-                                <div class="card-icon">🏋️</div>
+                    <!-- TAB 1: Funnel / Page Type & Custom Concept -->
+                    <div class="wizard-step-panel active" id="wizard-step-1">
+                        <h4 class="step-panel-title">Tab 1: Choose or Describe Your Funnel / Page Concept</h4>
+                        <p class="step-panel-desc">Freely describe what you want below or click any proven high-converting blueprint archetype.</p>
+                        
+                        <!-- Freedom Concept Input -->
+                        <div class="studio-concept-box">
+                            <label for="wiz-custom-concept">⚡ What specific type or concept do you want? (Freedom to write anything):</label>
+                            <input type="text" id="wiz-custom-concept" class="studio-text-input" placeholder="e.g. 3-step high-ticket consulting funnel with qualification questionnaire, VSL, and calendar booking">
+                        </div>
+
+                        <div class="section-label-row">
+                            <span class="section-badge-title">Proven High-Converting Blueprints (Click to Apply)</span>
+                        </div>
+
+                        <div class="wizard-options-grid archetype-grid" id="archetype-options-grid">
+                            <div class="wizard-option-card selected" data-archetype="Lead Magnet & Squeeze Funnel">
+                                <div class="card-icon">🧲</div>
                                 <div class="card-content">
-                                    <h5>Fitness & Gym Studio</h5>
-                                    <p>Free VIP Pass, 1-on-1 fitness assessments & trial memberships</p>
-                                </div>
-                                <span class="ai-rec-badge" title="AI Recommended for high conversion">💡 AI Pick</span>
-                                <span class="card-check">✓</span>
-                            </div>
-                            <div class="wizard-option-card" data-value="Local & Home Services (Contractors, Solar, MedSpa, Dental)">
-                                <div class="card-icon">🏡</div>
-                                <div class="card-content">
-                                    <h5>Local & Home Services</h5>
-                                    <p>Contractors, Solar, MedSpa, Dental & Free Quote Estimations</p>
-                                </div>
-                                <span class="card-check">✓</span>
-                            </div>
-                            <div class="wizard-option-card" data-value="B2B Agency & Consulting (Strategy Call / SaaS Demo)">
-                                <div class="card-icon">💼</div>
-                                <div class="card-content">
-                                    <h5>B2B Agency & Consulting</h5>
-                                    <p>Free strategy sessions, SaaS demos & client lead magnets</p>
+                                    <h5>Lead Magnet & Squeeze</h5>
+                                    <p>High-converting opt-in page with instant resource / cheat sheet delivery & email sequence</p>
                                 </div>
                                 <span class="card-check">✓</span>
                             </div>
-                            <div class="wizard-option-card" data-value="Coaching & Info-Product (Webinars, VSL & Direct Purchase)">
+                            <div class="wizard-option-card" data-archetype="VSL (Video Sales Letter) Funnel">
+                                <div class="card-icon">🎥</div>
+                                <div class="card-content">
+                                    <h5>VSL Video Sales Funnel</h5>
+                                    <p>Video pitch with timed CTA unlock, case study proofs & application/checkout</p>
+                                </div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-archetype="Consultation & Calendar Booking Funnel">
+                                <div class="card-icon">📅</div>
+                                <div class="card-content">
+                                    <h5>Consultation & Booking</h5>
+                                    <p>Pre-qualifying questionnaire leading into an integrated appointment booking calendar</p>
+                                </div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-archetype="E-Commerce 2-Step Checkout & Bump">
+                                <div class="card-icon">🛒</div>
+                                <div class="card-content">
+                                    <h5>E-Commerce 2-Step Checkout</h5>
+                                    <p>Product showcase with 2-step checkout, $27 order bump offer & 1-click upsell page</p>
+                                </div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-archetype="Webinar & Masterclass Funnel">
                                 <div class="card-icon">🎓</div>
                                 <div class="card-content">
-                                    <h5>Coaching & Digital Product</h5>
-                                    <p>VSL funnels, high-ticket masterclasses & digital downloads</p>
+                                    <h5>Webinar / Masterclass Registration</h5>
+                                    <p>High-urgency training sign-up, countdown timer, automated SMS reminders & replay room</p>
                                 </div>
                                 <span class="card-check">✓</span>
                             </div>
-                            <div class="wizard-option-card" data-value="Real Estate (Property Tours, Open House Registration)">
-                                <div class="card-icon">🏠</div>
+                            <div class="wizard-option-card" data-archetype="Paid Challenge / Sprint Funnel">
+                                <div class="card-icon">⚡</div>
                                 <div class="card-content">
-                                    <h5>Real Estate</h5>
-                                    <p>Property listing pages, open house sign-ups & buyer consultations</p>
+                                    <h5>Transformation Challenge Sprint</h5>
+                                    <p>5-day or 30-day paid/free sprint with daily homework portal & community upsell</p>
                                 </div>
                                 <span class="card-check">✓</span>
                             </div>
-                            <div class="wizard-option-card" data-value="E-Commerce & DTC (Product Launch, Flash Sale Pages)">
-                                <div class="card-icon">🛍️</div>
+                            <div class="wizard-option-card" data-archetype="High-Ticket Application Funnel">
+                                <div class="card-icon">💼</div>
                                 <div class="card-content">
-                                    <h5>E-Commerce & DTC</h5>
-                                    <p>Product launch pages, flash sales & abandoned cart recovery</p>
+                                    <h5>High-Ticket Application Funnel</h5>
+                                    <p>In-depth case study breakdown with multi-step qualification filter for premium services</p>
                                 </div>
                                 <span class="card-check">✓</span>
                             </div>
-                            <div class="wizard-option-card" data-value="Restaurant & Hospitality (Reservations, Specials & Events)">
-                                <div class="card-icon">🍽️</div>
-                                <div class="card-content">
-                                    <h5>Restaurant & Hospitality</h5>
-                                    <p>Online reservations, special offers & event booking pages</p>
-                                </div>
-                                <span class="card-check">✓</span>
-                            </div>
-                            <div class="wizard-option-card" data-value="Healthcare & Legal (Appointment Booking, Free Consultation)">
-                                <div class="card-icon">⚕️</div>
-                                <div class="card-content">
-                                    <h5>Healthcare & Legal</h5>
-                                    <p>Patient intake forms, free consultations & compliance pages</p>
-                                </div>
-                                <span class="card-check">✓</span>
-                            </div>
-                            <div class="wizard-option-card" data-value="Custom / Any Other Business (Build Anything You Want)" id="wizard-custom-niche-card">
+                            <div class="wizard-option-card" data-archetype="Custom Tailored Architecture">
                                 <div class="card-icon">✨</div>
                                 <div class="card-content">
-                                    <h5>Custom / Any Industry</h5>
-                                    <p>Tailor-make any unique niche, custom offer, or specialized business</p>
+                                    <h5>Custom Tailored Architecture</h5>
+                                    <p>Zero constraints — create an entirely custom funnel or page structure tailored to your vision</p>
                                 </div>
                                 <span class="card-check">✓</span>
                             </div>
                         </div>
-                        <div id="custom-niche-input-wrapper" style="display:none; margin-top:14px; padding:12px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px;">
-                            <label style="display:block; font-size:12px; font-weight:600; color:#cbd5e1; margin-bottom:6px; text-transform:uppercase;">Describe Your Specific Business / Niche</label>
-                            <input type="text" id="wiz-custom-niche-input" placeholder="e.g. AI Automation Agency, Roofer, Crypto Community, Martial Arts Dojo" style="width:100%; padding:10px 14px; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#ffffff; font-size:13.5px; outline:none;">
-                        </div>
                     </div>
 
-                    <!-- STEP 2: Objective & CTA (Dynamically populated per Niche) -->
+                    <!-- TAB 2: Industry, Niche & Target Audience -->
                     <div class="wizard-step-panel" id="wizard-step-2">
-                        <h4 class="step-panel-title" id="step-2-title">Step 2: What is the Primary Page Goal / CTA?</h4>
-                        <p class="step-panel-desc" id="step-2-desc">Choose the conversion path and lead capture mechanism.</p>
-                        <div class="wizard-ai-suggestion hidden" id="ai-suggest-step2">
-                            <span class="ai-suggest-icon">💡</span>
-                            <span class="ai-suggest-text" id="ai-suggest-text-2"></span>
-                        </div>
-                        <div class="wizard-options-grid" id="step-2-options-grid" data-group="objective">
-                            <!-- Dynamically populated via JS per selected Industry -->
-                        </div>
-                    </div>
+                        <h4 class="step-panel-title">Tab 2: Target Industry, Niche & Audience</h4>
+                        <p class="step-panel-desc">Select your industry or type any unique business model and target audience.</p>
 
-                    <!-- STEP 3: Design Aesthetic & Style (Dynamically populated per Niche) -->
-                    <div class="wizard-step-panel" id="wizard-step-3">
-                        <h4 class="step-panel-title" id="step-3-title">Step 3: Choose your Visual Style & Design Theme</h4>
-                        <p class="step-panel-desc" id="step-3-desc">Pick an aesthetic that matches your branding and enhances credibility.</p>
-                        <div class="wizard-ai-suggestion hidden" id="ai-suggest-step3">
-                            <span class="ai-suggest-icon">💡</span>
-                            <span class="ai-suggest-text" id="ai-suggest-text-3"></span>
-                        </div>
-                        <div class="wizard-options-grid" id="step-3-options-grid" data-group="style">
-                            <!-- Dynamically populated via JS per selected Industry -->
-                        </div>
-                    </div>
-
-                    <!-- STEP 4: Automations & GHL Triggers (Dynamically populated per Niche) -->
-                    <div class="wizard-step-panel" id="wizard-step-4">
-                        <h4 class="step-panel-title" id="step-4-title">Step 4: Connected GHL Automations & Taxonomy</h4>
-                        <p class="step-panel-desc" id="step-4-desc">Select the automated workflows and CRM assets you want configured.</p>
-                        <div class="wizard-checkboxes-list" id="step-4-checkboxes-list">
-                            <!-- Dynamically populated via JS per selected Industry -->
-                        </div>
-                    </div>
-
-                    <!-- STEP 5: Brand Customization (Dynamically tailored per Niche) -->
-                    <div class="wizard-step-panel" id="wizard-step-5">
-                        <h4 class="step-panel-title" id="step-5-title">Step 5: Brand Customization</h4>
-                        <p class="step-panel-desc" id="step-5-desc">Personalize your landing page with your brand identity. Leave blank for AI-generated defaults.</p>
-                        <div class="wizard-brand-form">
-                            <div class="brand-form-row">
-                                <div class="brand-form-group">
-                                    <label for="wiz-brand-name">Business Name</label>
-                                    <input type="text" id="wiz-brand-name" placeholder="e.g. IronPulse Fitness" autocomplete="off">
-                                </div>
-                                <div class="brand-form-group">
-                                    <label for="wiz-brand-tagline">Hero Tagline / Headline</label>
-                                    <input type="text" id="wiz-brand-tagline" placeholder="e.g. Transform Your Body in 90 Days" autocomplete="off">
-                                </div>
+                        <div class="studio-form-row">
+                            <div class="studio-form-group">
+                                <label for="wiz-target-audience">👥 Who is your Target Audience / Ideal Customer?</label>
+                                <input type="text" id="wiz-target-audience" class="studio-text-input" placeholder="e.g. Busy agency owners doing $10k-$50k/mo, or local homeowners looking for kitchen remodels">
                             </div>
-                            <div class="brand-form-row">
-                                <div class="brand-form-group">
-                                    <label for="wiz-brand-color">Primary Brand Color</label>
-                                    <div class="color-picker-row">
-                                        <input type="color" id="wiz-brand-color" value="#10b981" class="brand-color-input">
-                                        <span class="color-hex-label" id="brand-color-hex">#10b981</span>
-                                        <div class="color-presets" id="wiz-color-presets">
-                                            <!-- Dynamically populated via JS per selected Industry -->
-                                        </div>
+                            <div class="studio-form-group">
+                                <label for="wiz-custom-niche-input">🏢 Specific Niche / Business (Write-in or pick below):</label>
+                                <input type="text" id="wiz-custom-niche-input" class="studio-text-input" placeholder="e.g. AI Automation Agency, Luxury Car Detailing, Dental Implant Clinic">
+                            </div>
+                        </div>
+
+                        <div class="section-label-row" style="margin-top:14px;">
+                            <span class="section-badge-title">Popular Industries (Click to select):</span>
+                        </div>
+
+                        <div class="wizard-options-grid niche-grid" id="niche-options-grid">
+                            <div class="wizard-option-card selected" data-niche="fitness" data-value="Fitness & Gym (Free VIP Pass / Membership Trials)">
+                                <div class="card-icon">🏋️</div>
+                                <div class="card-content"><h5>Fitness & Gym</h5><p>Personal training & gyms</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="local_services" data-value="Local & Home Services (Contractors, Solar, MedSpa, Dental)">
+                                <div class="card-icon">🏡</div>
+                                <div class="card-content"><h5>Home & Local Services</h5><p>Contractors, roofers & plumbers</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="agency" data-value="B2B Agency & Consulting (Strategy Call / SaaS Demo)">
+                                <div class="card-icon">💼</div>
+                                <div class="card-content"><h5>B2B Agency & Consulting</h5><p>Strategy sessions & SaaS demos</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="coaching" data-value="Coaching & Info-Product (Webinars, VSL & Direct Purchase)">
+                                <div class="card-icon">🎓</div>
+                                <div class="card-content"><h5>Coaching & Info-Products</h5><p>Masterclasses & courses</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="real_estate" data-value="Real Estate (Property Tours, Open House Registration)">
+                                <div class="card-icon">🏠</div>
+                                <div class="card-content"><h5>Real Estate</h5><p>Listings & investor funnels</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="ecommerce" data-value="E-Commerce & DTC (Product Launch, Flash Sale Pages)">
+                                <div class="card-icon">🛍️</div>
+                                <div class="card-content"><h5>E-Commerce & DTC</h5><p>Product sales & order bumps</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="restaurant" data-value="Restaurant & Hospitality (Reservations, Specials & Events)">
+                                <div class="card-icon">🍽️</div>
+                                <div class="card-content"><h5>Restaurant & Hospitality</h5><p>Reservations & VIP offers</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="healthcare" data-value="Healthcare & Legal (Appointment Booking, Free Consultation)">
+                                <div class="card-icon">⚕️</div>
+                                <div class="card-content"><h5>Healthcare & Dental</h5><p>Patient intake & consultations</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="finance" data-value="Financial Services & Crypto (Advisory & Wealth Management)">
+                                <div class="card-icon">📈</div>
+                                <div class="card-content"><h5>Finance & Wealth</h5><p>Tax, accounting & advisory</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="saas" data-value="SaaS & Software (Free Trial & Interactive Demo)">
+                                <div class="card-icon">💻</div>
+                                <div class="card-content"><h5>SaaS & Tech</h5><p>Free trials & software demos</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-niche="custom" data-value="Custom / Any Other Business (Build Anything You Want)" id="wizard-custom-niche-card">
+                                <div class="card-icon">✨</div>
+                                <div class="card-content"><h5>Custom / Any Industry</h5><p>Tailor-make any unique niche</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: Offer, Pricing & Irresistible Hook -->
+                    <div class="wizard-step-panel" id="wizard-step-3">
+                        <h4 class="step-panel-title">Tab 3: Offer, Pricing & Irresistible Hook</h4>
+                        <p class="step-panel-desc">Define your primary hook, pricing structure, and risk-reversal guarantee.</p>
+
+                        <div class="studio-form-row">
+                            <div class="studio-form-group" style="flex:2;">
+                                <label for="wiz-brand-tagline">🎯 Hero Tagline / Primary Offer Hook:</label>
+                                <input type="text" id="wiz-brand-tagline" class="studio-text-input" placeholder="e.g. Double Your HighLevel Booked Calls in 30 Days Guaranteed Without Ad Spend">
+                            </div>
+                            <div class="studio-form-group" style="flex:1;">
+                                <label for="wiz-brand-name">🏢 Business / Brand Name:</label>
+                                <input type="text" id="wiz-brand-name" class="studio-text-input" placeholder="e.g. IronPulse Fitness">
+                            </div>
+                        </div>
+
+                        <div class="studio-form-row" style="margin-top:12px;">
+                            <div class="studio-form-group">
+                                <label for="wiz-core-price">💵 Core Offer & Price:</label>
+                                <input type="text" id="wiz-core-price" class="studio-text-input" placeholder="e.g. Free 7-Day VIP Pass, or $997 Core Program">
+                            </div>
+                            <div class="studio-form-group">
+                                <label for="wiz-upsell-price">🚀 Upsell / Order Bump Price (Optional):</label>
+                                <input type="text" id="wiz-upsell-price" class="studio-text-input" placeholder="e.g. $27 Fast-Track Template Pack, $497 1-on-1 Strategy Upgrade">
+                            </div>
+                        </div>
+
+                        <div class="studio-form-group" style="margin-top:12px;">
+                            <label for="wiz-guarantee">🛡️ Risk-Reversal Guarantee:</label>
+                            <input type="text" id="wiz-guarantee" class="studio-text-input" placeholder="e.g. 100% 30-Day Money-Back Guarantee — If you don't love it, you don't pay a penny">
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: Key Sections & Flow Components -->
+                    <div class="wizard-step-panel" id="wizard-step-4">
+                        <h4 class="step-panel-title">Tab 4: Essential Sections & Flow Components</h4>
+                        <p class="step-panel-desc">Click any component to include or exclude it from your funnel/landing page code.</p>
+
+                        <div class="sections-toggle-toolbar">
+                            <button type="button" class="mini-tool-btn" id="btn-select-all-sections">✓ Select All</button>
+                            <button type="button" class="mini-tool-btn" id="btn-select-high-converting-sections">⚡ High-Converting Preset</button>
+                            <button type="button" class="mini-tool-btn" id="btn-clear-sections">✕ Clear All</button>
+                        </div>
+
+                        <div class="sections-badges-grid" id="sections-badges-container">
+                            <div class="section-toggle-chip active" data-section="Hero Banner with Compelling Hook & CTA">
+                                <span class="chip-icon">⚡</span>
+                                <span class="chip-text">Hero with Headline & CTA</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Video Sales Letter (VSL) / Video Player">
+                                <span class="chip-icon">🎥</span>
+                                <span class="chip-text">Video Sales Letter (VSL)</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Social Proof & Client Testimonials Wall">
+                                <span class="chip-icon">🌟</span>
+                                <span class="chip-text">Testimonials & Social Proof Wall</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Feature Highlights & Benefits Matrix">
+                                <span class="chip-icon">📊</span>
+                                <span class="chip-text">Features & Benefits Grid</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="2-Step High-Converting Order Form">
+                                <span class="chip-icon">💳</span>
+                                <span class="chip-text">2-Step Order Form & Bump Offer</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Integrated Calendar Booking Widget">
+                                <span class="chip-icon">📅</span>
+                                <span class="chip-text">Live Calendar Booking Widget</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Interactive FAQ Accordion">
+                                <span class="chip-icon">❓</span>
+                                <span class="chip-text">Interactive FAQ Accordion</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Trust Badges & Security Seals">
+                                <span class="chip-icon">🛡️</span>
+                                <span class="chip-text">Trust Badges & SSL Seals</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Scarcity & Countdown Timer">
+                                <span class="chip-icon">⏳</span>
+                                <span class="chip-text">Countdown Timer & Scarcity</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Lead Magnet Instant Squeeze Box">
+                                <span class="chip-icon">🎁</span>
+                                <span class="chip-text">Lead Magnet Instant Download Box</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="1-Click Post-Purchase Upsell Step">
+                                <span class="chip-icon">🚀</span>
+                                <span class="chip-text">1-Click Post-Purchase Upsell Page</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                            <div class="section-toggle-chip active" data-section="Applicant Qualification Questionnaire">
+                                <span class="chip-icon">📋</span>
+                                <span class="chip-text">Multi-Step Qualification Form</span>
+                                <span class="chip-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: Visual Aesthetic, Colors & Copy Tone -->
+                    <div class="wizard-step-panel" id="wizard-step-5">
+                        <h4 class="step-panel-title">Tab 5: Visual Aesthetic, Colors & Tone</h4>
+                        <p class="step-panel-desc">Choose a design style, color scheme, and brand personality.</p>
+
+                        <div class="section-label-row">
+                            <span class="section-badge-title">Design Theme & Aesthetic:</span>
+                        </div>
+
+                        <div class="wizard-options-grid style-grid" id="style-options-grid">
+                            <div class="wizard-option-card selected" data-style="Modern Cyber Dark Mode (High-tech, sleek slate & neon glow)">
+                                <div class="card-icon">🌌</div>
+                                <div class="card-content"><h5>Modern Cyber Dark</h5><p>Sleek dark mode with glowing accents</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-style="Ultra Clean Minimalist (Crisp whitespace & elegant typography)">
+                                <div class="card-icon">💎</div>
+                                <div class="card-content"><h5>Ultra Clean Minimalist</h5><p>Whitespace, sleek lines & elegance</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-style="Luxury & High-End (Deep black & polished gold/champagne)">
+                                <div class="card-icon">👑</div>
+                                <div class="card-content"><h5>Luxury & High-End</h5><p>Champagne gold & editorial polish</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-style="Vibrant Gradient SaaS (Dynamic purples, blues & glassmorphism)">
+                                <div class="card-icon">🚀</div>
+                                <div class="card-content"><h5>Vibrant Gradient SaaS</h5><p>Modern tech gradients & dynamic cards</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-style="Corporate & Trust (Navy blue, crisp dividers & authoritative)">
+                                <div class="card-icon">👔</div>
+                                <div class="card-content"><h5>Corporate & Trust</h5><p>Executive navy blue & high credibility</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                            <div class="wizard-option-card" data-style="Direct Response Aggressive (High contrast, urgency badges & bold CTAs)">
+                                <div class="card-icon">🔥</div>
+                                <div class="card-content"><h5>Direct Response Bold</h5><p>High-contrast, bold buttons & urgency</p></div>
+                                <span class="card-check">✓</span>
+                            </div>
+                        </div>
+
+                        <div class="studio-form-row" style="margin-top:16px;">
+                            <div class="studio-form-group">
+                                <label for="wiz-brand-color">🎨 Primary Brand Color:</label>
+                                <div class="color-picker-row">
+                                    <input type="color" id="wiz-brand-color" value="#10b981" class="brand-color-input">
+                                    <span class="color-hex-label" id="brand-color-hex">#10b981</span>
+                                    <div class="color-presets" id="wiz-color-presets">
+                                        <button type="button" class="color-swatch-btn" data-color="#10b981" style="background:#10b981;" title="Emerald Green"></button>
+                                        <button type="button" class="color-swatch-btn" data-color="#6366f1" style="background:#6366f1;" title="Royal Indigo"></button>
+                                        <button type="button" class="color-swatch-btn" data-color="#0ea5e9" style="background:#0ea5e9;" title="Electric Cyan"></button>
+                                        <button type="button" class="color-swatch-btn" data-color="#f59e0b" style="background:#f59e0b;" title="Amber Gold"></button>
+                                        <button type="button" class="color-swatch-btn" data-color="#f43f5e" style="background:#f43f5e;" title="Crimson Rose"></button>
+                                        <button type="button" class="color-swatch-btn" data-color="#8b5cf6" style="background:#8b5cf6;" title="Electric Violet"></button>
                                     </div>
                                 </div>
-                                <div class="brand-form-group">
-                                    <label for="wiz-brand-logo">Logo Image URL <span class="optional-tag">(optional)</span></label>
-                                    <input type="url" id="wiz-brand-logo" placeholder="https://yourdomain.com/logo.png" autocomplete="off">
-                                </div>
                             </div>
+                            <div class="studio-form-group">
+                                <label for="wiz-copy-tone">🗣️ Copywriting Tone of Voice:</label>
+                                <select id="wiz-copy-tone" class="studio-select-input">
+                                    <option value="Bold & Persuasive">Bold & Persuasive (Direct response focus)</option>
+                                    <option value="Professional & Authoritative">Professional & Authoritative (Corporate & medical)</option>
+                                    <option value="Friendly & Conversational">Friendly & Conversational (Relatable & warm)</option>
+                                    <option value="Urgent & Scarcity-Driven">Urgent & Scarcity-Driven (Event & flash-sale)</option>
+                                </select>
+                            </div>
+                        </div>
 
-                            <!-- User's Custom Offers & Pricing Properties -->
-                            <div class="brand-form-row" style="margin-top:10px;">
-                                <div class="brand-form-group">
-                                    <label for="wiz-core-price">Core Offer & Price</label>
-                                    <input type="text" id="wiz-core-price" placeholder="e.g. $997 Core Program, or Free Assessment" autocomplete="off">
-                                </div>
-                                <div class="brand-form-group">
-                                    <label for="wiz-upsell-price">VIP Upgrade / Upsell Price <span class="optional-tag">(optional)</span></label>
-                                    <input type="text" id="wiz-upsell-price" placeholder="e.g. $497 VIP Mastermind Upgrade" autocomplete="off">
-                                </div>
-                            </div>
-
-                            <!-- Custom Features, Steps & User Instructions -->
-                            <div class="brand-form-group" style="margin-top:10px;">
-                                <label for="wiz-custom-instructions">Custom Properties, Specific Funnel Steps & Special Instructions</label>
-                                <textarea id="wiz-custom-instructions" rows="3" placeholder="Describe any specific requirements you want (e.g. 2-step checkout with $47 bump offer, 80% VSL video watch webhook, 3 custom fields: experience_level, goal, phone, dark neon theme, or specific sections like FAQ and testimonial wall)..." style="width:100%; padding:10px 14px; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#ffffff; font-size:13px; resize:vertical; font-family:inherit;"></textarea>
-                            </div>
+                        <div class="studio-form-group" style="margin-top:10px;">
+                            <label for="wiz-brand-logo">🖼️ Logo Image URL <span class="optional-tag">(optional)</span>:</label>
+                            <input type="url" id="wiz-brand-logo" class="studio-text-input" placeholder="https://yourdomain.com/logo.png">
                         </div>
                     </div>
 
-                    <!-- STEP 6: Review & Summary -->
+                    <!-- TAB 6: GoHighLevel CRM & Automations -->
                     <div class="wizard-step-panel" id="wizard-step-6">
-                        <h4 class="step-panel-title">Step 6: Review Your Configuration</h4>
-                        <p class="step-panel-desc">Verify your selections below before generating the complete asset bundle.</p>
+                        <h4 class="step-panel-title">Tab 6: GoHighLevel CRM & Automations</h4>
+                        <p class="step-panel-desc">Select which backend workflows, pipelines, and tags to generate.</p>
+
+                        <div class="wizard-checkboxes-list" id="step-4-checkboxes-list">
+                            <label class="wizard-checkbox-card">
+                                <input type="checkbox" checked data-automation="Speed-to-Lead Instant SMS (Under 2 Minutes)">
+                                <div class="checkbox-content">
+                                    <strong>⚡ Speed-to-Lead Instant SMS (Under 2 Minutes)</strong>
+                                    <p>Auto-dials or sends 2-way SMS notification within 90 seconds of opt-in</p>
+                                </div>
+                            </label>
+                            <label class="wizard-checkbox-card">
+                                <input type="checkbox" checked data-automation="5-Day Value-Driven Email Nurture Sequence">
+                                <div class="checkbox-content">
+                                    <strong>📧 5-Day Value-Driven Email Nurture Sequence</strong>
+                                    <p>Automated multi-day drip delivering the lead magnet, client case studies, and call booking</p>
+                                </div>
+                            </label>
+                            <label class="wizard-checkbox-card">
+                                <input type="checkbox" checked data-automation="2-Step Abandoned Cart & Checkout Recovery">
+                                <div class="checkbox-content">
+                                    <strong>🛒 2-Step Abandoned Cart & Drop-off Recovery Workflow</strong>
+                                    <p>Recovers 15-25% of visitors who filled Step 1 contact info but abandoned Step 2 payment</p>
+                                </div>
+                            </label>
+                            <label class="wizard-checkbox-card">
+                                <input type="checkbox" checked data-automation="Pipeline Opportunity Creation & Stage Progression">
+                                <div class="checkbox-content">
+                                    <strong>📊 HighLevel Pipeline Opportunity Creation & Stage Progression</strong>
+                                    <p>Moves contacts across pipeline stages: Opt-in ➔ VSL Watched ➔ Checkout ➔ Won Deal</p>
+                                </div>
+                            </label>
+                            <label class="wizard-checkbox-card">
+                                <input type="checkbox" checked data-automation="Smart Contact Tags & Custom Fields Schema">
+                                <div class="checkbox-content">
+                                    <strong>🏷️ Smart Tags & Contact Custom Fields Schema</strong>
+                                    <p>Applies source tags, intent tags, and saves custom fields (e.g. goal, timeline, revenue)</p>
+                                </div>
+                            </label>
+                            <label class="wizard-checkbox-card">
+                                <input type="checkbox" checked data-automation="Appointment Reminder & Confirmation SMS">
+                                <div class="checkbox-content">
+                                    <strong>📅 Calendar Appointment Reminder & Confirmation SMS</strong>
+                                    <p>Sends immediate confirmation SMS + 24hr and 1hr reminder notifications</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- TAB 7: Custom Freedom & Specifications Review -->
+                    <div class="wizard-step-panel" id="wizard-step-7">
+                        <h4 class="step-panel-title">Tab 7: Complete Freedom & Specifications Review</h4>
+                        <p class="step-panel-desc">Type any custom instructions with zero limitations, and review your live specification summary.</p>
+
+                        <div class="studio-form-group">
+                            <label for="wiz-custom-instructions">✍️ Custom Instructions, Specific Funnel Steps & Special Requirements (Unlimited Freedom):</label>
+                            <textarea id="wiz-custom-instructions" rows="4" class="studio-textarea" placeholder="Describe anything you want with zero limits (e.g., specific copy, exact pages in the funnel, custom webhook integrations, order bump details, color preferences, custom questions, or specific section order)..."></textarea>
+                        </div>
+
+                        <div class="section-label-row" style="margin-top:14px;">
+                            <span class="section-badge-title">📋 Live Specifications Summary:</span>
+                        </div>
+
                         <div class="wizard-summary-card" id="wizard-summary-card">
-                            <!-- Dynamically populated by JS -->
+                            <!-- Dynamically populated by JS in real-time -->
                         </div>
                     </div>
 
                 </div>
             </div>
 
-            <!-- Wizard Footer Controls -->
-            <div class="modal-footer wizard-modal-footer">
+            <!-- Studio Footer Controls (Non-blocking, generate from anywhere) -->
+            <div class="modal-footer wizard-modal-footer studio-modal-footer">
                 <div class="footer-left">
-                    <button type="button" class="secondary-btn" id="wizard-back-btn" disabled>← Back</button>
-                    <button type="button" class="quick-recommend-btn" id="wizard-quick-btn" title="Instantly fill best-practice options">⚡ 1-Click Recommended</button>
+                    <button type="button" class="quick-recommend-btn" id="wizard-quick-btn" title="Instantly fill best-practice options based on your niche">⚡ 1-Click Smart Auto-Fill</button>
+                    <button type="button" class="secondary-btn" id="wizard-back-btn">← Prev Tab</button>
                 </div>
                 <div class="footer-right">
                     <button type="button" class="secondary-btn" id="cancel-wizard-modal">Cancel</button>
-                    <button type="button" class="primary-btn" id="wizard-next-btn">Next Step →</button>
+                    <button type="button" class="secondary-btn" id="wizard-next-step-btn">Next Tab →</button>
+                    <button type="button" class="primary-btn studio-generate-btn" id="wizard-next-btn">🚀 Generate Funnel Bundle</button>
                 </div>
             </div>
         </div>
