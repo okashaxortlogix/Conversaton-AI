@@ -1884,2160 +1884,437 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    // DYNAMIC MULTI-NICHE BUILDER WIZARD ENGINE
-    // ==========================================
+    // ========================================================
+    // AI FUNNEL BUILDER — MULTI-STEP QUESTIONNAIRE ENGINE
+    // ========================================================
     const wizardModal = document.getElementById('builder-wizard-modal');
-    const openWizardChipBtn = document.getElementById('open-wizard-chip-btn');
     const closeWizardModalBtn = document.getElementById('close-wizard-modal');
-    const cancelWizardModalBtn = document.getElementById('cancel-wizard-modal');
-    const wizardNextBtn = document.getElementById('wizard-next-btn');
-    const wizardNextStepBtn = document.getElementById('wizard-next-step-btn');
-    const wizardBackBtn = document.getElementById('wizard-back-btn');
-    const wizardQuickBtn = document.getElementById('wizard-quick-btn');
-    const wizardValidationBar = document.getElementById('wizard-validation-bar');
-    const wizardValidationText = document.getElementById('wizard-validation-text');
-    const btnModeFunnel = document.getElementById('btn-mode-funnel');
-    const btnModeLanding = document.getElementById('btn-mode-landing');
-
-    const TOTAL_WIZARD_STEPS = 7;
-    let currentWizardStep = 1;
-    let currentNicheKey = 'fitness';
-    let currentWizardMode = 'funnel'; // 'funnel' | 'landing_page'
-
-    // Mode Toggle Events
-    if (btnModeFunnel) {
-        btnModeFunnel.addEventListener('click', () => {
-            currentWizardMode = 'funnel';
-            btnModeFunnel.classList.add('active');
-            if (btnModeLanding) btnModeLanding.classList.remove('active');
-            if (wizardNextBtn) wizardNextBtn.textContent = '🚀 Generate Funnel Bundle';
-            applyNicheConfiguration(currentNicheKey);
-            populateSummaryCard();
-        });
-    }
-
-    if (btnModeLanding) {
-        btnModeLanding.addEventListener('click', () => {
-            currentWizardMode = 'landing_page';
-            btnModeLanding.classList.add('active');
-            if (btnModeFunnel) btnModeFunnel.classList.remove('active');
-            if (wizardNextBtn) wizardNextBtn.textContent = '🚀 Generate Landing Page';
-            applyNicheConfiguration(currentNicheKey);
-            populateSummaryCard();
-        });
-    }
-
-    // Comprehensive Niche-Specific Configurations & Tailored Questions
-    const NICHE_CONFIGURATIONS = {
-        'fitness': {
-            key: 'fitness',
-            name: 'Fitness & Gym Studio',
-            icon: '🏋️',
-            matchKeywords: ['gym', 'fitness', 'workout', 'trainer', 'training', 'crossfit', 'yoga', 'pilates', 'bodybuilding', 'weight loss', 'muscle'],
-            step2_funnel: {
-                title: 'Step 2: Choose your Multi-Step Fitness Funnel Flow',
-                desc: 'Select the complete multi-step funnel progression (Opt-in ➔ VSL/Sales ➔ Checkout/Booking ➔ Upsell ➔ Thank You).',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: VSL & 1-on-1 Assessment Funnel converts 3.8x higher for personal training and boutique gyms.',
-                options: [
-                    {
-                        icon: '🎬',
-                        title: 'VSL & 1-on-1 Assessment Funnel',
-                        desc: 'Step 1: Squeeze Page ➔ Step 2: VSL & Transformation Case Studies ➔ Step 3: Calendar Booking ➔ Step 4: VIP Assessment Upsell ➔ Step 5: Confirmation',
-                        value: 'VSL & 1-on-1 Assessment Funnel (Squeeze ➔ VSL ➔ Calendar Booking ➔ VIP Upsell ➔ Confirmation)'
-                    },
-                    {
-                        icon: '🎟️',
-                        title: '7-Day VIP Pass Lead Magnet Funnel',
-                        desc: 'Step 1: Opt-in Page ➔ Step 2: Instant SMS Pass Delivery & Studio Tour Video ➔ Step 3: $19 Kickstart Nutrition Upsell (OTO) ➔ Step 4: Thank You',
-                        value: '7-Day VIP Pass Lead Magnet Funnel (Opt-in ➔ SMS Voucher ➔ $19 Kickstart Upsell ➔ Thank You)'
-                    },
-                    {
-                        icon: '💳',
-                        title: '6-Week Transformation Paid Challenge Funnel',
-                        desc: 'Step 1: Long-Form Sales VSL ➔ Step 2: 2-Step Order Form ($97 Deposit) ➔ Step 3: 1-Click VIP Meal Plan Upsell ($37) ➔ Step 4: Member Portal Access',
-                        value: '6-Week Challenge Paid Funnel (Long-Form VSL ➔ 2-Step Order Form ➔ 1-Click Upsell ➔ Portal Access)'
-                    },
-                    {
-                        icon: '📱',
-                        title: 'High-Ticket Personal Training Application Funnel',
-                        desc: 'Step 1: Client Transformation Case Study ➔ Step 2: 6-Question Intake Application ➔ Step 3: Strategy Call Calendar ➔ Step 4: Confirmation',
-                        value: 'High-Ticket PT Application Funnel (Case Study ➔ Application Form ➔ Calendar Booking ➔ Confirmation)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What offer should your Fitness Landing Page promote?',
-                desc: 'Select the primary single-page conversion hook for gym visitors.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: 7-Day VIP Guest Pass converts 3.2x higher than standard forms for local gyms.',
-                options: [
-                    {
-                        icon: '🎟️',
-                        title: '7-Day Free VIP Pass / Trial Pass',
-                        desc: 'Zero-friction lead magnet: Name, Phone & Email to claim instant digital guest pass',
-                        value: '7-Day Free VIP Pass / Digital Guest Pass (Instant SMS Voucher)'
-                    },
-                    {
-                        icon: '🏋️',
-                        title: 'Free 1-on-1 Fitness Assessment',
-                        desc: 'Direct calendar booking for InBody body composition scan & coaching session',
-                        value: 'Free 1-on-1 Fitness & Body Scan Assessment (GHL Booking Calendar)'
-                    },
-                    {
-                        icon: '⚡',
-                        title: 'Speed-to-Lead Priority Callback',
-                        desc: 'Instant 60s phone callback to claim limited-spot discounted membership',
-                        value: 'Speed-to-Lead Priority Callback (Instant Auto-Dial & SMS Voucher)'
-                    },
-                    {
-                        icon: '💳',
-                        title: '6-Week Transformation Challenge',
-                        desc: 'Direct registration page: Opt-in ➔ Direct checkout / Challenge deposit',
-                        value: '6-Week Transformation Challenge (Opt-in ➔ Direct Checkout)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your Fitness Visual Theme & Styling',
-                desc: 'Select an aesthetic that matches your gym vibe and commands high perceived value.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Dark Neon Glassmorphism with electric lime accents drives maximum gym engagement.',
-                options: [
-                    {
-                        icon: '🌙',
-                        title: 'Dark Neon Athletic (High Energy)',
-                        desc: 'Sleek matte dark UI, glowing neon lime/cyan accents, bold gym typography',
-                        value: 'Dark Neon Athletic (High Energy Dark Palette with Electric Lime Accents)'
-                    },
-                    {
-                        icon: '🔥',
-                        title: 'Aggressive High-Contrast Beast Mode',
-                        desc: 'Jet black background, fiery red/orange gradients, bold countdown banners',
-                        value: 'Aggressive High-Contrast (Jet Black & Fiery Orange/Red Accents)'
-                    },
-                    {
-                        icon: '🧘',
-                        title: 'Clean Wellness & Holistic Yoga',
-                        desc: 'Soft sage green & warm neutral palette, airy layout, mindful serene typography',
-                        value: 'Clean Wellness & Holistic Yoga (Sage Green, Minimalist Warm Whites)'
-                    },
-                    {
-                        icon: '💎',
-                        title: 'Luxury Boutique Fitness Club',
-                        desc: 'Matte slate, brushed gold highlights, high-end editorial club aesthetics',
-                        value: 'Luxury Boutique Fitness Club (Matte Slate & Brushed Gold Editorial)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: Multi-Step Funnel Automations & Recovery Workflows',
-                desc: 'Select multi-step funnel triggers: 2-step abandoned cart, VSL watch triggers, and 1-click upsell fulfillments.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Speed-to-Lead SMS with VIP Pass Voucher & Video Link',
-                        desc: 'Dispatches personalized text with unique voucher & dials rep within 60s of opt-in',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Funnel Stages Pipeline (Opt-in ➔ VSL Watched ➔ Checkout ➔ Upsell Won)',
-                        desc: 'Stages: Step 1 Lead ➔ Step 2 VSL Engaged ➔ Step 3 Cart Started ➔ Step 4 Upsell Taken ➔ Member Active',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🛒 2-Step Order Form Abandoned Cart Recovery Sequence (T+15m, 4h, 24h)',
-                        desc: 'Automated SMS/Email follow-up recovering unconverted Step 2 checkout drop-offs',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ VSL Watch-Progress Trigger (Unhides Buy Button at 80% mark)',
-                        desc: 'Dynamically reveals pricing CTA and tags lead as `vsl:watched-high-intent` in CRM',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: Fitness CRM Automations & Qualification Fields',
-                desc: 'Select the HighLevel workflows, pipelines, and intake fields to deploy.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Speed-to-Lead SMS with VIP Pass Voucher Code',
-                        desc: 'Dispatches personalized text with unique pass code & dials rep within 60s',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Gym Sales Pipeline (8-Stage Member Conversion)',
-                        desc: 'Stages: New Lead ➔ Pass Claimed ➔ Tour Booked ➔ Showed Up ➔ Active Member',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Fitness Custom Fields (Goals, Preferred Workout Time)',
-                        desc: 'Captures `fitness_goal`, `preferred_workout_time`, `past_injuries` into CRM',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 24h & 48h Missed Workout / No-Show Recovery Cadence',
-                        desc: 'Automated 3-touch reminder sequence to recover unconverted trial leads',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: Gym Brand Customization',
-                desc: 'Personalize with your gym details or use the AI-tailored fitness defaults.',
-                brandNamePlaceholder: 'e.g. IronPulse Athletic Club',
-                taglinePlaceholder: 'e.g. Transform Your Body in 90 Days — First Class Free',
-                defaultBrandName: 'IronPulse Fitness',
-                defaultTagline: 'Transform Your Body in 90 Days',
-                defaultColor: '#10b981',
-                colorPresets: ['#10b981', '#06b6d4', '#f97316', '#ef4444', '#8b5cf6', '#eab308']
-            }
-        },
-        'local-services': {
-            key: 'local-services',
-            name: 'Local & Home Services',
-            icon: '🏡',
-            matchKeywords: ['contractor', 'roofing', 'solar', 'plumbing', 'hvac', 'electrician', 'cleaning', 'landscaping', 'home service', 'remodel', 'painter', 'pest control'],
-            step2_funnel: {
-                title: 'Step 2: Choose your Home Service Multi-Step Funnel Flow',
-                desc: 'Select the complete multi-step funnel progression (Opt-in ➔ Estimate ➔ Booking ➔ Confirmation).',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: 2-Step Instant Quote & Consultation Funnel maximizes qualified contractor appointments.',
-                options: [
-                    {
-                        icon: '📋',
-                        title: '2-Step Instant Quote & Project Estimator Funnel',
-                        desc: 'Step 1: Zip Code & Scope Squeeze ➔ Step 2: Multi-Step Project Form ➔ Step 3: Direct Calendar Booking ➔ Step 4: SMS Confirmation',
-                        value: '2-Step Instant Quote Funnel (Zip Scope ➔ Project Form ➔ Calendar Booking ➔ Confirmation)'
-                    },
-                    {
-                        icon: '🚨',
-                        title: '24/7 Emergency Dispatch Speed-to-Lead Funnel',
-                        desc: 'Step 1: Urgent Call Squeeze ➔ Step 2: 60s Auto-Dial Dispatch ➔ Step 3: Address Confirmation ➔ Step 4: Technician ETA Tracking',
-                        value: 'Emergency Dispatch Funnel (Urgent Squeeze ➔ Auto-Dial ➔ Address Confirmed ➔ Live ETA)'
-                    },
-                    {
-                        icon: '💵',
-                        title: '$500 Off Seasonal Project Voucher Funnel',
-                        desc: 'Step 1: Claim $500 Voucher ➔ Step 2: Book Site Inspection ➔ Step 3: Annual Maintenance Plan Upsell (OTO) ➔ Step 4: Voucher Card Delivery',
-                        value: 'Seasonal Voucher Funnel (Claim Voucher ➔ Book Estimate ➔ Maintenance Upsell ➔ Voucher Delivery)'
-                    },
-                    {
-                        icon: '🏢',
-                        title: 'Commercial Contract B2B Quote Funnel',
-                        desc: 'Step 1: Facility Size Assessment ➔ Step 2: Proposal Scope Request ➔ Step 3: Executive Walkthrough Booking ➔ Step 4: Proposal Won',
-                        value: 'Commercial Quote Funnel (Facility Scope ➔ Proposal Request ➔ Walkthrough Calendar ➔ Retainer)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What offer should your Service Landing Page promote?',
-                desc: 'Select the primary conversion hook for homeowners and local clients.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Instant Free Quote Calculator produces the highest form completion for local contractors.',
-                options: [
-                    {
-                        icon: '📋',
-                        title: 'Instant Free Online Quote / Estimate',
-                        desc: 'Fast 4-field lead form: Name, Address, Service Needed & Estimated Budget',
-                        value: 'Instant Free Online Quote / Estimate Form (Address & Project Scope)'
-                    },
-                    {
-                        icon: '🛠️',
-                        title: 'Free On-Site Inspection & Consultation',
-                        desc: 'Direct calendar booking for a licensed technician / estimator site visit',
-                        value: 'Free On-Site Inspection & Estimate Booking (GHL Calendar Schedule)'
-                    },
-                    {
-                        icon: '🚨',
-                        title: '24/7 Emergency Dispatch Priority Line',
-                        desc: 'High-urgency click-to-call routing with automated SMS dispatch confirmation',
-                        value: '24/7 Emergency Dispatch Priority Line (Instant SMS & Call Routing)'
-                    },
-                    {
-                        icon: '💵',
-                        title: '$500 Off Project / Rebate Voucher',
-                        desc: '2-step promotion claiming seasonal rebate or instant coupon savings',
-                        value: '$500 Project Rebate / Coupon Voucher Claim (SMS Verification)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your Home Service Visual Theme',
-                desc: 'Select a theme built for local consumer trust, credibility, and verified reviews.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Clean Trust Light theme with security badges maximizes homeowner confidence.',
-                options: [
-                    {
-                        icon: '☀️',
-                        title: 'Clean Trust Light (Navy & Crisp White)',
-                        desc: 'High credibility, prominent license/insurance badges, customer reviews carousel',
-                        value: 'Clean Trust Light (Navy Blue, Safety Badges & Crisp White Layout)'
-                    },
-                    {
-                        icon: '⚡',
-                        title: 'High-Urgency Emergency Service',
-                        desc: 'High-visibility caution amber/red accents, sticky click-to-call bar, live dispatcher pulse',
-                        value: 'High-Urgency Emergency (High-Contrast Amber/Red & Sticky Call Bar)'
-                    },
-                    {
-                        icon: '🏡',
-                        title: 'Modern Contractor Blueprint Slate',
-                        desc: 'Charcoal slate background, architectural grid accents, before/after project gallery',
-                        value: 'Modern Contractor Blueprint Slate (Charcoal & Tech Blue Accents)'
-                    },
-                    {
-                        icon: '🌿',
-                        title: 'Eco-Friendly & Energy Modern',
-                        desc: 'Clean forest green & sky blue accents, solar savings calculator aesthetics',
-                        value: 'Eco-Friendly Modern (Forest Green, Clean White & Energy Stats)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: Contractor Funnel Automations & Dispatch Workflows',
-                desc: 'Deploy automated estimate follow-ups, contractor pipelines, and address tracking.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant SMS with Estimator Dispatch & Photo Upload Link',
-                        desc: 'Sends instant SMS confirmation asking homeowner for project photos',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Contractor Funnel Pipeline (Lead ➔ Quote Sent ➔ Deposit ➔ Won)',
-                        desc: 'Stages: Quote Requested ➔ Site Visit Set ➔ Quote Sent ➔ Deposit Paid ➔ Completed',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Incomplete Quote Recovery Cadence (T+15m SMS Reminder)',
-                        desc: 'Automated SMS nudging homeowners who filled Step 1 address but dropped at Step 2',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 3-Day Automated Estimate Follow-Up & Review Request',
-                        desc: 'Follows up on pending quotes and triggers 5-star Google review request on job completion',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: Home Service Automations & Project Fields',
-                desc: 'Deploy automated estimate follow-ups, contractor pipelines, and address tracking.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant SMS with Estimator Dispatch & Photo Upload Link',
-                        desc: 'Sends instant SMS confirmation asking homeowner for project photos',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Contractor Jobs Pipeline (Quote ➔ Job Won)',
-                        desc: 'Stages: Quote Requested ➔ Site Visit Set ➔ Quote Sent ➔ Deposit Paid ➔ Completed',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Property Custom Fields (Address, Square Footage, Urgency)',
-                        desc: 'Captures `service_address`, `square_footage`, `property_type`, `timeline`',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 3-Day Automated Estimate Follow-Up & Review Request',
-                        desc: 'Follows up on pending quotes and triggers 5-star Google review request on job completion',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: Contractor Brand Customization',
-                desc: 'Personalize with your company details or use the AI-tailored home service defaults.',
-                brandNamePlaceholder: 'e.g. Apex Home & Roofing Solutions',
-                taglinePlaceholder: 'e.g. Licensed, Insured & Trusted Local Experts — Free Estimates',
-                defaultBrandName: 'Apex Home Solutions',
-                defaultTagline: 'Top-Rated Local Home Services — Free 60-Second Estimate',
-                defaultColor: '#2563eb',
-                colorPresets: ['#2563eb', '#0284c7', '#16a34a', '#d97706', '#dc2626', '#475569']
-            }
-        },
-        'b2b-agency': {
-            key: 'b2b-agency',
-            name: 'B2B Agency & Consulting',
-            icon: '💼',
-            matchKeywords: ['agency', 'b2b', 'consulting', 'consultant', 'marketing', 'saas', 'software', 'lead generation', 'strategy call', 'client acquisition'],
-            step2_funnel: {
-                title: 'Step 2: Choose your B2B Multi-Step Funnel Flow',
-                desc: 'Select the high-converting client acquisition funnel structure.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: VSL & High-Ticket Application Funnel qualifies prospects and closes $5k-$20k retainers.',
-                options: [
-                    {
-                        icon: '🎬',
-                        title: 'VSL & High-Ticket Application Funnel',
-                        desc: 'Step 1: Case Study VSL ➔ Step 2: 7-Question Revenue Audit ➔ Step 3: Discovery Call Calendar ➔ Step 4: Pre-Call Briefing ➔ Step 5: Retainer Won',
-                        value: 'VSL & High-Ticket Application Funnel (Case Study VSL ➔ Qualification Survey ➔ Calendar Booking ➔ Retainer Won)'
-                    },
-                    {
-                        icon: '🎁',
-                        title: 'Free Growth Audit & Lead Magnet Funnel',
-                        desc: 'Step 1: Opt-in for Custom Growth Audit ➔ Step 2: Instant Loom Video Audit Landing ➔ Step 3: Strategy Call Booking ➔ Step 4: Thank You',
-                        value: 'Free Growth Audit Funnel (Opt-in ➔ Video Audit ➔ Strategy Calendar ➔ Confirmation)'
-                    },
-                    {
-                        icon: '💻',
-                        title: 'SaaS Free Trial & Interactive Demo Funnel',
-                        desc: 'Step 1: Interactive Product Tour ➔ Step 2: 14-Day Free Trial Account Setup ➔ Step 3: Onboarding Sequence ➔ Step 4: Annual Plan Upgrade',
-                        value: 'SaaS Interactive Demo Funnel (Product Tour ➔ Trial Setup ➔ Onboarding Flow ➔ Paid Upgrade)'
-                    },
-                    {
-                        icon: '🚀',
-                        title: 'Mini-Workshop / Masterclass Funnel',
-                        desc: 'Step 1: $27 Workshop Ticket Squeeze ➔ Step 2: 1-Click Agency SOP Bundle Upsell ($97) ➔ Step 3: Live Zoom Room ➔ Step 4: Retainer Pitch',
-                        value: 'Mini-Workshop Funnel ($27 Ticket ➔ $97 SOP Upsell ➔ Workshop Room ➔ Retainer Pitch)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What is your B2B Landing Page Conversion Goal?',
-                desc: 'Select the primary CTA for your agency or consulting firm.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: 30-Min Strategy Call with qualifying questionnaire converts best for high-ticket B2B.',
-                options: [
-                    {
-                        icon: '📅',
-                        title: 'Free 30-Min Growth Strategy Audit',
-                        desc: 'Direct calendar booking with embedded 4-question qualification survey',
-                        value: 'Free 30-Min Growth Strategy Audit (GHL Embedded Calendar + Survey)'
-                    },
-                    {
-                        icon: '🎁',
-                        title: 'High-Value Lead Magnet / PDF Case Study',
-                        desc: 'Low-friction opt-in delivering proprietary playbook or industry benchmark study',
-                        value: 'High-Value Lead Magnet / Proprietary Playbook Download (Instant SMS/Email)'
-                    },
-                    {
-                        icon: '💻',
-                        title: 'Live Interactive SaaS Demo Booking',
-                        desc: 'Tailored demo calendar booking with team size & current tech stack capture',
-                        value: 'Live Interactive SaaS Demo Booking (GHL Calendar + Tech Stack Fields)'
-                    },
-                    {
-                        icon: '🚀',
-                        title: 'Full Retainer Proposal Request',
-                        desc: 'Multi-step qualification form capturing monthly ad spend & revenue goals',
-                        value: 'Full Retainer Proposal Request (Multi-Step Revenue Qualification Form)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your B2B Agency Aesthetic',
-                desc: 'Select an enterprise-grade visual theme that commands $5k-$20k retainer fees.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Tech-Forward Dark Glassmorphism positions your firm as elite and modern.',
-                options: [
-                    {
-                        icon: '🌙',
-                        title: 'Tech-Forward Dark Glassmorphism',
-                        desc: 'Deep indigo/black background, frosted glass panels, glowing purple gradients',
-                        value: 'Tech-Forward Dark Glassmorphism (Deep Indigo & Violet Glow Gradients)'
-                    },
-                    {
-                        icon: '💼',
-                        title: 'Corporate Enterprise Slate & Platinum',
-                        desc: 'Clean corporate light/slate, serif accents, client logo wall & ROI stat counters',
-                        value: 'Corporate Enterprise Slate (Monochrome, Client Proof Grid & Crisp Typography)'
-                    },
-                    {
-                        icon: '⚡',
-                        title: 'High-Impact Metric & Case Study Driven',
-                        desc: 'Bold headline typography, highlighted revenue metrics, video testimonial embeds',
-                        value: 'High-Impact Metric Driven (Bold Revenue Proof, Video Testimonials)'
-                    },
-                    {
-                        icon: '💎',
-                        title: 'Silicon Valley Minimalist',
-                        desc: 'Airy whitespace, elegant micro-animations, ultra-clean product mockup frames',
-                        value: 'Silicon Valley Minimalist (Clean Whitespace, Elegant Micro-Interactions)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: B2B Funnel Automations & Application Triage',
-                desc: 'Deploy deal pipelines, qualification triggers, and pre-call homework sequences.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Strategy Session SMS + Pre-Call Case Study Dossier',
-                        desc: 'Dispatches Google Calendar invite & executive breakdown to maximize show-up rates',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 High-Ticket B2B Funnel Pipeline (Opt-in ➔ Audit ➔ Proposal ➔ Closed)',
-                        desc: 'Stages: Inbound Lead ➔ Discovery Set ➔ Audit Presented ➔ Proposal Sent ➔ Won',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Application Drop-off Recovery (T+15m Automated Nudge)',
-                        desc: 'Sends instant follow-up to leads who started the qualification survey but did not finish',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 24h & 1h Pre-Call SMS Reminders + No-Show Auto-Reschedule',
-                        desc: 'Automated multi-channel reminders ensuring 85%+ show-up rates for strategy calls',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: B2B Pipeline, Intake Survey & Workflow Triggers',
-                desc: 'Deploy GoHighLevel deal pipelines, calendar booking automations, and CRM fields.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Strategy Session Confirmation SMS + Pre-Call Prep Email',
-                        desc: 'Dispatches Google Calendar invite & case study link to maximize show-up rates',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 B2B Deal Pipeline (Discovery ➔ Audit ➔ Contract Signed)',
-                        desc: 'Stages: Inbound Lead ➔ Discovery Set ➔ Audit Presented ➔ Proposal Sent ➔ Won',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ B2B Qualification Fields (Revenue, Ad Spend, Team Size)',
-                        desc: 'Captures `monthly_revenue`, `current_ad_spend`, `team_size`, `primary_bottleneck`',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 24h & 1h Pre-Call SMS Reminders + No-Show Auto-Reschedule',
-                        desc: 'Automated multi-channel reminders ensuring 85%+ show-up rates for strategy calls',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: Agency Brand Customization',
-                desc: 'Personalize with your agency details or use the AI-tailored B2B defaults.',
-                brandNamePlaceholder: 'e.g. ScalePoint Growth Partners',
-                taglinePlaceholder: 'e.g. We Scale B2B Companies from $1M to $10M ARR',
-                defaultBrandName: 'ScalePoint Agency',
-                defaultTagline: 'Predictable Pipeline & Revenue Growth for Modern B2B Brands',
-                defaultColor: '#6366f1',
-                colorPresets: ['#6366f1', '#0ea5e9', '#8b5cf6', '#3b82f6', '#10b981', '#0f172a']
-            }
-        },
-        'coaching': {
-            key: 'coaching',
-            name: 'Coaching & Digital Product',
-            icon: '🎓',
-            matchKeywords: ['coach', 'coaching', 'course', 'masterclass', 'webinar', 'vsl', 'infoproduct', 'consultant', 'mentor', 'mentorship'],
-            step2_funnel: {
-                title: 'Step 2: Choose your Coaching Multi-Step Funnel Flow',
-                desc: 'Select the high-converting conversion funnel structure for your program.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: 2-Step VSL Funnel with Application Booking yields the highest ROI for $3k-$10k coaching.',
-                options: [
-                    {
-                        icon: '🎬',
-                        title: '2-Step VSL (Video Sales Letter) ➔ Application Funnel',
-                        desc: 'Step 1: 15-Min Breakthrough VSL ➔ Step 2: 8-Question Application ➔ Step 3: Strategy Calendar Booking ➔ Step 4: Confirmation',
-                        value: '2-Step VSL Funnel (Breakthrough VSL ➔ Application Form ➔ Strategy Calendar ➔ Confirmation)'
-                    },
-                    {
-                        icon: '🎟️',
-                        title: 'Automated Masterclass / Webinar Funnel',
-                        desc: 'Step 1: Registration Page ➔ Step 2: Dynamic Countdown Room ➔ Step 3: Broadcast/Replay Page ➔ Step 4: 2-Step Checkout ➔ Step 5: Portal Access',
-                        value: 'Automated Masterclass Funnel (Registration ➔ Countdown Room ➔ Replay Room ➔ Checkout ➔ Member Portal)'
-                    },
-                    {
-                        icon: '🛒',
-                        title: 'Free Book / Tripwire Order Form Funnel',
-                        desc: 'Step 1: Free Book (+S&H $7.95) 2-Step Order Form ➔ Step 2: Audio Masterclass Upsell ($37) ➔ Step 3: Mastermind OTO ($97/mo) ➔ Step 4: Receipt',
-                        value: 'Tripwire Order Form Funnel (Free Book S&H ➔ $37 Audio Upsell ➔ $97/mo Mastermind OTO ➔ Receipt)'
-                    },
-                    {
-                        icon: '🏆',
-                        title: '5-Day Live Challenge Funnel',
-                        desc: 'Step 1: Free Challenge Opt-in ➔ Step 2: VIP WhatsApp/SMS Group ➔ Step 3: Daily Training Room ➔ Step 4: VIP Pass Upsell ➔ Step 5: Pitch Day',
-                        value: '5-Day Live Challenge Funnel (Opt-in ➔ VIP Group ➔ Challenge Room ➔ VIP Pass Upsell ➔ Pitch Day)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What is your Coaching Landing Page Offer?',
-                desc: 'Select the primary conversion hook for your coaching program.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: 2-Step VSL Funnel with Application Booking yields the highest ROI for $3k-$10k coaching.',
-                options: [
-                    {
-                        icon: '🎬',
-                        title: '2-Step VSL (Video Sales Letter) ➔ Application',
-                        desc: 'Step 1: Watch 15-min masterclass video ➔ Step 2: Fill out breakthrough application',
-                        value: '2-Step VSL Funnel (Video Sales Letter ➔ Application Booking Form)'
-                    },
-                    {
-                        icon: '🎟️',
-                        title: 'Live Workshop / Webinar Registration',
-                        desc: 'Countdown timer registration page with SMS seat reservation & calendar sync',
-                        value: 'Live Workshop / Webinar Registration (Countdown Timer & SMS Calendar Sync)'
-                    },
-                    {
-                        icon: '🛒',
-                        title: 'Low-Ticket Tripwire ($27-$97) with Order Bump',
-                        desc: 'Direct checkout with 1-click order bump & high-ticket VSL upsell sequence',
-                        value: 'Low-Ticket Tripwire Offer (Order Bump & 1-Click Upsell Flow)'
-                    },
-                    {
-                        icon: '📱',
-                        title: '1-on-1 Breakthrough Mentorship Call',
-                        desc: 'High-ticket application filter: Income goals, commitment level & direct calendar',
-                        value: '1-on-1 Breakthrough Mentorship Call (Income Qualification & Calendar)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your Authority Visual Theme',
-                desc: 'Select an aesthetic designed to establish personal authority and elite positioning.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Luxury Authority Slate theme with emerald/gold accents justifies premium pricing.',
-                options: [
-                    {
-                        icon: '💎',
-                        title: 'Luxury Authority Slate & Emerald',
-                        desc: 'Rich matte charcoal, subtle emerald/gold accents, elegant serif typography, founder hero',
-                        value: 'Luxury Authority Slate (Charcoal, Emerald/Gold & Serif Headlines)'
-                    },
-                    {
-                        icon: '⚡',
-                        title: 'High-Converting Direct Response',
-                        desc: 'Urgency countdown bar, vibrant CTA buttons, scarcity badges, extensive proof gallery',
-                        value: 'High-Converting Direct Response (Sticky Countdown Bar, Scarcity Tags)'
-                    },
-                    {
-                        icon: '🌙',
-                        title: 'Modern Creator Dark Aesthetic',
-                        desc: 'Podcast/YouTube aesthetic, dark background, glowing video player frame, student reviews',
-                        value: 'Modern Creator Dark (Dark Mode, Glowing Media Player, Student Wall)'
-                    },
-                    {
-                        icon: '☀️',
-                        title: 'Clean Academic & Workshop Light',
-                        desc: 'Crisp whites, educational syllabus breakdown cards, structured module preview',
-                        value: 'Clean Academic Light (Structured Syllabus Grid, Clean White & Blue)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: Coaching Funnel Automations, Cart Recovery & Member Delivery',
-                desc: 'Deploy course delivery triggers, student qualification fields, and replay sequences.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant VSL / Webinar Access SMS with Magic Video Link',
-                        desc: 'Sends magic link to watch training immediately + SMS workbook download',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Coaching Enrollment Pipeline (Application ➔ Enrolled)',
-                        desc: 'Stages: App Submitted ➔ Qualified ➔ Strategy Call Held ➔ Offer Made ➔ Enrolled Won',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🛒 2-Step Order Form Cart Abandonment Sequence (T+15m, 4h, 24h)',
-                        desc: 'Automated SMS/Email sequence recovering uncompleted tripwire checkouts',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 24-Hour Evergreen Replay & Urgency Follow-up Cadence',
-                        desc: 'Automated 4-part email/SMS series closing enrollment before timer expires',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: Coaching Pipeline, Portal Access & Nurture Workflows',
-                desc: 'Deploy course delivery triggers, student qualification fields, and replay sequences.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant VSL / Webinar Access SMS with Personal Video Link',
-                        desc: 'Sends magic link to watch training immediately + SMS workbook download',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Coaching Enrollment Pipeline (Application ➔ Enrolled)',
-                        desc: 'Stages: App Submitted ➔ Qualified ➔ Strategy Call Held ➔ Offer Made ➔ Enrolled Won',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Student Intake Fields (Annual Target, Roadblocks, Budget)',
-                        desc: 'Captures `annual_income_goal`, `biggest_obstacle`, `investment_readiness`',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 24-Hour Evergreen Replay & Urgency Follow-up Cadence',
-                        desc: 'Automated 4-part email/SMS series closing enrollment before timer expires',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: Coaching Brand Customization',
-                desc: 'Personalize with your brand details or use the AI-tailored coaching defaults.',
-                brandNamePlaceholder: 'e.g. Mastermind Coaching Academy',
-                taglinePlaceholder: 'e.g. Master High-Ticket Client Acquisition in 60 Days',
-                defaultBrandName: 'Mastermind Coaching Academy',
-                defaultTagline: 'Scale Your Expertise into a 7-Figure Online Coaching Business',
-                defaultColor: '#059669',
-                colorPresets: ['#059669', '#d97706', '#8b5cf6', '#2563eb', '#dc2626', '#0f172a']
-            }
-        },
-        'real-estate': {
-            key: 'real-estate',
-            name: 'Real Estate & Property',
-            icon: '🏠',
-            matchKeywords: ['real estate', 'property', 'realtor', 'home buyer', 'home seller', 'mortgage', 'open house', 'listing', 'luxury estate', 'foreclosure'],
-            step2_funnel: {
-                title: 'Step 2: Choose your Real Estate Multi-Step Funnel Flow',
-                desc: 'Select the high-converting lead funnel flow for buyers, sellers, or investors.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: VIP Property Tour & Showing Funnel converts 4.1x better than standard forms.',
-                options: [
-                    {
-                        icon: '🏡',
-                        title: 'VIP Luxury Property Tour & Showing Funnel',
-                        desc: 'Step 1: Video Walkthrough Squeeze ➔ Step 2: Private Showing Booking Calendar ➔ Step 3: Pre-Approval Verification ➔ Step 4: Tour Confirmed',
-                        value: 'Luxury Property Tour Funnel (Walkthrough Squeeze ➔ Showing Calendar ➔ Pre-Approval ➔ Tour Confirmed)'
-                    },
-                    {
-                        icon: '📑',
-                        title: '2-Step Instant Home Valuation & CMA Funnel',
-                        desc: 'Step 1: Property Address Capture ➔ Step 2: Condition & Beds/Baths Form ➔ Step 3: Automated SMS CMA Report ➔ Step 4: Listing Consultation Booking',
-                        value: 'Home Valuation Funnel (Address Capture ➔ Condition Specs ➔ Instant CMA ➔ Listing Consultation)'
-                    },
-                    {
-                        icon: '🔑',
-                        title: 'Off-Market & Foreclosure Deal List Funnel',
-                        desc: 'Step 1: Exclusive Deals Squeeze ➔ Step 2: Budget & Neighborhood Filter ➔ Step 3: VIP SMS List Delivery ➔ Step 4: Buyer Consultation Call',
-                        value: 'Off-Market Deal List Funnel (Exclusive Squeeze ➔ Filter Criteria ➔ SMS Delivery ➔ Buyer Consultation)'
-                    },
-                    {
-                        icon: '🎓',
-                        title: 'First-Time Homebuyer Masterclass Funnel',
-                        desc: 'Step 1: Free Buyer Guide Squeeze ➔ Step 2: 12-Min Video Class ➔ Step 3: Mortgage Pre-Approval Application ➔ Step 4: Buyer Won',
-                        value: 'First-Time Buyer Funnel (Guide Squeeze ➔ Video Class ➔ Mortgage App ➔ Buyer Retained)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What is your Real Estate Lead Offer?',
-                desc: 'Select the high-converting hook for buyers, sellers, or investors.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: VIP Property Tour / Open House Booking converts 4.1x better than generic contact forms.',
-                options: [
-                    {
-                        icon: '🏡',
-                        title: 'VIP Private Property Tour Booking',
-                        desc: 'Interactive calendar to schedule an in-person or virtual luxury walkthrough',
-                        value: 'VIP Private Property Tour Booking (Embedded GHL Tour Calendar)'
-                    },
-                    {
-                        icon: '📑',
-                        title: 'Instant Free Home Valuation (CMA Report)',
-                        desc: 'Capture address & property specs to generate a Comparative Market Analysis',
-                        value: 'Instant Free Home Valuation & CMA Report (Address & Beds/Baths Fields)'
-                    },
-                    {
-                        icon: '🔑',
-                        title: 'Exclusive Off-Market & Foreclosure List',
-                        desc: 'Instant digital access to unlisted properties and price-reduced neighborhood deals',
-                        value: 'Exclusive Off-Market & Foreclosure Deal List (SMS Digital Access)'
-                    },
-                    {
-                        icon: '📞',
-                        title: '1-on-1 Buyer / Relocation Consultation',
-                        desc: 'Schedule a discovery call with top local neighborhood specialists',
-                        value: '1-on-1 Buyer / Relocation Strategy Consultation (GHL Calendar)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your Real Estate Visual Theme',
-                desc: 'Select an aesthetic that showcases high-end properties and local neighborhood prestige.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Luxury Architectural Slate with gold accents elevates property perceived value.',
-                options: [
-                    {
-                        icon: '💎',
-                        title: 'Luxury Architectural Slate & Gold',
-                        desc: 'High-res photography showcase, subtle gold trim, elegant editorial font styling',
-                        value: 'Luxury Architectural Slate (Charcoal, Gold Highlights & High-Res Gallery)'
-                    },
-                    {
-                        icon: '☀️',
-                        title: 'Clean Suburban Bright & Inviting',
-                        desc: 'Warm welcoming white & navy palette, neighborhood guide badges, family-first appeal',
-                        value: 'Clean Suburban Bright (Warm Whites, Coastal Navy & Neighborhood Map)'
-                    },
-                    {
-                        icon: '🌙',
-                        title: 'Modern Penthouse Dark Mode',
-                        desc: 'Sleek dark theme with floorplan toggle, 3D tour embeds, luxury black marble feel',
-                        value: 'Modern Penthouse Dark (Dark Mode, 3D Virtual Tour Embeds & Floorplans)'
-                    },
-                    {
-                        icon: '⚡',
-                        title: 'Fast Cash Buyer Direct Response',
-                        desc: 'High-contrast "We Buy Houses for Cash As-Is" direct response with fast-cash form',
-                        value: 'Fast Cash Buyer Direct Response (High Contrast Amber/Green Cash Offer Form)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: Real Estate Funnel Automations & Tour Follow-Up',
-                desc: 'Deploy property pipelines, automated listing alerts, and mortgage qualification fields.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Property Spec Sheet & Virtual Tour Video SMS',
-                        desc: 'Sends instant text with property brochure PDF & agent digital business card',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Real Estate Funnel Pipeline (Lead ➔ Tour ➔ Offer ➔ Escrow)',
-                        desc: 'Stages: Inbound Lead ➔ Tour Scheduled ➔ Tour Completed ➔ Offer Made ➔ Closed Escrow',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Incomplete Valuation Recovery Cadence (T+15m SMS)',
-                        desc: 'Nudges sellers who entered their address on Step 1 but dropped before submitting specs',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ Automated Price Drop & New Neighborhood Listing Alerts',
-                        desc: 'Weekly automated SMS/email alerts keeping buyers engaged until they transact',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: Real Estate CRM Pipeline & Buyer/Seller Taxonomy',
-                desc: 'Deploy property pipelines, automated listing alerts, and mortgage qualification fields.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Property Spec Sheet & Virtual Tour Video SMS',
-                        desc: 'Sends instant text with property brochure PDF & agent digital business card',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Real Estate Pipeline (Lead ➔ Tour ➔ Offer ➔ Escrow)',
-                        desc: 'Stages: Inbound Lead ➔ Tour Scheduled ➔ Tour Completed ➔ Offer Made ➔ Closed Escrow',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Buyer/Seller Custom Fields (Pre-Approval, Budget, Beds)',
-                        desc: 'Captures `buyer_budget`, `pre_approval_status`, `desired_bedrooms`, `move_in_timeline`',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ Automated Price Drop & New Neighborhood Listing Alerts',
-                        desc: 'Weekly automated SMS/email alerts keeping buyers engaged until they transact',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: Real Estate Brand Customization',
-                desc: 'Personalize with your agency details or use the AI-tailored real estate defaults.',
-                brandNamePlaceholder: 'e.g. Apex Luxury Real Estate Group',
-                taglinePlaceholder: 'e.g. Find Your Dream Luxury Home in Prime Neighborhoods',
-                defaultBrandName: 'Apex Real Estate Group',
-                defaultTagline: 'Exclusive Luxury Homes & Off-Market Properties',
-                defaultColor: '#0284c7',
-                colorPresets: ['#0284c7', '#0f172a', '#d97706', '#059669', '#3b82f6', '#475569']
-            }
-        },
-        'ecommerce': {
-            key: 'ecommerce',
-            name: 'E-Commerce & DTC',
-            icon: '🛍️',
-            matchKeywords: ['ecommerce', 'e-commerce', 'dtc', 'product launch', 'shopify', 'store', 'shop', 'flash sale', 'cart', 'retail'],
-            step2_funnel: {
-                title: 'Step 2: Choose your E-Commerce Multi-Step Funnel Flow',
-                desc: 'Select the high-converting product sales funnel progression with order bumps & 1-click upsells.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: 2-Step Order Form & 1-Click Upsell Funnel produces the highest Average Order Value (AOV).',
-                options: [
-                    {
-                        icon: '🛒',
-                        title: '2-Step Order Form & 1-Click Upsell Funnel',
-                        desc: 'Step 1: Product Showcase Lander ➔ Step 2: 2-Step Checkout (with Order Bump) ➔ Step 3: 1-Click Post-Purchase Upsell (OTO 1) ➔ Step 4: Downsell ➔ Step 5: Receipt',
-                        value: '2-Step Order Form & Upsell Funnel (Lander ➔ 2-Step Order Bump ➔ 1-Click Upsell ➔ Downsell ➔ Receipt)'
-                    },
-                    {
-                        icon: '📦',
-                        title: 'Free-Plus-Shipping Product Launch Funnel',
-                        desc: 'Step 1: Hero Unboxing Video ➔ Step 2: Claim Free Sample ($6.95 S&H) ➔ Step 3: 3-Pack Bundle Upsell ($29) ➔ Step 4: VIP Auto-Refill Subscription ➔ Step 5: Thank You',
-                        value: 'Free + Shipping Launch Funnel (Unboxing Video ➔ Free Sample Checkout ➔ Bundle Upsell ➔ VIP Subscription)'
-                    },
-                    {
-                        icon: '✨',
-                        title: 'Interactive Recommendation Quiz Funnel',
-                        desc: 'Step 1: 5-Question Lifestyle/Routine Quiz ➔ Step 2: Personalized Regimen Results Page ➔ Step 3: 1-Click Custom Bundle Checkout ➔ Step 4: VIP Club Upsell',
-                        value: 'Interactive Quiz Funnel (5-Question Quiz ➔ Custom Routine Results ➔ Bundle Checkout ➔ VIP Club)'
-                    },
-                    {
-                        icon: '🔥',
-                        title: 'VIP Flash Sale & Early Access Vault Funnel',
-                        desc: 'Step 1: Secret VIP Access Squeeze ➔ Step 2: 24h Countdown Vault Page ➔ Step 3: Fast-Checkout Order Form ➔ Step 4: Mystery Gift Upsell',
-                        value: 'VIP Flash Sale Funnel (VIP Pass Squeeze ➔ Countdown Vault ➔ Fast Checkout ➔ Mystery Upsell)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What is your E-Commerce Conversion Goal?',
-                desc: 'Select the primary purchasing or discount capture mechanism for your store.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: 15% Off First Order SMS & Email Capture drives 2.8x higher immediate checkout.',
-                options: [
-                    {
-                        icon: '🎁',
-                        title: '15% Off VIP Welcome Coupon & SMS Club',
-                        desc: 'High-converting discount unlock form capturing phone & email before purchase',
-                        value: '15% Off VIP Welcome Coupon (Instant SMS Discount Code Delivery)'
-                    },
-                    {
-                        icon: '🛒',
-                        title: 'Single-Product Hero Showcase Page',
-                        desc: 'High-converting direct-to-checkout landing page with quantity bundles & sticky Buy bar',
-                        value: 'Single-Product Hero Showcase (Bundle Selection & 1-Click Fast Checkout)'
-                    },
-                    {
-                        icon: '🛍️',
-                        title: 'VIP Product Drop / Pre-Order Waitlist',
-                        desc: 'Build massive anticipation with countdown timer & VIP early-bird SMS reservation',
-                        value: 'VIP Product Drop Waitlist (Countdown Timer & Early Access VIP List)'
-                    },
-                    {
-                        icon: '📦',
-                        title: 'Free Sample / "Free + Shipping" Page',
-                        desc: 'Low-barrier trial offer capturing customer info with 1-click upsell sequence',
-                        value: 'Free + Shipping Introductory Offer (2-Step Checkout with Post-Purchase Upsell)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your DTC Brand Aesthetic',
-                desc: 'Select an aesthetic tailored to your product category and lifestyle appeal.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Bold Flash Sale Direct Response drives highest impulse purchasing.',
-                options: [
-                    {
-                        icon: '⚡',
-                        title: 'Bold High-Conversion Flash Sale',
-                        desc: 'High contrast, live inventory stock counters, sticky Add to Cart bar, trust guarantee badges',
-                        value: 'Bold High-Conversion Flash Sale (Sticky Cart Bar, Inventory Countdowns)'
-                    },
-                    {
-                        icon: '🌸',
-                        title: 'Clean Beauty & Lifestyle Aesthetic',
-                        desc: 'Soft pastel tones, Instagram UGC photo grid, clean skincare/fashion typography',
-                        value: 'Clean Beauty & Lifestyle (Pastel Tones, UGC Photo Grid & Clean Sans)'
-                    },
-                    {
-                        icon: '🌙',
-                        title: 'Dark Cyberpunk / Tech Gadget DTC',
-                        desc: 'RGB neon border accents, dark sleek background, technical feature breakdown cards',
-                        value: 'Dark Cyberpunk Tech (Matte Black, RGB Neon Glow & Spec Cards)'
-                    },
-                    {
-                        icon: '🌿',
-                        title: 'Organic & Sustainable Earth Tones',
-                        desc: 'Natural warm clay & forest green, clean recycled badges, ingredient transparency cards',
-                        value: 'Organic & Sustainable (Earth Tones, Eco Badges & Ingredient Cards)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: E-Com Funnel Automations, Abandoned Cart & Upsell Triggers',
-                desc: 'Deploy GoHighLevel 2-step cart recovery workflows, 1-click upsell fulfillments, and purchase triggers.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ 3-Touch Abandoned Cart Recovery Sequence (T+15m, 4h, 24h)',
-                        desc: 'Recovers up to 28% of abandoned checkouts with dynamic urgency discount incentives',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 E-Com Funnel Pipeline (Step 1 Cart ➔ Checkout ➔ Upsell Taken ➔ VIP)',
-                        desc: 'Stages: Cart Started ➔ Order Complete ➔ Upsell Taken ➔ Shipped ➔ VIP Repeat Buyer',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ 1-Click Upsell (OTO) Trigger & Fulfillment Workflow',
-                        desc: 'Instantly processes Stripe one-click charge and updates warehouse shipment queue',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ VIP Post-Purchase Review & Referral Automation',
-                        desc: 'Automated SMS dispatched 7 days after delivery asking for photo review and referral bonus',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: E-Commerce Automations & Abandoned Cart Recovery',
-                desc: 'Deploy GoHighLevel cart recovery workflows, VIP tags, and purchase triggers.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant VIP Discount Code SMS (Dispatched in < 30 seconds)',
-                        desc: 'Sends unique coupon code with 1-click cart autofill link via SMS',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 E-Com Customer Pipeline (Cart ➔ Purchased ➔ VIP)',
-                        desc: 'Stages: Cart Started ➔ Checkout Complete ➔ Shipped ➔ VIP Repeat Buyer',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Customer Preference Fields (Category Interest, Skin/Size)',
-                        desc: 'Captures `product_interest`, `birthday_month`, `size_preference`, `vip_tier`',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 3-Touch Abandoned Cart Recovery Sequence (T+15m, 4h, 24h)',
-                        desc: 'Recovers up to 28% of abandoned checkouts with dynamic urgency discount incentives',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: DTC Brand Customization',
-                desc: 'Personalize with your store details or use the AI-tailored e-commerce defaults.',
-                brandNamePlaceholder: 'e.g. Lumina Luxe Essentials',
-                taglinePlaceholder: 'e.g. Premium Daily Essentials Engineered for Modern Living',
-                defaultBrandName: 'Lumina Essentials',
-                defaultTagline: 'Engineered for Performance & Everyday Luxury',
-                defaultColor: '#ec4899',
-                colorPresets: ['#ec4899', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#0f172a']
-            }
-        },
-        'restaurant': {
-            key: 'restaurant',
-            name: 'Restaurant & Hospitality',
-            icon: '🍽️',
-            matchKeywords: ['restaurant', 'cafe', 'bistro', 'bar', 'hospitality', 'food', 'dining', 'catering', 'bakery', 'pub', 'reservation'],
-            step2_funnel: {
-                title: 'Step 2: Choose your Restaurant Multi-Step Funnel Flow',
-                desc: 'Select the high-converting dining or event reservation progression.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: VIP Birthday & Celebration Club Funnel drives predictable weekly covers.',
-                options: [
-                    {
-                        icon: '🎂',
-                        title: 'VIP Birthday & Celebration Club Funnel',
-                        desc: 'Step 1: Free Birthday Entrée Squeeze ➔ Step 2: Instant SMS Voucher Wallet Card ➔ Step 3: Table Reservation Calendar ➔ Step 4: Birthday Confirmed',
-                        value: 'Birthday Club Funnel (Birthday Squeeze ➔ SMS Wallet Voucher ➔ Reservation Calendar ➔ Confirmed)'
-                    },
-                    {
-                        icon: '🥂',
-                        title: 'Private Dining & Event Catering Funnel',
-                        desc: 'Step 1: Event Space Showcase Lander ➔ Step 2: Guest Count & Menu Selector ➔ Step 3: Event Coordinator Calendar Booking ➔ Step 4: Proposal Won',
-                        value: 'Private Event Catering Funnel (Event Showcase ➔ Menu Selector ➔ Coordinator Calendar ➔ Deposit Won)'
-                    },
-                    {
-                        icon: '🍷',
-                        title: 'Chef Tasting Night & Ticketed Dinner Funnel',
-                        desc: 'Step 1: Exclusive Tasting Menu Lander ➔ Step 2: Seat Ticket Checkout ➔ Step 3: 1-Click Wine Pairing Upsell ($45) ➔ Step 4: Digital Pass Receipt',
-                        value: 'Tasting Night Funnel (Tasting Lander ➔ Seat Checkout ➔ Wine Pairing Upsell ➔ Ticket Pass)'
-                    },
-                    {
-                        icon: '📱',
-                        title: 'Online Takeout & Loyalty App Funnel',
-                        desc: 'Step 1: $10 Off First Order Squeeze ➔ Step 2: Online Menu Selector ➔ Step 3: Direct Pickup/Delivery Checkout ➔ Step 4: 7-Day Reorder Automation',
-                        value: 'Takeout Loyalty Funnel ($10 Squeeze ➔ Menu Selector ➔ Takeout Checkout ➔ Reorder Automation)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What is your Restaurant Conversion Offer?',
-                desc: 'Select the primary reservation or dining incentive hook.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: VIP Table Reservation with Instant Confirmation produces the highest guest booking rate.',
-                options: [
-                    {
-                        icon: '🍽️',
-                        title: 'Online VIP Table Reservation Booking',
-                        desc: 'Select party size, date, time slot & seating preference with instant SMS confirmation',
-                        value: 'Online VIP Table Reservation Booking (Party Size, Time & GHL Calendar)'
-                    },
-                    {
-                        icon: '🎟️',
-                        title: '$15 Off Dinner / Free Appetizer Voucher',
-                        desc: 'High-converting dine-in voucher claimed via SMS & delivered to digital wallet',
-                        value: '$15 Off Dinner / Free Appetizer Voucher (Instant SMS Wallet Pass)'
-                    },
-                    {
-                        icon: '🎂',
-                        title: 'Birthday Club & VIP Diners Loyalty Signup',
-                        desc: 'Capture birth month and anniversary to automate recurring celebration dinner bookings',
-                        value: 'Birthday Club & VIP Loyalty Club (Automated Birthday Gift Offer)'
-                    },
-                    {
-                        icon: '🥂',
-                        title: 'Private Event & Catering Quote Request',
-                        desc: 'Multi-step event inquiry for weddings, corporate banquets & private room buyouts',
-                        value: 'Private Event & Catering Quote Request (Guest Count & Menu Options)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your Culinary Visual Theme',
-                desc: 'Select an aesthetic that captures your restaurant atmosphere and showcases your cuisine.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Warm Culinary Elegance with deep wine/charcoal accents elevates average check size.',
-                options: [
-                    {
-                        icon: '🍷',
-                        title: 'Warm Culinary Elegance (Fine Dining)',
-                        desc: 'Deep burgundy & warm charcoal, gold typography, mouthwatering dish highlights',
-                        value: 'Warm Culinary Elegance (Deep Burgundy, Gold & High-End Menu Layout)'
-                    },
-                    {
-                        icon: '🌿',
-                        title: 'Modern Fresh Bistro & Farm-to-Table',
-                        desc: 'Botanical green accents, clean chalkboard styling, fresh ingredient gallery',
-                        value: 'Modern Fresh Bistro (Botanical Green, Chalkboard & Farm-to-Table Cards)'
-                    },
-                    {
-                        icon: '🌙',
-                        title: 'Trendy Nightlife, Lounge & Cocktail Bar',
-                        desc: 'Moody dark ambiance, glowing neon drink menu highlights, DJ/event calendar',
-                        value: 'Trendy Nightlife Lounge (Moody Dark, Neon Cocktail Highlights & Events)'
-                    },
-                    {
-                        icon: '☀️',
-                        title: 'Vibrant Family Pizzeria & Casual Diner',
-                        desc: 'Warm red & gold accents, kid-friendly specials, simple 1-touch table booking',
-                        value: 'Vibrant Family Diner (Warm Crimson & Gold, Casual Menu Grid)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: Hospitality Funnel Automations & Table Recovery',
-                desc: 'Deploy table management pipelines, SMS reminders, and VIP review automations.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Reservation Confirmation SMS + Digital Table Wallet Pass',
-                        desc: 'Dispatches instant text confirmation with directions, parking info & table status',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Dining Funnel Pipeline (Requested ➔ Confirmed ➔ Dined ➔ VIP Regular)',
-                        desc: 'Stages: Reservation Inbound ➔ Confirmed ➔ Checked In ➔ Dined ➔ VIP Regular',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Drop-Off Reservation Recovery (T+15m Automated Nudge)',
-                        desc: 'Sends SMS to guests who started picking date/party size but did not finalize booking',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 2-Hour Pre-Dining SMS Reminder + Next-Day Google Review Ask',
-                        desc: 'Reduces table no-shows to under 4% and automates 5-star Google review collection',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: Dining Automations, Reservation Pipeline & Guest Tags',
-                desc: 'Deploy GoHighLevel table management, SMS reminders, and review automations.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ Instant Reservation Confirmation SMS + Digital Table Pass',
-                        desc: 'Dispatches instant text confirmation with directions, parking info & table status',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Dining Reservations Pipeline (Requested ➔ Dined)',
-                        desc: 'Stages: Reservation Inbound ➔ Confirmed ➔ Checked In ➔ Dined ➔ VIP Regular',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Guest Custom Fields (Party Size, Dietary Needs, Occasion)',
-                        desc: 'Captures `party_size`, `dietary_restrictions`, `celebration_type`, `birthday_date`',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 2-Hour Pre-Dining SMS Reminder + Next-Day Google Review Ask',
-                        desc: 'Reduces table no-shows to under 4% and automates 5-star Google review collection',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: Restaurant Brand Customization',
-                desc: 'Personalize with your restaurant details or use the AI-tailored culinary defaults.',
-                brandNamePlaceholder: 'e.g. Bella Vista Italian Ristorante',
-                taglinePlaceholder: 'e.g. Authentic Wood-Fired Cuisine & Handcrafted Cocktails',
-                defaultBrandName: 'Bella Vista Ristorante',
-                defaultTagline: 'Authentic Wood-Fired Italian Dining in the Heart of the City',
-                defaultColor: '#dc2626',
-                colorPresets: ['#dc2626', '#b91c1c', '#d97706', '#059669', '#8b5cf6', '#0f172a']
-            }
-        },
-        'healthcare': {
-            key: 'healthcare',
-            name: 'Healthcare & Legal',
-            icon: '⚕️',
-            matchKeywords: ['healthcare', 'doctor', 'clinic', 'dental', 'dentist', 'legal', 'lawyer', 'attorney', 'chiropractic', 'therapy', 'medical', 'medspa'],
-            step2_funnel: {
-                title: 'Step 2: Choose your Healthcare/Legal Multi-Step Funnel Flow',
-                desc: 'Select the high-converting patient or client intake funnel progression.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: HIPAA Secure Intake & Specialist Booking Funnel produces maximum show-ups.',
-                options: [
-                    {
-                        icon: '⚕️',
-                        title: 'HIPAA Secure Patient Intake & Specialist Booking Funnel',
-                        desc: 'Step 1: Confidential Evaluation Lander ➔ Step 2: Encrypted Medical History & Insurance Form ➔ Step 3: Priority Appointment Calendar ➔ Step 4: Confirmation',
-                        value: 'HIPAA Secure Intake Funnel (Confidential Lander ➔ Medical History Form ➔ Appointment Calendar ➔ Intake Confirmed)'
-                    },
-                    {
-                        icon: '⚖️',
-                        title: 'Personal Injury & Case Evaluation Funnel',
-                        desc: 'Step 1: Accident Case Triage Squeeze ➔ Step 2: Settlement Value Estimator ➔ Step 3: 24/7 Legal Hotline Callback Booking ➔ Step 4: Digital Retainer Agreement',
-                        value: 'Personal Injury Case Funnel (Accident Triage ➔ Settlement Estimator ➔ Attorney Callback ➔ Retainer Agreement)'
-                    },
-                    {
-                        icon: '🦷',
-                        title: '$49 New Patient Exam & Scan Funnel',
-                        desc: 'Step 1: Claim $49 Exam Voucher ➔ Step 2: 2-Step Registration ➔ Step 3: In-Office Scan Calendar Booking ➔ Step 4: SMS Voucher Pass',
-                        value: '$49 New Patient Exam Funnel (Claim Voucher ➔ 2-Step Registration ➔ Scan Calendar ➔ SMS Pass Delivery)'
-                    },
-                    {
-                        icon: '📞',
-                        title: '24/7 Priority Callback & Telehealth Triage Funnel',
-                        desc: 'Step 1: Rapid Symptom Triage ➔ Step 2: 60s On-Call Nurse/Attorney Auto-Dial ➔ Step 3: Video Room Link Delivery ➔ Step 4: Care Plan Won',
-                        value: 'Priority Telehealth Funnel (Symptom Triage ➔ Auto-Dial ➔ Video Room Link ➔ Care Plan Won)'
-                    }
-                ]
-            },
-            step2_landing: {
-                title: 'Step 2: What is your Practice Conversion Goal?',
-                desc: 'Select the consultation or patient intake pathway.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: New Patient / Client Intake Booking with HIPAA notice produces maximum show-ups.',
-                options: [
-                    {
-                        icon: '⚕️',
-                        title: 'New Patient / Client Intake Booking',
-                        desc: 'Interactive calendar to choose provider, service type & insurance provider',
-                        value: 'New Patient / Client Intake Booking (Provider Selection & GHL Calendar)'
-                    },
-                    {
-                        icon: '🦷',
-                        title: '$49 New Patient Exam & Consultation Special',
-                        desc: 'Promotional voucher capturing lead contact details with instant SMS confirmation',
-                        value: '$49 New Patient Exam & Consultation Special (SMS Voucher Claim)'
-                    },
-                    {
-                        icon: '⚖️',
-                        title: 'Free Confidential Legal Case Evaluation',
-                        desc: 'Secure 4-question intake capturing case timeline, damages & contact info',
-                        value: 'Free Confidential Legal Case Evaluation (Case Details & Scope Form)'
-                    },
-                    {
-                        icon: '📞',
-                        title: '24/7 Priority Callback & Telehealth Line',
-                        desc: 'Rapid intake routing for immediate nurse triage or attorney consultation',
-                        value: '24/7 Priority Callback & Telehealth Triage (Rapid Phone & SMS Routing)'
-                    }
-                ]
-            },
-            step3: {
-                title: 'Step 3: Choose your Professional Practice Theme',
-                desc: 'Select an aesthetic that conveys clinical excellence, confidentiality, and utmost trust.',
-                aiRecIdx: 0,
-                aiRecText: 'AI Recommends: Clinical Serenity Light with medical cyan builds instant patient trust.',
-                options: [
-                    {
-                        icon: '☀️',
-                        title: 'Clinical Serenity Light (Medical Cyan & Slate)',
-                        desc: 'Calming blue/cyan palette, HIPAA compliance badges, doctor credentials showcase',
-                        value: 'Clinical Serenity Light (Medical Cyan, Slate & HIPAA Badges)'
-                    },
-                    {
-                        icon: '⚖️',
-                        title: 'Prestigious Legal Firm (Navy & Gold)',
-                        desc: 'Deep authoritative navy blue, serif typography, scale of justice badge, courtroom verdicts',
-                        value: 'Prestigious Legal Firm (Deep Navy, Gold Accents & Verdict Proof)'
-                    },
-                    {
-                        icon: '🌿',
-                        title: 'Holistic Wellness & MedSpa Serenity',
-                        desc: 'Soft lavender & eucalyptus tones, treatment menu cards, ambient soothing aesthetics',
-                        value: 'Holistic Wellness & MedSpa (Soft Lavender, Eucalyptus & Treatment Cards)'
-                    },
-                    {
-                        icon: '⚡',
-                        title: 'Urgent Care Fast-Track & Walk-In',
-                        desc: 'Live wait-time counter badge, high-visibility check-in banner, instant map directions',
-                        value: 'Urgent Care Fast-Track (Live Wait-Time Badge & Fast Check-In Banner)'
-                    }
-                ]
-            },
-            step4_funnel: {
-                title: 'Step 4: Healthcare/Legal Funnel Automations & HIPAA Workflows',
-                desc: 'Deploy compliant appointment workflows, case qualification, and automated reminders.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ HIPAA/Confidential SMS Confirmation + Online Medical History Link',
-                        desc: 'Dispatches secure pre-visit intake link to collect insurance & history before arrival',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Patient/Case Intake Funnel Pipeline (Intake ➔ Treatment Won)',
-                        desc: 'Stages: Step 1 Inquiry ➔ Medical Review ➔ Consultation Held ➔ Treatment Won',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Incomplete Medical Form Recovery Cadence (T+15m SMS)',
-                        desc: 'Sends automated SMS reminder to patients who initiated intake but stopped before HIPAA sign-off',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 24h & 2h Appointment Reminder Cadence + Reschedule Link',
-                        desc: 'Automated 2-way SMS reminder reducing clinic no-shows to under 5%',
-                        checked: true
-                    }
-                ]
-            },
-            step4_landing: {
-                title: 'Step 4: Healthcare/Legal Pipelines, Intake Fields & HIPAA Triggers',
-                desc: 'Deploy compliant appointment workflows, case qualification, and automated reminders.',
-                checkboxes: [
-                    {
-                        id: 'wiz-auto-sms',
-                        label: '⚡ HIPAA/Confidential SMS Confirmation + Online Medical History Link',
-                        desc: 'Dispatches secure pre-visit intake link to collect insurance & history before arrival',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-pipeline',
-                        label: '📊 Patient/Case Intake Pipeline (Intake ➔ Treatment Won)',
-                        desc: 'Stages: Intake Submitted ➔ Consultation Held ➔ Treatment/Retainer Accepted ➔ Active',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-tag',
-                        label: '🏷️ Practice Custom Fields (Insurance, Symptoms, Case Details)',
-                        desc: 'Captures `insurance_carrier`, `primary_symptoms`, `preferred_provider`, `intake_notes`',
-                        checked: true
-                    },
-                    {
-                        id: 'wiz-auto-reminders',
-                        label: '⏰ 24h & 2h Appointment Reminder Cadence + Reschedule Link',
-                        desc: 'Automated 2-way SMS reminder reducing clinic no-shows to under 5%',
-                        checked: true
-                    }
-                ]
-            },
-            step5: {
-                title: 'Step 5: Practice Brand Customization',
-                desc: 'Personalize with your practice details or use the AI-tailored healthcare defaults.',
-                brandNamePlaceholder: 'e.g. Apex Health & Wellness Clinic',
-                taglinePlaceholder: 'e.g. Compassionate, State-of-the-Art Medical Care for Your Family',
-                defaultBrandName: 'Apex Medical Group',
-                defaultTagline: 'Compassionate Medical & Specialty Care You Can Trust',
-                defaultColor: '#0284c7',
-                colorPresets: ['#0284c7', '#0891b2', '#059669', '#1e293b', '#7c3aed', '#dc2626']
-            }
-        }
-    };
-
-    function resolveNicheKey(inputString) {
-        if (!inputString) return 'fitness';
-        const str = inputString.toLowerCase();
-        for (const [key, cfg] of Object.entries(NICHE_CONFIGURATIONS)) {
-            if (str.includes(key) || str.includes(cfg.name.toLowerCase())) return key;
-            if (cfg.matchKeywords && cfg.matchKeywords.some(kw => str.includes(kw))) {
-                return key;
-            }
-        }
-        return 'fitness';
-    }
-
-    function applyNicheConfiguration(nicheKey) {
-        const config = NICHE_CONFIGURATIONS[nicheKey] || NICHE_CONFIGURATIONS['fitness'];
-        currentNicheKey = config.key;
-
-        const isFunnel = (currentWizardMode === 'funnel');
-
-        // Dynamic Header titles & badges
-        const wizardTitleText = document.getElementById('wizard-title-text');
-        const wizardSubtitleText = document.getElementById('wizard-subtitle-text');
-        const wizardBrandIcon = document.getElementById('wizard-brand-icon');
-
-        if (wizardTitleText) {
-            wizardTitleText.textContent = isFunnel ? 'Smart Multi-Step Funnel & CRM Wizard' : 'Smart Landing Page & CRM Wizard';
-        }
-        if (wizardSubtitleText) {
-            wizardSubtitleText.textContent = isFunnel ? 'Configure your high-converting multi-step funnel, pipeline & automations in 6 quick steps' : 'Configure your landing page, pipeline & CRM automations in 6 quick steps';
-        }
-        if (wizardBrandIcon) {
-            wizardBrandIcon.textContent = isFunnel ? '🌪️' : '🚀';
-        }
-
-        // Dynamic Step 2 Progress Node Label
-        const step2NodeLabel = document.querySelector('.wizard-step-node[data-step="2"] .step-label');
-        if (step2NodeLabel) {
-            step2NodeLabel.textContent = isFunnel ? 'Funnel Flow' : 'Goal / CTA';
-        }
-
-        // 1. Update Step 2 (Funnel vs Landing Options)
-        const step2Config = isFunnel ? (config.step2_funnel || config.step2_landing) : (config.step2_landing || config.step2_funnel);
-        const step2Title = document.getElementById('step-2-title');
-        const step2Desc = document.getElementById('step-2-desc');
-        const step2Grid = document.getElementById('step-2-options-grid');
-        const aiBox2 = document.getElementById('ai-suggest-step2');
-        const aiText2 = document.getElementById('ai-suggest-text-2');
-
-        if (step2Title) step2Title.textContent = step2Config.title;
-        if (step2Desc) step2Desc.textContent = step2Config.desc;
-        if (aiBox2 && aiText2) {
-            aiText2.textContent = step2Config.aiRecText;
-            aiBox2.classList.remove('hidden');
-        }
-
-        if (step2Grid) {
-            step2Grid.innerHTML = step2Config.options.map((opt, idx) => {
-                const isRec = idx === step2Config.aiRecIdx;
-                const isSelected = isRec;
-                return `
-                    <div class="wizard-option-card ${isSelected ? 'selected' : ''}" data-value="${escapeHtml(opt.value)}" ${isRec ? 'data-ai-rec="true"' : ''}>
-                        <div class="card-icon">${opt.icon}</div>
-                        <div class="card-content">
-                            <h5>${escapeHtml(opt.title)}</h5>
-                            <p>${escapeHtml(opt.desc)}</p>
-                        </div>
-                        ${isRec ? '<span class="ai-rec-badge" title="AI Recommended for maximum conversion">💡 AI Pick</span>' : ''}
-                        <span class="card-check">✓</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // 2. Update Step 3 (Visual Theme)
-        const step3Title = document.getElementById('step-3-title');
-        const step3Desc = document.getElementById('step-3-desc');
-        const step3Grid = document.getElementById('step-3-options-grid');
-        const aiBox3 = document.getElementById('ai-suggest-step3');
-        const aiText3 = document.getElementById('ai-suggest-text-3');
-
-        if (step3Title) step3Title.textContent = config.step3.title;
-        if (step3Desc) step3Desc.textContent = config.step3.desc;
-        if (aiBox3 && aiText3) {
-            aiText3.textContent = config.step3.aiRecText;
-            aiBox3.classList.remove('hidden');
-        }
-
-        if (step3Grid) {
-            step3Grid.innerHTML = config.step3.options.map((opt, idx) => {
-                const isRec = idx === config.step3.aiRecIdx;
-                return `
-                    <div class="wizard-option-card ${idx === 0 ? 'selected' : ''}" data-value="${escapeHtml(opt.value)}" ${isRec ? 'data-ai-rec="true"' : ''}>
-                        <div class="card-icon">${opt.icon}</div>
-                        <div class="card-content">
-                            <h5>${escapeHtml(opt.title)}</h5>
-                            <p>${escapeHtml(opt.desc)}</p>
-                        </div>
-                        ${isRec ? '<span class="ai-rec-badge" title="AI Recommended theme">💡 AI Pick</span>' : ''}
-                        <span class="card-check">✓</span>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // 3. Update Step 4 (Automations & Recovery)
-        const step4Config = isFunnel ? (config.step4_funnel || config.step4_landing) : (config.step4_landing || config.step4_funnel);
-        const step4Title = document.getElementById('step-4-title');
-        const step4Desc = document.getElementById('step-4-desc');
-        const step4List = document.getElementById('step-4-checkboxes-list');
-
-        if (step4Title) step4Title.textContent = step4Config.title;
-        if (step4Desc) step4Desc.textContent = step4Config.desc;
-
-        if (step4List) {
-            step4List.innerHTML = step4Config.checkboxes.map(cb => `
-                <label class="wizard-checkbox-card">
-                    <input type="checkbox" id="${escapeHtml(cb.id)}" ${cb.checked ? 'checked' : ''}>
-                    <div class="cb-content">
-                        <strong>${escapeHtml(cb.label)}</strong>
-                        <span>${escapeHtml(cb.desc)}</span>
-                    </div>
-                </label>
-            `).join('');
-        }
-
-        // 4. Update Step 5 (Brand Defaults & Placeholders)
-        const step5Title = document.getElementById('step-5-title');
-        const step5Desc = document.getElementById('step-5-desc');
-        const brandNameInput = document.getElementById('wiz-brand-name');
-        const brandTaglineInput = document.getElementById('wiz-brand-tagline');
-        const brandColorInput = document.getElementById('wiz-brand-color');
-        const brandColorHex = document.getElementById('brand-color-hex');
-        const presetsContainer = document.getElementById('wiz-color-presets');
-
-        if (step5Title) step5Title.textContent = config.step5.title;
-        if (step5Desc) step5Desc.textContent = config.step5.desc;
-
-        if (brandNameInput) {
-            brandNameInput.placeholder = config.step5.brandNamePlaceholder;
-            if (!brandNameInput.value.trim() || Object.values(NICHE_CONFIGURATIONS).some(c => c.step5.defaultBrandName === brandNameInput.value.trim())) {
-                brandNameInput.value = config.step5.defaultBrandName;
-            }
-        }
-
-        if (brandTaglineInput) {
-            brandTaglineInput.placeholder = config.step5.taglinePlaceholder;
-            if (!brandTaglineInput.value.trim() || Object.values(NICHE_CONFIGURATIONS).some(c => c.step5.defaultTagline === brandTaglineInput.value.trim())) {
-                brandTaglineInput.value = config.step5.defaultTagline;
-            }
-        }
-
-        if (brandColorInput && brandColorHex) {
-            brandColorInput.value = config.step5.defaultColor;
-            brandColorHex.textContent = config.step5.defaultColor;
-        }
-
-        if (presetsContainer && config.step5.colorPresets) {
-            presetsContainer.innerHTML = config.step5.colorPresets.map((color, idx) => `
-                <button type="button" class="color-preset-btn ${idx === 0 ? 'active' : ''}" data-color="${color}" style="background:${color}" title="${color}"></button>
-            `).join('');
-            bindColorPresetEvents();
-        }
-
-        // Re-bind option card selection events
-        bindOptionCardEvents();
-    }
-
-    function bindOptionCardEvents() {
-        document.querySelectorAll('.wizard-options-grid .wizard-option-card').forEach(card => {
-            card.onclick = () => {
-                const grid = card.closest('.wizard-options-grid');
-                if (grid) {
-                    grid.querySelectorAll('.wizard-option-card').forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    hideValidation();
-
-                    // If user changed Step 1 (Industry), immediately apply the new niche configuration
-                    if (grid.getAttribute('data-group') === 'niche') {
-                        const val = card.getAttribute('data-value') || '';
-                        const customWrapper = document.getElementById('custom-niche-input-wrapper');
-                        const customInput = document.getElementById('wiz-custom-niche-input');
-                        if (val.includes('Custom')) {
-                            if (customWrapper) customWrapper.style.display = 'block';
-                            if (customInput) customInput.focus();
-                        } else {
-                            if (customWrapper) customWrapper.style.display = 'none';
-                        }
-                        const resolvedKey = resolveNicheKey(val);
-                        applyNicheConfiguration(resolvedKey);
-                    }
-                }
-            };
-        });
-    }
-
-    function bindColorPresetEvents() {
-        const brandColorInput = document.getElementById('wiz-brand-color');
-        const brandColorHex = document.getElementById('brand-color-hex');
-
-        document.querySelectorAll('.color-preset-btn').forEach(btn => {
-            btn.onclick = () => {
-                const color = btn.getAttribute('data-color');
-                if (brandColorInput) brandColorInput.value = color;
-                if (brandColorHex) brandColorHex.textContent = color;
-                document.querySelectorAll('.color-preset-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            };
-        });
-    }
-
-    // Color picker input listener
-    const brandColorInput = document.getElementById('wiz-brand-color');
-    const brandColorHex = document.getElementById('brand-color-hex');
-    if (brandColorInput) {
-        brandColorInput.addEventListener('input', () => {
-            if (brandColorHex) brandColorHex.textContent = brandColorInput.value;
-            document.querySelectorAll('.color-preset-btn').forEach(b => b.classList.remove('active'));
-        });
-    }
-
     const headerWizardLauncherBtn = document.getElementById('header-wizard-launcher-btn');
     const sidebarWizardBtn = document.getElementById('sidebar-wizard-btn');
+    const openWizardChipBtn = document.getElementById('open-wizard-chip-btn');
 
-    if (openWizardChipBtn) openWizardChipBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
-    if (headerWizardLauncherBtn) headerWizardLauncherBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
-    if (sidebarWizardBtn) sidebarWizardBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
-    if (closeWizardModalBtn) closeWizardModalBtn.addEventListener('click', closeWizardModal);
-    if (cancelWizardModalBtn) cancelWizardModalBtn.addEventListener('click', closeWizardModal);
+    const TOTAL_FUNNEL_STEPS = 6;
+    let currentFunnelStep = 1;
 
-    // Global Keyboard Shortcut: Ctrl + K (or Cmd + K) for New Chat
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            createNewThread(true);
-        }
-    });
+    // Funnel Builder State
+    const funnelState = {
+        goal: 'Generate Leads',
+        audience: 'Business Owners',
+        offer: 'Free Consultation',
+        businessName: 'BrightSmile Dental',
+        problemSolved: 'We help people get confident smiles with advanced care.',
+        whyChooseYou: 'Experienced team, advanced technology, personalized care.',
+        keyBenefits: 'Painless procedures, same-day results, 5-star rated.',
+        designStyle: 'Modern & Clean',
+        primaryColor: '#6C5CE7'
+    };
 
+    // Open & Close Modal
     function openWizardModal(promptContext = '', defaultMode = '') {
-        currentWizardStep = 1;
-        hideValidation();
+        currentFunnelStep = 1;
 
-        const lower = (promptContext || '').toLowerCase();
-        if (defaultMode) {
-            currentWizardMode = defaultMode;
-        } else if (lower.includes('funnel') || lower.includes('vsl') || lower.includes('tripwire') || lower.includes('webinar') || lower.includes('challenge') || lower.includes('sales page')) {
-            currentWizardMode = 'funnel';
-        } else if (lower.includes('landing') || lower.includes('website') || lower.includes('one pager') || lower.includes('lead page')) {
-            currentWizardMode = 'landing_page';
-        } else {
-            currentWizardMode = 'funnel'; // Default to funnel
-        }
-
-        // Update toggle pill buttons in modal header
-        if (btnModeFunnel && btnModeLanding) {
-            btnModeFunnel.classList.toggle('active', currentWizardMode === 'funnel');
-            btnModeLanding.classList.toggle('active', currentWizardMode === 'landing_page');
-        }
-
-        if (wizardNextBtn) {
-            wizardNextBtn.textContent = (currentWizardMode === 'funnel') ? '🚀 Generate Funnel Bundle' : '🚀 Generate Landing Page';
-        }
-
-        // Pre-fill user prompt into concept & instructions if provided
-        const conceptInput = document.getElementById('wiz-custom-concept');
-        const customInstructionsInput = document.getElementById('wiz-custom-instructions');
         if (promptContext && promptContext.trim()) {
-            const cleanQuery = promptContext.trim();
-            if (conceptInput && !conceptInput.value.trim()) {
-                conceptInput.value = cleanQuery;
-            }
-            if (customInstructionsInput && !customInstructionsInput.value.trim() && cleanQuery.length > 25) {
-                customInstructionsInput.value = `User original specification: "${cleanQuery}"`;
-            }
+            parsePromptToFunnelState(promptContext.trim());
         }
 
-        // Detect niche from prompt context if provided
-        const detectedNicheKey = resolveNicheKey(promptContext);
-        currentNicheKey = detectedNicheKey;
+        syncStateToUI();
+        renderFunnelStep(1);
 
-        // Highlight matching niche card
-        const nicheCards = document.querySelectorAll('#niche-options-grid .wizard-option-card');
-        nicheCards.forEach(c => {
-            c.classList.remove('selected');
-            const val = c.getAttribute('data-value') || '';
-            const nKey = c.getAttribute('data-niche') || '';
-            if (nKey === detectedNicheKey || resolveNicheKey(val) === detectedNicheKey) {
-                c.classList.add('selected');
-            }
-        });
-
-        // If none selected, default to first niche card
-        if (!document.querySelector('#niche-options-grid .wizard-option-card.selected') && nicheCards[0]) {
-            nicheCards[0].classList.add('selected');
+        if (wizardModal) {
+            wizardModal.classList.remove('hidden');
         }
-
-        // Apply dynamic niche defaults
-        applyNicheConfiguration(detectedNicheKey);
-
-        renderWizardTab(1);
-        if (wizardModal) wizardModal.classList.remove('hidden');
     }
 
     function closeWizardModal() {
-        if (wizardModal) wizardModal.classList.add('hidden');
-    }
-
-    function hideValidation() {
-        if (wizardValidationBar) wizardValidationBar.classList.add('hidden');
-    }
-
-    function showValidation(msg) {
-        if (wizardValidationText) wizardValidationText.textContent = msg;
-        if (wizardValidationBar) {
-            wizardValidationBar.classList.remove('hidden');
-            wizardValidationBar.style.animation = 'none';
-            void wizardValidationBar.offsetHeight;
-            wizardValidationBar.style.animation = '';
+        if (wizardModal) {
+            wizardModal.classList.add('hidden');
         }
     }
 
-    function renderWizardTab(tabNum) {
-        currentWizardStep = tabNum;
-        hideValidation();
+    // Parse natural language hints to prepopulate funnel fields
+    function parsePromptToFunnelState(prompt) {
+        const lower = prompt.toLowerCase();
 
-        // Switch panels
-        for (let i = 1; i <= TOTAL_WIZARD_STEPS; i++) {
+        // Detect Goal
+        if (lower.includes('appointment') || lower.includes('booking') || lower.includes('consultation') || lower.includes('call')) {
+            funnelState.goal = 'Book Appointments';
+        } else if (lower.includes('webinar') || lower.includes('event') || lower.includes('workshop')) {
+            funnelState.goal = 'Promote a Webinar';
+        } else if (lower.includes('sell') || lower.includes('product') || lower.includes('checkout') || lower.includes('order')) {
+            funnelState.goal = 'Sell a Product';
+        } else if (lower.includes('download') || lower.includes('ebook') || lower.includes('magnet') || lower.includes('guide')) {
+            funnelState.goal = 'Download / Resource';
+        } else if (lower.includes('lead') || lower.includes('opt-in') || lower.includes('optin') || lower.includes('email')) {
+            funnelState.goal = 'Generate Leads';
+        }
+
+        // Detect Audience
+        if (lower.includes('e-commerce') || lower.includes('ecommerce') || lower.includes('shopify') || lower.includes('store')) {
+            funnelState.audience = 'E-commerce Sellers';
+        } else if (lower.includes('coach') || lower.includes('consultant') || lower.includes('trainer')) {
+            funnelState.audience = 'Coaches & Consultants';
+        } else if (lower.includes('agency') || lower.includes('marketer') || lower.includes('freelancer')) {
+            funnelState.audience = 'Marketing Professionals';
+        } else if (lower.includes('local') || lower.includes('clinic') || lower.includes('dental') || lower.includes('gym') || lower.includes('real estate') || lower.includes('roofing') || lower.includes('plumber')) {
+            funnelState.audience = 'Local Service Providers';
+        } else if (lower.includes('business') || lower.includes('owner') || lower.includes('b2b') || lower.includes('founder')) {
+            funnelState.audience = 'Business Owners';
+        }
+
+        // Detect Business Name if user said "for [Brand]"
+        const forMatch = prompt.match(/\b(?:for|called|named|brand)\s+([A-Z][A-Za-z0-9\s&'-]{2,25})/i);
+        if (forMatch && forMatch[1]) {
+            funnelState.businessName = forMatch[1].trim();
+        } else if (lower.includes('dental') || lower.includes('dentist')) {
+            funnelState.businessName = 'BrightSmile Dental';
+            funnelState.problemSolved = 'We help people get confident smiles with advanced care.';
+            funnelState.whyChooseYou = 'Experienced team, advanced technology, personalized care.';
+            funnelState.keyBenefits = 'Painless procedures, same-day results, 5-star rated.';
+            funnelState.offer = 'Free Dental Consultation & 3D Scan';
+        } else if (lower.includes('gym') || lower.includes('fitness')) {
+            funnelState.businessName = 'Apex Fitness Club';
+            funnelState.problemSolved = 'We help busy professionals lose fat and gain lean muscle.';
+            funnelState.whyChooseYou = 'Custom nutrition plans, 1-on-1 coaching, 24/7 accountability.';
+            funnelState.keyBenefits = 'Guaranteed 12-week body transformation, modern equipment.';
+            funnelState.offer = 'Free 7-Day VIP Gym Pass';
+        } else if (lower.includes('real estate') || lower.includes('realtor')) {
+            funnelState.businessName = 'Apex Realty Group';
+            funnelState.problemSolved = 'We help families find their dream homes without the stress.';
+            funnelState.whyChooseYou = 'Top 1% local producers, VIP off-market access, fast closing.';
+            funnelState.keyBenefits = 'Free home valuation, 0% listing fee option.';
+            funnelState.offer = 'Free Home Valuation & Buyer Guide';
+        }
+    }
+
+    // Synchronize State object with UI inputs and cards
+    function syncStateToUI() {
+        // Step 1: Goal cards
+        document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(card => {
+            const val = card.getAttribute('data-value');
+            card.classList.toggle('selected', val === funnelState.goal);
+        });
+
+        // Step 2: Audience cards
+        document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(card => {
+            const val = card.getAttribute('data-value');
+            card.classList.toggle('selected', val === funnelState.audience);
+        });
+
+        // Step 3: Offer input & counter
+        const offerInput = document.getElementById('funnel-offer-input');
+        const offerCounter = document.getElementById('offer-char-counter');
+        if (offerInput) {
+            offerInput.value = funnelState.offer;
+            if (offerCounter) {
+                offerCounter.textContent = `${offerInput.value.length}/120`;
+            }
+        }
+
+        // Step 4: Business Details
+        const bizNameInput = document.getElementById('funnel-biz-name');
+        const bizProblemInput = document.getElementById('funnel-biz-problem');
+        const bizChooseInput = document.getElementById('funnel-biz-choose');
+        const bizBenefitsInput = document.getElementById('funnel-biz-benefits');
+
+        if (bizNameInput) bizNameInput.value = funnelState.businessName;
+        if (bizProblemInput) bizProblemInput.value = funnelState.problemSolved;
+        if (bizChooseInput) bizChooseInput.value = funnelState.whyChooseYou;
+        if (bizBenefitsInput) bizBenefitsInput.value = funnelState.keyBenefits;
+
+        // Step 5: Design Style & Colors
+        document.querySelectorAll('#style-options-grid .funnel-select-card').forEach(card => {
+            const style = card.getAttribute('data-style');
+            card.classList.toggle('selected', style === funnelState.designStyle);
+        });
+
+        document.querySelectorAll('#funnel-color-swatches .color-dot').forEach(dot => {
+            const c = dot.getAttribute('data-color');
+            const isActive = (c && c.toLowerCase() === funnelState.primaryColor.toLowerCase());
+            dot.classList.toggle('active', isActive);
+            if (!dot.classList.contains('custom-rainbow')) {
+                dot.textContent = isActive ? '✓' : '';
+            }
+        });
+
+        // Step 6: Review Summary
+        updateReviewListUI();
+    }
+
+    // Read current inputs into state
+    function syncUIToState() {
+        const offerInput = document.getElementById('funnel-offer-input');
+        if (offerInput && offerInput.value.trim()) {
+            funnelState.offer = offerInput.value.trim();
+        }
+
+        const bizNameInput = document.getElementById('funnel-biz-name');
+        if (bizNameInput && bizNameInput.value.trim()) {
+            funnelState.businessName = bizNameInput.value.trim();
+        }
+
+        const bizProblemInput = document.getElementById('funnel-biz-problem');
+        if (bizProblemInput && bizProblemInput.value.trim()) {
+            funnelState.problemSolved = bizProblemInput.value.trim();
+        }
+
+        const bizChooseInput = document.getElementById('funnel-biz-choose');
+        if (bizChooseInput && bizChooseInput.value.trim()) {
+            funnelState.whyChooseYou = bizChooseInput.value.trim();
+        }
+
+        const bizBenefitsInput = document.getElementById('funnel-biz-benefits');
+        if (bizBenefitsInput && bizBenefitsInput.value.trim()) {
+            funnelState.keyBenefits = bizBenefitsInput.value.trim();
+        }
+    }
+
+    // Step Navigation Renderer
+    function renderFunnelStep(stepNum) {
+        syncUIToState();
+        currentFunnelStep = Math.max(1, Math.min(TOTAL_FUNNEL_STEPS, stepNum));
+
+        // Update Panels
+        for (let i = 1; i <= TOTAL_FUNNEL_STEPS; i++) {
             const panel = document.getElementById(`wizard-step-${i}`);
             if (panel) {
-                panel.classList.toggle('active', i === tabNum);
+                panel.classList.toggle('active', i === currentFunnelStep);
             }
         }
 
-        // Switch tab navigation pill buttons
-        document.querySelectorAll('.wizard-tab-nav-btn').forEach(btn => {
-            const t = parseInt(btn.getAttribute('data-tab') || '1');
-            btn.classList.toggle('active', t === tabNum);
+        // Update Stepper Indicators
+        const stepElements = document.querySelectorAll('.funnel-stepper .stepper-step');
+        const lineElements = document.querySelectorAll('.funnel-stepper .stepper-line');
+
+        stepElements.forEach((el, index) => {
+            const stepIndex = index + 1;
+            const circle = el.querySelector('.step-circle');
+            el.classList.remove('active', 'completed');
+
+            if (stepIndex < currentFunnelStep) {
+                el.classList.add('completed');
+                if (circle) circle.textContent = '✓';
+            } else if (stepIndex === currentFunnelStep) {
+                el.classList.add('active');
+                if (circle) circle.textContent = stepIndex;
+            } else {
+                if (circle) circle.textContent = stepIndex;
+            }
         });
 
-        // Navigation button labels
-        if (wizardBackBtn) wizardBackBtn.disabled = (tabNum === 1);
-        if (wizardNextStepBtn) {
-            wizardNextStepBtn.textContent = (tabNum === TOTAL_WIZARD_STEPS) ? 'Review Summary' : 'Next Tab →';
-        }
-        if (wizardNextBtn) {
-            const isFunnel = (currentWizardMode === 'funnel');
-            wizardNextBtn.textContent = isFunnel ? '🚀 Generate Funnel Bundle' : '🚀 Generate Landing Page';
-        }
+        lineElements.forEach((line, index) => {
+            const lineIndex = index + 1;
+            line.classList.toggle('completed', lineIndex < currentFunnelStep);
+        });
 
-        // Populate summary when reaching Tab 7
-        if (tabNum === 7) {
-            populateSummaryCard();
+        // When reaching Step 6 (Review), refresh review content
+        if (currentFunnelStep === 6) {
+            updateReviewListUI();
         }
     }
 
-    // Tab Navigation Bar Clicks
-    document.querySelectorAll('.wizard-tab-nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabNum = parseInt(btn.getAttribute('data-tab') || '1');
-            renderWizardTab(tabNum);
-        });
-    });
+    // Update Step 6 Review UI
+    function updateReviewListUI() {
+        const revGoal = document.getElementById('rev-goal-val');
+        const revAudience = document.getElementById('rev-audience-val');
+        const revOffer = document.getElementById('rev-offer-val');
+        const revBizName = document.getElementById('rev-bizname-val');
+        const revProblem = document.getElementById('rev-problem-val');
+        const revWhyChoose = document.getElementById('rev-whychoose-val');
+        const revStyle = document.getElementById('rev-style-val');
+        const revColorPreview = document.getElementById('rev-color-preview');
+        const revColorHex = document.getElementById('rev-color-hex');
 
-    // Archetype Cards selection
-    document.querySelectorAll('#archetype-options-grid .wizard-option-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('#archetype-options-grid .wizard-option-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            const conceptInput = document.getElementById('wiz-custom-concept');
-            const arch = card.getAttribute('data-archetype') || '';
-            if (conceptInput && !conceptInput.value.trim()) {
-                conceptInput.value = arch;
-            }
-        });
-    });
-
-    // Niche Cards selection
-    document.querySelectorAll('#niche-options-grid .wizard-option-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('#niche-options-grid .wizard-option-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            const nKey = card.getAttribute('data-niche') || 'fitness';
-            currentNicheKey = nKey;
-            applyNicheConfiguration(nKey);
-            const customNicheInput = document.getElementById('wiz-custom-niche-input');
-            if (customNicheInput && nKey !== 'custom' && !customNicheInput.value.trim()) {
-                const title = card.querySelector('h5')?.textContent || '';
-                customNicheInput.placeholder = `e.g. ${title} specialist`;
-            }
-        });
-    });
-
-    // Section Toggle Chips
-    document.querySelectorAll('.section-toggle-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            chip.classList.toggle('active');
-        });
-    });
-
-    // Section Toolbar Buttons
-    const btnSelectAllSections = document.getElementById('btn-select-all-sections');
-    if (btnSelectAllSections) {
-        btnSelectAllSections.addEventListener('click', () => {
-            document.querySelectorAll('.section-toggle-chip').forEach(c => c.classList.add('active'));
-        });
+        if (revGoal) revGoal.textContent = funnelState.goal;
+        if (revAudience) revAudience.textContent = funnelState.audience;
+        if (revOffer) revOffer.textContent = funnelState.offer;
+        if (revBizName) revBizName.textContent = funnelState.businessName;
+        if (revProblem) revProblem.textContent = funnelState.problemSolved;
+        if (revWhyChoose) revWhyChoose.textContent = funnelState.whyChooseYou;
+        if (revStyle) revStyle.textContent = funnelState.designStyle;
+        if (revColorPreview) revColorPreview.style.backgroundColor = funnelState.primaryColor;
+        if (revColorHex) revColorHex.textContent = funnelState.primaryColor;
     }
 
-    const btnSelectHighConverting = document.getElementById('btn-select-high-converting-sections');
-    if (btnSelectHighConverting) {
-        btnSelectHighConverting.addEventListener('click', () => {
-            const highConverting = [
-                'Hero Banner with Compelling Hook & CTA',
-                'Video Sales Letter (VSL) / Video Player',
-                'Social Proof & Client Testimonials Wall',
-                'Feature Highlights & Benefits Matrix',
-                '2-Step High-Converting Order Form',
-                'Interactive FAQ Accordion',
-                'Trust Badges & Security Seals'
-            ];
-            document.querySelectorAll('.section-toggle-chip').forEach(c => {
-                const sec = c.getAttribute('data-section') || '';
-                c.classList.toggle('active', highConverting.includes(sec));
+    // Setup Event Listeners for Wizard Components
+    function initFunnelWizardEvents() {
+        // Close buttons
+        if (closeWizardModalBtn) closeWizardModalBtn.addEventListener('click', closeWizardModal);
+        if (headerWizardLauncherBtn) headerWizardLauncherBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
+        if (sidebarWizardBtn) sidebarWizardBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
+        if (openWizardChipBtn) openWizardChipBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
+
+        // Stepper circle clicks (allow jumping to previously visited or earlier steps)
+        document.querySelectorAll('.funnel-stepper .stepper-step').forEach(stepEl => {
+            stepEl.addEventListener('click', () => {
+                const s = parseInt(stepEl.getAttribute('data-step') || '1');
+                renderFunnelStep(s);
             });
         });
+
+        // Step 1: Goal Card Selection
+        document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#goal-options-grid .funnel-select-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                funnelState.goal = card.getAttribute('data-value') || 'Generate Leads';
+            });
+        });
+
+        const step1NextBtn = document.getElementById('step-1-next-btn');
+        const step1SkipBtn = document.getElementById('step-1-skip-btn');
+        if (step1NextBtn) step1NextBtn.addEventListener('click', () => renderFunnelStep(2));
+        if (step1SkipBtn) step1SkipBtn.addEventListener('click', () => renderFunnelStep(2));
+
+        // Step 2: Audience Card Selection
+        document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#audience-options-list .funnel-select-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                funnelState.audience = card.getAttribute('data-value') || 'Business Owners';
+            });
+        });
+
+        const step2BackBtn = document.getElementById('step-2-back-btn');
+        const step2NextBtn = document.getElementById('step-2-next-btn');
+        const step2SkipBtn = document.getElementById('step-2-skip-btn');
+        if (step2BackBtn) step2BackBtn.addEventListener('click', () => renderFunnelStep(1));
+        if (step2NextBtn) step2NextBtn.addEventListener('click', () => renderFunnelStep(3));
+        if (step2SkipBtn) step2SkipBtn.addEventListener('click', () => renderFunnelStep(3));
+
+        // Step 3: Offer Textarea, Character Counter & Quick Pills
+        const offerInput = document.getElementById('funnel-offer-input');
+        const offerCounter = document.getElementById('offer-char-counter');
+        if (offerInput) {
+            offerInput.addEventListener('input', () => {
+                if (offerCounter) {
+                    offerCounter.textContent = `${offerInput.value.length}/120`;
+                }
+                funnelState.offer = offerInput.value.trim() || 'High-Converting Offer';
+            });
+        }
+
+        document.querySelectorAll('#quick-offer-pills .quick-pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                const text = pill.getAttribute('data-text') || pill.textContent.trim();
+                if (offerInput) {
+                    offerInput.value = text;
+                    if (offerCounter) offerCounter.textContent = `${text.length}/120`;
+                    funnelState.offer = text;
+                }
+            });
+        });
+
+        const step3BackBtn = document.getElementById('step-3-back-btn');
+        const step3NextBtn = document.getElementById('step-3-next-btn');
+        const step3SkipBtn = document.getElementById('step-3-skip-btn');
+        if (step3BackBtn) step3BackBtn.addEventListener('click', () => renderFunnelStep(2));
+        if (step3NextBtn) step3NextBtn.addEventListener('click', () => renderFunnelStep(4));
+        if (step3SkipBtn) step3SkipBtn.addEventListener('click', () => renderFunnelStep(4));
+
+        // Step 4: Business Details Form
+        const step4BackBtn = document.getElementById('step-4-back-btn');
+        const step4NextBtn = document.getElementById('step-4-next-btn');
+        const step4SkipBtn = document.getElementById('step-4-skip-btn');
+        if (step4BackBtn) step4BackBtn.addEventListener('click', () => renderFunnelStep(3));
+        if (step4NextBtn) step4NextBtn.addEventListener('click', () => renderFunnelStep(5));
+        if (step4SkipBtn) step4SkipBtn.addEventListener('click', () => renderFunnelStep(5));
+
+        // Step 5: Design Style Cards
+        document.querySelectorAll('#style-options-grid .funnel-select-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('#style-options-grid .funnel-select-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                funnelState.designStyle = card.getAttribute('data-style') || 'Modern & Clean';
+            });
+        });
+
+        // Primary Color Swatches
+        document.querySelectorAll('#funnel-color-swatches .color-dot').forEach(dot => {
+            dot.addEventListener('click', () => {
+                if (dot.classList.contains('custom-rainbow')) return;
+                const color = dot.getAttribute('data-color') || '#6C5CE7';
+                funnelState.primaryColor = color;
+                document.querySelectorAll('#funnel-color-swatches .color-dot').forEach(d => {
+                    d.classList.remove('active');
+                    if (!d.classList.contains('custom-rainbow')) d.textContent = '';
+                });
+                dot.classList.add('active');
+                dot.textContent = '✓';
+            });
+        });
+
+        // Custom Color Picker input
+        const customColorPicker = document.getElementById('funnel-custom-color-picker');
+        if (customColorPicker) {
+            customColorPicker.addEventListener('input', () => {
+                funnelState.primaryColor = customColorPicker.value;
+                document.querySelectorAll('#funnel-color-swatches .color-dot').forEach(d => {
+                    d.classList.remove('active');
+                    if (!d.classList.contains('custom-rainbow')) d.textContent = '';
+                });
+                updateReviewListUI();
+            });
+        }
+
+        const step5BackBtn = document.getElementById('step-5-back-btn');
+        const step5NextBtn = document.getElementById('step-5-next-btn');
+        const step5SkipBtn = document.getElementById('step-5-skip-btn');
+        if (step5BackBtn) step5BackBtn.addEventListener('click', () => renderFunnelStep(4));
+        if (step5NextBtn) step5NextBtn.addEventListener('click', () => renderFunnelStep(6));
+        if (step5SkipBtn) step5SkipBtn.addEventListener('click', () => renderFunnelStep(6));
+
+        // Step 6: Review Screen Edit Action Buttons
+        document.querySelectorAll('.review-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const targetStep = parseInt(btn.getAttribute('data-step') || '1');
+                renderFunnelStep(targetStep);
+            });
+        });
+
+        document.querySelectorAll('.funnel-review-list .review-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const targetStep = parseInt(item.getAttribute('data-goto-step') || '1');
+                renderFunnelStep(targetStep);
+            });
+        });
+
+        const step6BackBtn = document.getElementById('step-6-back-btn');
+        if (step6BackBtn) step6BackBtn.addEventListener('click', () => renderFunnelStep(5));
+
+        // Step 6: Final CTA "Create My Funnel ✨"
+        const createFunnelBtn = document.getElementById('funnel-create-btn');
+        if (createFunnelBtn) {
+            createFunnelBtn.addEventListener('click', () => {
+                submitFunnelGeneration();
+            });
+        }
     }
 
-    const btnClearSections = document.getElementById('btn-clear-sections');
-    if (btnClearSections) {
-        btnClearSections.addEventListener('click', () => {
-            document.querySelectorAll('.section-toggle-chip').forEach(c => c.classList.remove('active'));
-        });
-    }
-
-    // Style Cards selection
-    document.querySelectorAll('#style-options-grid .wizard-option-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('#style-options-grid .wizard-option-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-        });
-    });
-
-    // Color Swatch buttons
-    document.querySelectorAll('.color-swatch-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.color-swatch-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const color = btn.getAttribute('data-color') || '#10b981';
-            const colorInput = document.getElementById('wiz-brand-color');
-            const colorHex = document.getElementById('brand-color-hex');
-            if (colorInput) colorInput.value = color;
-            if (colorHex) colorHex.textContent = color;
-        });
-    });
-
-    const wizBrandColorInput = document.getElementById('wiz-brand-color');
-    if (wizBrandColorInput) {
-        wizBrandColorInput.addEventListener('input', () => {
-            const hex = wizBrandColorInput.value;
-            const colorHex = document.getElementById('brand-color-hex');
-            if (colorHex) colorHex.textContent = hex;
-        });
-    }
-
-    function populateSummaryCard() {
-        const card = document.getElementById('wizard-summary-card');
-        if (!card) return;
-
-        const isFunnel = (currentWizardMode === 'funnel');
-        const customConcept = document.getElementById('wiz-custom-concept')?.value.trim() || '';
-        const archetypeCard = document.querySelector('#archetype-options-grid .wizard-option-card.selected');
-        const archetype = archetypeCard ? (archetypeCard.querySelector('h5')?.textContent || archetypeCard.getAttribute('data-archetype')) : 'Lead Magnet & Squeeze';
-        const displayConcept = customConcept || archetype;
-
-        const nicheCard = document.querySelector('#niche-options-grid .wizard-option-card.selected');
-        const rawNiche = nicheCard ? (nicheCard.querySelector('h5')?.textContent || nicheCard.getAttribute('data-value')) : 'Fitness & Gym';
-        const customNiche = document.getElementById('wiz-custom-niche-input')?.value.trim() || '';
-        const displayNiche = customNiche || rawNiche.split('(')[0].trim();
-
-        const audience = document.getElementById('wiz-target-audience')?.value.trim() || 'General Target Market';
-        const brandName = document.getElementById('wiz-brand-name')?.value.trim() || `${displayNiche} Official`;
-        const tagline = document.getElementById('wiz-brand-tagline')?.value.trim() || 'High-Converting Offer';
-        const corePrice = document.getElementById('wiz-core-price')?.value.trim() || 'Standard Pricing';
-        const upsellPrice = document.getElementById('wiz-upsell-price')?.value.trim() || '';
-        const guarantee = document.getElementById('wiz-guarantee')?.value.trim() || '100% Risk-Free Guarantee';
-
-        const activeSections = [];
-        document.querySelectorAll('.section-toggle-chip.active').forEach(chip => {
-            const t = chip.querySelector('.chip-text')?.textContent.trim();
-            if (t) activeSections.push(t);
-        });
-
-        const styleCard = document.querySelector('#style-options-grid .wizard-option-card.selected');
-        const style = styleCard ? (styleCard.querySelector('h5')?.textContent || styleCard.getAttribute('data-style')) : 'Modern Cyber Dark';
-        const brandColor = document.getElementById('wiz-brand-color')?.value || '#10b981';
-        const copyTone = document.getElementById('wiz-copy-tone')?.value || 'Bold & Persuasive';
-
-        const automations = [];
-        document.querySelectorAll('#step-4-checkboxes-list input[type="checkbox"]:checked').forEach(cb => {
-            const labelEl = cb.closest('.wizard-checkbox-card')?.querySelector('strong');
-            if (labelEl) automations.push(labelEl.textContent.trim());
-        });
-
-        const customInstructions = document.getElementById('wiz-custom-instructions')?.value.trim() || '';
-
-        card.innerHTML = `
-            <div class="summary-section">
-                <span class="summary-icon">${isFunnel ? '🌪️' : '📄'}</span>
-                <div class="summary-content">
-                    <div class="summary-label">Asset Type & Concept</div>
-                    <div class="summary-value">
-                        <strong>${isFunnel ? 'Multi-Step High-Converting Funnel' : 'Single High-Converting Landing Page'}</strong>
-                        <div style="font-size:12.5px; color:#93c5fd; margin-top:2px;">"${escapeHtml(displayConcept)}"</div>
-                    </div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <span class="summary-icon">🏢</span>
-                <div class="summary-content">
-                    <div class="summary-label">Niche & Target Audience</div>
-                    <div class="summary-value">${escapeHtml(displayNiche)} — <span style="font-size:12px; color:#cbd5e1;">Targeting: ${escapeHtml(audience)}</span></div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <span class="summary-icon">💎</span>
-                <div class="summary-content">
-                    <div class="summary-label">Offer, Pricing & Guarantee</div>
-                    <div class="summary-value">
-                        <strong>${escapeHtml(brandName)}</strong>: "${escapeHtml(tagline)}"<br>
-                        <span class="summary-tag" style="background:rgba(16,185,129,0.15); color:#10b981;">Core: ${escapeHtml(corePrice)}</span>
-                        ${upsellPrice ? `<span class="summary-tag" style="background:rgba(99,102,241,0.15); color:#818cf8;">Upsell: ${escapeHtml(upsellPrice)}</span>` : ''}
-                        <div style="font-size:12px; color:#94a3b8; margin-top:4px;">🛡️ ${escapeHtml(guarantee)}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <span class="summary-icon">🧩</span>
-                <div class="summary-content">
-                    <div class="summary-label">Key Sections Included (${activeSections.length})</div>
-                    <div class="summary-value">
-                        ${activeSections.length > 0 ? activeSections.map(s => `<span class="summary-tag">${escapeHtml(s)}</span>`).join('') : 'All Standard Sections Included'}
-                    </div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <span class="summary-icon">🎨</span>
-                <div class="summary-content">
-                    <div class="summary-label">Aesthetic, Accent Color & Tone</div>
-                    <div class="summary-value">
-                        ${escapeHtml(style)} • Tone: <strong>${escapeHtml(copyTone)}</strong>
-                        <span style="display:inline-flex; align-items:center; gap:5px; margin-left:8px;">
-                            <span style="width:12px; height:12px; border-radius:50%; background:${brandColor}; display:inline-block; border:1px solid rgba(255,255,255,0.2);"></span>
-                            <code>${brandColor}</code>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <span class="summary-icon">⚙️</span>
-                <div class="summary-content">
-                    <div class="summary-label">CRM Automations & Pipelines (${automations.length})</div>
-                    <div class="summary-value">
-                        ${automations.length > 0 ? automations.map(a => `<span class="summary-tag">${escapeHtml(a)}</span>`).join('') : 'Standard Speed-to-Lead Workflows'}
-                    </div>
-                </div>
-            </div>
-            ${customInstructions ? `
-            <div class="summary-section">
-                <span class="summary-icon">✍️</span>
-                <div class="summary-content">
-                    <div class="summary-label">Unrestricted Custom Instructions</div>
-                    <div class="summary-value" style="font-size:12px; color:#cbd5e1; font-style:italic;">"${escapeHtml(customInstructions)}"</div>
-                </div>
-            </div>` : ''}
-        `;
-    }
-
-    if (wizardBackBtn) {
-        wizardBackBtn.addEventListener('click', () => {
-            if (currentWizardStep > 1) {
-                renderWizardTab(currentWizardStep - 1);
-            }
-        });
-    }
-
-    if (wizardNextStepBtn) {
-        wizardNextStepBtn.addEventListener('click', () => {
-            if (currentWizardStep < TOTAL_WIZARD_STEPS) {
-                renderWizardTab(currentWizardStep + 1);
-            } else {
-                renderWizardTab(7);
-            }
-        });
-    }
-
-    if (wizardNextBtn) {
-        wizardNextBtn.addEventListener('click', () => {
-            submitWizardBuild();
-        });
-    }
-
-    if (wizardQuickBtn) {
-        wizardQuickBtn.addEventListener('click', () => {
-            // Intelligent 1-Click Smart Auto-Fill
-            const config = NICHE_CONFIGURATIONS[currentNicheKey] || NICHE_CONFIGURATIONS['fitness'];
-            const isFunnel = (currentWizardMode === 'funnel');
-
-            // 1. Concept
-            const conceptInput = document.getElementById('wiz-custom-concept');
-            if (conceptInput && !conceptInput.value.trim()) {
-                conceptInput.value = isFunnel ? `High-Converting ${config.name} Multi-Step Funnel (Opt-in ➔ VSL ➔ Booking ➔ Upsell)` : `High-Converting ${config.name} Lead Generation Landing Page`;
-            }
-
-            // 2. Audience & Niche
-            const audienceInput = document.getElementById('wiz-target-audience');
-            if (audienceInput && !audienceInput.value.trim()) {
-                audienceInput.value = `High-intent clients looking for ${config.name} solutions`;
-            }
-
-            // 3. Brand & Pricing
-            const nameInput = document.getElementById('wiz-brand-name');
-            if (nameInput && !nameInput.value.trim()) nameInput.value = config.step5.defaultBrandName;
-            const tagInput = document.getElementById('wiz-brand-tagline');
-            if (tagInput && !tagInput.value.trim()) tagInput.value = config.step5.defaultTagline;
-            const colorInput = document.getElementById('wiz-brand-color');
-            if (colorInput) colorInput.value = config.step5.defaultColor;
-            const colorHex = document.getElementById('brand-color-hex');
-            if (colorHex) colorHex.textContent = config.step5.defaultColor;
-
-            const corePrice = document.getElementById('wiz-core-price');
-            if (corePrice && !corePrice.value.trim()) corePrice.value = isFunnel ? '$997 Core Program (or Free Consultation)' : 'Free 7-Day Access';
-            const upsellPrice = document.getElementById('wiz-upsell-price');
-            if (upsellPrice && !upsellPrice.value.trim()) upsellPrice.value = '$297 VIP Upgrade';
-            const guarantee = document.getElementById('wiz-guarantee');
-            if (guarantee && !guarantee.value.trim()) guarantee.value = '100% 30-Day Money-Back Guarantee, Zero Questions Asked';
-
-            // 4. Key Sections: enable high-converting set
-            document.querySelectorAll('.section-toggle-chip').forEach(c => c.classList.add('active'));
-
-            // 5. CRM Checkboxes
-            document.querySelectorAll('#step-4-checkboxes-list input[type="checkbox"]').forEach(cb => cb.checked = true);
-
-            // Jump to review tab & populate
-            renderWizardTab(7);
-            showValidation('⚡ Smart specifications populated! Review below or click Generate Funnel Bundle.');
-        });
-    }
-
-    function submitWizardBuild() {
-        const isFunnel = (currentWizardMode === 'funnel');
-
-        // Concept
-        const customConcept = document.getElementById('wiz-custom-concept')?.value.trim() || '';
-        const archCard = document.querySelector('#archetype-options-grid .wizard-option-card.selected');
-        const archetype = archCard ? (archCard.querySelector('h5')?.textContent || archCard.getAttribute('data-archetype')) : 'Lead Magnet & Squeeze';
-        const cleanConcept = customConcept || archetype;
-
-        // Niche & Audience
-        const nicheCard = document.querySelector('#niche-options-grid .wizard-option-card.selected');
-        const rawNiche = nicheCard ? (nicheCard.querySelector('h5')?.textContent || nicheCard.getAttribute('data-value')) : 'Fitness & Gym Studio';
-        const customNiche = document.getElementById('wiz-custom-niche-input')?.value.trim() || '';
-        const cleanNiche = customNiche || rawNiche.split('(')[0].trim();
-        const targetAudience = document.getElementById('wiz-target-audience')?.value.trim() || '';
-
-        // Offer & Brand
-        const brandName = document.getElementById('wiz-brand-name')?.value.trim() || `${cleanNiche} Official`;
-        const brandTagline = document.getElementById('wiz-brand-tagline')?.value.trim() || 'Transformative Results Guaranteed';
-        const corePrice = document.getElementById('wiz-core-price')?.value.trim() || '';
-        const upsellPrice = document.getElementById('wiz-upsell-price')?.value.trim() || '';
-        const guarantee = document.getElementById('wiz-guarantee')?.value.trim() || '';
-
-        // Sections
-        const activeSections = [];
-        document.querySelectorAll('.section-toggle-chip.active').forEach(chip => {
-            const title = chip.querySelector('.chip-text')?.textContent.trim();
-            if (title) activeSections.push(title);
-        });
-
-        // Aesthetic, Color & Tone
-        const styleCard = document.querySelector('#style-options-grid .wizard-option-card.selected');
-        const cleanStyle = styleCard ? (styleCard.querySelector('h5')?.textContent || styleCard.getAttribute('data-style')).split('(')[0].trim() : 'Modern Cyber Dark';
-        const brandColor = document.getElementById('wiz-brand-color')?.value || '#10b981';
-        const copyTone = document.getElementById('wiz-copy-tone')?.value || 'Bold & Persuasive';
-        const brandLogo = document.getElementById('wiz-brand-logo')?.value.trim() || '';
-
-        // Automations
-        const automations = [];
-        document.querySelectorAll('#step-4-checkboxes-list input[type="checkbox"]:checked').forEach(cb => {
-            const title = cb.closest('.wizard-checkbox-card')?.querySelector('strong')?.textContent.trim();
-            if (title) automations.push(title);
-        });
-
-        // Custom Instructions
-        const customInstructions = document.getElementById('wiz-custom-instructions')?.value.trim() || '';
-
+    // Submit Funnel Generation & Compile AI Prompt
+    function submitFunnelGeneration() {
+        syncUIToState();
         closeWizardModal();
 
-        let specDetails = `\n\nDetailed Specifications:`;
-        specDetails += `\n- Business Name: ${brandName}`;
-        specDetails += `\n- Primary Offer Hook: ${brandTagline}`;
-        if (targetAudience) specDetails += `\n- Target Audience / Ideal Prospect: ${targetAudience}`;
-        if (corePrice) specDetails += `\n- Core Offer Price & Structure: ${corePrice}`;
-        if (upsellPrice) specDetails += `\n- VIP Upgrade / Order Bump Price: ${upsellPrice}`;
-        if (guarantee) specDetails += `\n- Risk Reversal Guarantee: ${guarantee}`;
-        specDetails += `\n- Visual Theme: ${cleanStyle} (${brandColor})`;
-        specDetails += `\n- Copywriting Voice & Tone: ${copyTone}`;
-        if (activeSections.length > 0) specDetails += `\n- Required Sections & Flow Components: ${activeSections.join(', ')}`;
-        if (brandLogo) specDetails += `\n- Logo URL: ${brandLogo}`;
-        if (customInstructions) specDetails += `\n\nSpecial User Requirements & Freedom Instructions:\n${customInstructions}`;
+        const compiledPrompt = `Build a complete GoHighLevel High-Converting Funnel & CRM Architecture based strictly on my strategic requirements.
 
-        const compiledPrompt = isFunnel ?
-            `Build a complete GoHighLevel Multi-Step High-Converting Funnel and CRM Architecture for a ${cleanNiche} business based strictly on the user's custom specifications.
+🎯 Funnel Plan & Specifications:
+- Main Goal: ${funnelState.goal}
+- Target Audience: ${funnelState.audience}
+- Core Offer: ${funnelState.offer}
+- Business / Brand Name: ${funnelState.businessName}
+- Problem Solved: ${funnelState.problemSolved}
+- Why Choose Us: ${funnelState.whyChooseYou}
+- Key Benefits / Features: ${funnelState.keyBenefits}
+- Design Style & Look: ${funnelState.designStyle}
+- Primary Brand Color: ${funnelState.primaryColor}
 
-Configuration:
-- Asset Type: Multi-Step Conversion Funnel (${cleanConcept})
-- Target Industry: ${cleanNiche}
-- Funnel Flow Concept: ${cleanConcept}
-- Visual Design Aesthetic: ${cleanStyle}
-- Primary Accent Color: ${brandColor}
-- Connected Automations & Drop-off Recovery: ${automations.join(', ')}${specDetails}
-
-Please provide the complete multi-step funnel architecture, step-by-step URLs/pages, production-ready responsive HTML/CSS code for each step, HighLevel Pipeline stages taxonomy, Contact Custom Fields & Tags schema, and 2-step abandoned cart / drop-off Workflow automations.`
-            :
-            `Build a complete GoHighLevel High-Converting Landing Page and CRM Architecture for a ${cleanNiche} business.
-
-Configuration:
-- Asset Type: Single High-Converting Landing Page
-- Target Industry: ${cleanNiche}
-- Landing Page Concept: ${cleanConcept}
-- Visual Design Aesthetic: ${cleanStyle}
-- Primary Accent Color: ${brandColor}
-- Connected Automations: ${automations.join(', ')}${specDetails}
-
-Please provide the production-ready responsive HTML/CSS landing page code, HighLevel Pipeline stages taxonomy, Contact Custom Fields & Tags schema, and step-by-step Workflow automation configuration.`;
+Please deliver:
+1. Complete Multi-Step Funnel Flow Architecture (Landing/Opt-in ➔ VSL/Sales ➔ Booking/Checkout ➔ Confirmation).
+2. Production-ready, responsive, beautifully styled HTML/CSS code for the funnel landing page reflecting the ${funnelState.designStyle} aesthetic and ${funnelState.primaryColor} brand accent.
+3. High-converting copywriting tailored for ${funnelState.audience} solving "${funnelState.problemSolved}".
+4. GoHighLevel Pipeline stages, Smart Tags, and Contact Custom Fields schema.
+5. Automated CRM Speed-to-Lead Follow-up & Abandonment Recovery Workflow.`;
 
         if (userInput) {
             userInput.value = compiledPrompt;
@@ -4046,6 +2323,17 @@ Please provide the production-ready responsive HTML/CSS landing page code, HighL
             handleSendPrompt();
         }
     }
+
+    // Initialize events
+    initFunnelWizardEvents();
+
+    // Global Keyboard Shortcut: Ctrl + K (or Cmd + K) for New Chat
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            createNewThread(true);
+        }
+    });
 
     // ==========================================
     // SIDEBAR & MODAL HANDLERS
@@ -4250,6 +2538,8 @@ Please provide the production-ready responsive HTML/CSS landing page code, HighL
 
         // Never intercept prompts that originated from our specifications studio or already contain full configurations
         if (lower.includes('configuration:') ||
+            lower.includes('funnel plan & specifications:') ||
+            lower.includes('strategic requirements') ||
             lower.includes('custom wizard specifications:') ||
             lower.includes('detailed specifications:') ||
             lower.includes('build a complete gohighlevel') ||
