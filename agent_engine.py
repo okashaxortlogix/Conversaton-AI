@@ -977,28 +977,40 @@ MANDATORY GOHIGHLEVEL (GHL) OPERATIONAL RULES
 =============================================================================
 TASK DIRECTIVE: SURGICAL CODE UPDATE & STRICT DESIGN PRESERVATION (NO REDESIGN)
 =============================================================================
-The user is providing an existing codebase, funnel, landing page, or document (either in chat history or user prompt/attachment) and requesting specific corrections or changes.
+The user is providing an existing codebase, funnel, landing page, or document (either in chat history or user prompt/attachment) and requesting specific corrections, removals, or changes.
 
-CRITICAL PRIME DIRECTIVE: PRESERVE THE EXACT EXISTING UI & CODE 100%!
-1. STRICT PRESERVATION OF EXISTING UI, LAYOUT, COLORS & STRUCTURE (NO UNREQUESTED REDESIGN):
+CRITICAL PRIME DIRECTIVES:
+1. STRICT SINGLE CODE FILE REQUIREMENT:
+   • You must ALWAYS deliver EXACTLY ONE complete, self-contained code file in a single code block (```html:filename.html ... ```).
+   • NEVER output multiple code files or fragmented snippets (e.g. do NOT output separate index.html, style.css, script.js blocks). Everything (HTML, CSS in <style>, JS in <script>) must be integrated into that ONE single file.
+
+2. ACCORDING & ACCURATE FILE NAMING (NO GENERIC "landing_page.html"):
+   • You must ALWAYS name the file according to its specific brand, niche, or purpose (e.g. ```html:brightsmile_dental_funnel.html, ```html:apex_fitness_funnel.html, ```html:real_estate_lead_funnel.html).
+   • NEVER label every file as generic "landing_page.html".
+   • Include a matching, descriptive <title> (e.g. <title>BrightSmile Dental Care Funnel</title>) and top comment <!-- filename: descriptive_name.html -->.
+
+3. CLEAN & COMPLETE FEATURE REMOVAL (e.g. INBOUND CALL, PHONE INPUT, TOP BANNER, SECTION):
+   • When the user asks to REMOVE any feature, element, step, or text (for example: "remove inbound call", "remove phone field", "remove top bar", "remove extra text", "remove video section"):
+     - You must THOROUGHLY and CLEANLY REMOVE that item completely from the HTML markup.
+     - REMOVE any related JavaScript logic, countdown timers, event listeners, variables, or functions associated with that feature (e.g. if removing inbound call, eliminate all call-simulation timers, dial buttons, and call state handlers).
+     - REMOVE any CSS rules specifically dedicated to that removed item.
+     - NEVER leave orphaned empty containers, broken references, or half-deleted markup.
+     - Output the clean, fully functional single file with the feature completely excised.
+
+4. STRICT PRESERVATION OF REMAINING DESIGN & STRUCTURE 100%:
    • The user ALREADY LIKES their current design ("otherwise the funnel is good looking and working fine").
    • You MUST PRESERVE the exact same layout structure, split cards, color theme, typography, hierarchy, and copy that the user did NOT ask to change.
    • DO NOT invent a new design, DO NOT switch a split dark/light card layout to a full dark page, and DO NOT replace the UI with a different template.
-   • Every element, class, section, card, and text that the user did not ask to modify MUST REMAIN INTACT.
+   • Ensure all CTA buttons are prominent, high-contrast, and fully visible without clipping.
+   • Implement the requested changes EXACTLY as instructed ("jesi kahi jaye wesi kr k de"), modifying only what was asked.
 
-2. SURGICALLY IMPLEMENT ONLY THE SPECIFICALLY REQUESTED CORRECTIONS:
-   • If the user asks to remove unwanted text or preamble (e.g. model handover messages or banner text), REMOVE ONLY THAT TEXT from the page/code.
-   • If the user asks to ensure buttons are properly visible, ensure the CTA buttons have prominent, high-contrast, fully visible styling (e.g. solid vibrant background, clear legible text, proper padding, no clipping), without altering the rest of the form or page.
-   • If the user asks to change a specific color, headline, or input, change ONLY that specific item.
-   • NEVER change anything that was not requested!
-
-3. RESPONSE STRUCTURE:
-   PART 1: UPDATED COMPLETE CODE
-   • Provide the full, clean, working code in a single code block (```html ... ```).
-   • Ensure NO handover messages, markdown quotes, or preamble text appear inside or before the code block. Start directly with <!DOCTYPE html>.
+5. RESPONSE STRUCTURE:
+   PART 1: UPDATED COMPLETE SINGLE CODE FILE
+   • Provide the full, clean, working code in ONE single code block (```html:descriptive_funnel_name.html ... ```).
+   • Start cleanly with <!DOCTYPE html> with ZERO preamble text, no markdown handover quotes, and no broken wrappers.
 
    PART 2: SUMMARY OF CHANGES MADE (What Was Changed)
-   • At the very end, provide a clear, concise bulleted summary of ONLY the specific changes implemented.
+   • At the very end, provide a clear, concise bulleted summary of ONLY the specific changes and removals implemented.
    • DO NOT generate unrequested 14-section CRM architectures or redundant tables. Focus strictly on delivering the updated code and summarizing the modifications made.
 {tool_block}
 """
@@ -1019,7 +1031,9 @@ CRITICAL IDENTITY & ENTITY PRESERVATION RULE:
 
 Output all 5 sections in this exact order with ZERO preamble text:
 
-1. Complete Single-File HTML App (```html <!DOCTYPE html> ... </html>```)
+1. Complete Single-File HTML App (```html:descriptive_funnel_name.html <!DOCTYPE html> ... </html>```)
+   • STRICT SINGLE CODE FILE: You must generate STRICTLY ONE complete, self-contained code file in a single code block. NEVER split into multiple files or multiple code blocks (such as index.html, style.css, script.js). Everything must be inside this single file.
+   • ACCORDING FILE NAMING: Name the file accurately according to the user's brand and niche (e.g. `brightsmile_dental_funnel.html`, `apex_gym_funnel.html`, `ecommerce_sales_funnel.html`). NEVER label every file as generic `landing_page.html`. Always include descriptive `<title>Brand Name - Purpose</title>` and `<!-- filename: [descriptive_name].html -->`.
    • Use Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com"></script>`) with utility classes.
    • ALL funnel steps MUST be fully built inside this ONE file with interactive JavaScript tab navigation (`switchStep(n)`).
    • Fully build EVERY step with real high-converting copy, real inputs, real CTA buttons:

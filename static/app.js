@@ -786,30 +786,128 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getArtifactMeta(lang, code) {
         const lowerCode = code.trim().toLowerCase();
-        let filename = `code_snippet.${lang || 'txt'}`;
-        let icon = '📄';
-        let cleanLang = lang || 'text';
+        let cleanLang = (lang || 'text').toLowerCase().trim();
 
-        if (cleanLang === 'html' || lowerCode.includes('<!doctype html') || lowerCode.includes('<html')) {
-            filename = 'landing_page.html';
-            icon = '🌐';
+        // 1. Check if language identifier specifies a filename (e.g. ```html:dental_funnel.html or ```python filename=app.py)
+        let explicitFilename = '';
+        if (cleanLang.includes(':')) {
+            const parts = cleanLang.split(':');
+            cleanLang = parts[0].trim();
+            explicitFilename = parts[1].trim();
+        } else if (cleanLang.includes('=')) {
+            const parts = cleanLang.split('=');
+            cleanLang = parts[0].replace('filename', '').trim();
+            explicitFilename = parts[1].replace(/['"]/g, '').trim();
+        } else if (cleanLang.includes(' ')) {
+            const parts = cleanLang.split(/\s+/);
+            cleanLang = parts[0].trim();
+            if (parts[1]) explicitFilename = parts[1].replace(/filename=/i, '').replace(/['"]/g, '').trim();
+        }
+
+        // 2. Check for inline filename comment: <!-- filename: dental_booking.html --> or # filename: ...
+        const commentFileMatch = code.match(/(?:<!--|\/\*|#|\/\/)\s*(?:filename|file):\s*([a-zA-Z0-9_\-\.]+)\s*(?:-->|\*\/)?/i);
+        if (commentFileMatch && commentFileMatch[1]) {
+            explicitFilename = commentFileMatch[1].trim();
+        }
+
+        const isHtml = cleanLang === 'html' || lowerCode.includes('<!doctype') || lowerCode.includes('<html');
+        let icon = '📄';
+        let filename = '';
+
+        if (isHtml) {
             cleanLang = 'html';
+            icon = '🌐';
+
+            if (explicitFilename && explicitFilename.endsWith('.html')) {
+                filename = explicitFilename;
+            } else {
+                // Try extracting document <title>
+                const titleMatch = code.match(/<title[^>]*>([^<]+)<\/title>/i);
+                let titleText = titleMatch ? titleMatch[1].trim() : '';
+
+                if (titleText && titleText.length > 2 && !['document', 'untitled', 'home', 'index'].includes(titleText.toLowerCase())) {
+                    let slug = titleText.toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .trim()
+                        .replace(/[-\s]+/g, '_')
+                        .substring(0, 32);
+                    if (slug.endsWith('_')) slug = slug.slice(0, -1);
+                    if (!slug.includes('funnel') && !slug.includes('page') && !slug.includes('portal') && !slug.includes('site')) {
+                        slug += '_funnel';
+                    }
+                    filename = `${slug}.html`;
+                } else {
+                    // Try extracting main H1 or Brand name
+                    const brandMatch = code.match(/class="[^"]*(?:brand|logo)[^"]*"[^>]*>([^<]+)</i);
+                    const h1Match = code.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+                    let detectedName = (brandMatch ? brandMatch[1] : (h1Match ? h1Match[1] : '')).trim();
+
+                    if (detectedName && detectedName.length > 2 && detectedName.length < 40) {
+                        let slug = detectedName.toLowerCase()
+                            .replace(/[^\w\s-]/g, '')
+                            .trim()
+                            .replace(/[-\s]+/g, '_')
+                            .substring(0, 28);
+                        if (slug.endsWith('_')) slug = slug.slice(0, -1);
+                        filename = `${slug}_funnel.html`;
+                    } else {
+                        // Detect niche from content
+                        if (lowerCode.includes('dental') || lowerCode.includes('dentist') || lowerCode.includes('smile')) {
+                            filename = 'dental_booking_funnel.html';
+                        } else if (lowerCode.includes('gym') || lowerCode.includes('fitness') || lowerCode.includes('workout')) {
+                            filename = 'fitness_gym_funnel.html';
+                        } else if (lowerCode.includes('real estate') || lowerCode.includes('realtor') || lowerCode.includes('property')) {
+                            filename = 'real_estate_funnel.html';
+                        } else if (lowerCode.includes('ecommerce') || lowerCode.includes('checkout') || lowerCode.includes('cart') || lowerCode.includes('order')) {
+                            filename = 'ecommerce_sales_funnel.html';
+                        } else if (lowerCode.includes('webinar') || lowerCode.includes('masterclass')) {
+                            filename = 'webinar_registration_funnel.html';
+                        } else if (lowerCode.includes('coaching') || lowerCode.includes('consultant')) {
+                            filename = 'coaching_lead_funnel.html';
+                        } else if (lowerCode.includes('solar') || lowerCode.includes('roofing') || lowerCode.includes('plumb')) {
+                            filename = 'contractor_lead_funnel.html';
+                        } else if (lowerCode.includes('agency') || lowerCode.includes('marketing')) {
+                            filename = 'agency_lead_funnel.html';
+                        } else {
+                            filename = 'custom_sales_funnel.html';
+                        }
+                    }
+                }
+            }
         } else if (cleanLang === 'css' || lowerCode.includes(':root {') || lowerCode.includes('body {')) {
-            filename = 'styles.css';
-            icon = '🎨';
             cleanLang = 'css';
+            icon = '🎨';
+            filename = explicitFilename || 'custom_funnel_styles.css';
         } else if (cleanLang === 'javascript' || cleanLang === 'js') {
-            filename = 'script.js';
-            icon = '⚡';
             cleanLang = 'javascript';
+            icon = '⚡';
+            filename = explicitFilename || 'funnel_interactions.js';
         } else if (cleanLang === 'json') {
-            filename = 'ghl_schema.json';
-            icon = '⚙️';
             cleanLang = 'json';
+            icon = '⚙️';
+            if (explicitFilename) {
+                filename = explicitFilename;
+            } else if (lowerCode.includes('pipeline') || lowerCode.includes('stages')) {
+                filename = 'sales_pipeline_schema.json';
+            } else if (lowerCode.includes('workflow') || lowerCode.includes('trigger')) {
+                filename = 'ghl_workflow_automation.json';
+            } else {
+                filename = 'ghl_schema_config.json';
+            }
         } else if (cleanLang === 'python' || cleanLang === 'py') {
-            filename = 'app.py';
-            icon = '🐍';
             cleanLang = 'python';
+            icon = '🐍';
+            if (explicitFilename) {
+                filename = explicitFilename;
+            } else if (lowerCode.includes('webhook') || lowerCode.includes('fastapi') || lowerCode.includes('flask')) {
+                filename = 'ghl_webhook_service.py';
+            } else if (lowerCode.includes('contact')) {
+                filename = 'ghl_contact_sync.py';
+            } else {
+                filename = 'ghl_automation.py';
+            }
+        } else {
+            filename = explicitFilename || `code_snippet.${cleanLang || 'txt'}`;
         }
 
         const lines = code.trim().split('\n').length;
