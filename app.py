@@ -31,7 +31,8 @@ if sys.platform == "win32":
 
 ENV_PATH = os.path.join(BASE_DIR, ".env")
 if os.path.exists(ENV_PATH):
-    load_dotenv(dotenv_path=ENV_PATH, override=True)
+    # override=False ensures host/cloud environment variables (such as Railway dynamic PORT) take priority
+    load_dotenv(dotenv_path=ENV_PATH, override=False)
 
 from ghl_client import GHLSubAccountClient
 from agent_engine import GHLAgentExecutionEngine, MODELS_CATALOG, format_friendly_error_banner
@@ -396,10 +397,11 @@ async def admin_create_user(req: Dict[str, Any], request: Request):
 async def health_check():
     keys = get_server_keys()
     gemini_summary = gemini_key_pool.get_summary()
+    active_port = int(os.getenv("PORT", 8080))
     return {
         "status": "online",
         "service": "Conversation AI Copilot",
-        "port": 7861,
+        "port": active_port,
         "gemini_pool": {
             "total_keys": gemini_summary["total_keys"],
             "healthy_keys": gemini_summary["healthy_keys"],
@@ -639,9 +641,9 @@ async def serve_index():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 7861))
-    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8080))
+    host = "0.0.0.0"
     print(f"🚀 Launching Conversation AI Copilot on http://{host}:{port} ...")
-    uvicorn.run("app:app", host=host, port=port, reload=False)
+    uvicorn.run("app:app", host=host, port=port, proxy_headers=True, forwarded_allow_ips="*", reload=False)
 
     
