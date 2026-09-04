@@ -1110,7 +1110,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 previewHtml = previewHtml.replace(/<iframe[^>]*api\.leadconnectorhq\.com[^>]*>.*?<\/iframe>/gis, calendarMockup)
                     .replace(/<iframe[^>]*YOUR_CALENDAR_ID[^>]*>.*?<\/iframe>/gis, calendarMockup)
-                    .replace(/<i            // Inject Live Preview sandbox script
+                    .replace(/<iframe[^>]*leadconnectorhq\.com[^>]*><\/iframe>/gis, calendarMockup);
+            }
+
+            // Inject Live Preview sandbox script
             const formInterceptScript = `
             <style>
                 .hidden { display: none !important; }
