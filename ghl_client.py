@@ -450,7 +450,7 @@ class GHLOAuthHandler:
     Handles App Marketplace OAuth flows for Sub-Accounts and Agencies.
     """
     BASE_URL = "https://services.leadconnectorhq.com"
-    AUTH_URL = "https://marketplace.gohighlevel.com/oauth/chooselocation"
+    AUTH_URL = "https://marketplace.leadconnectorhq.com/oauth/chooselocation"
 
     @staticmethod
     def get_authorization_url(client_id: str, redirect_uri: str, scopes: Any) -> str:
