@@ -90,7 +90,7 @@ _FULL_BUILD_KEYWORDS = {
 }
 
 _DIRECT_ASSET_PATTERNS = re.compile(
-    r'^(create|build|add|make|set\s*up|configure)\s+(a\s+)?(pipeline|tag|contact|custom\s+field|opportunity|stage)\b',
+    r'^(create|build|add|make|set\s*up|configure|audit|health\s*check|scan)\s+(a\s+)?(pipeline|tag|contact|custom\s+field|opportunity|stage|subaccount|account|ghl|crm|gym|real\s*estate|medspa|solar|coaching)\b',
     re.IGNORECASE
 )
 
@@ -544,6 +544,28 @@ GHL_TOOLS_DECLARATIONS = [
             "type": "OBJECT",
             "properties": {}
         }
+    },
+    {
+        "name": "setup_niche_subaccount",
+        "description": "Deploy complete industry-specific Sub-Account Architecture (Custom Fields, Tags, Pipelines, Custom Values) for a supported niche: 'gym', 'real_estate', 'medspa', 'solar', 'coaching'.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "niche": {
+                    "type": "STRING",
+                    "description": "Target business niche: 'gym', 'real_estate', 'medspa', 'solar', or 'coaching'"
+                }
+            },
+            "required": ["niche"]
+        }
+    },
+    {
+        "name": "audit_subaccount",
+        "description": "Scan and evaluate the connected GHL Sub-Account (Pipelines, Custom Fields, Tags, Workflows), returning a CRM Health Score (0-100) and actionable agency gap-analysis recommendations.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
     }
 ]
 
@@ -958,7 +980,24 @@ The final result must look professional, modern, and conversion-focused while re
 9. CALENDAR RULE: Native GHL Calendar widget connected to availability and confirmation automation.
 10. FUNNEL ARCHITECTURE: Traffic -> Landing Page -> Opt-In -> VSL/Sales -> Booking/Checkout -> Upsell -> Thank You -> Follow-up Automation.
 11. GHL CRM CONNECTION: Complete workflow mapping with Contact creation, custom fields, tags, pipeline stages, opportunities, and speed-to-lead follow-up automation.
-12. AI / DEVELOPER MANDATE:
+12. GHL CUSTOM VALUES & DYNAMIC MERGE TAGS MANDATE:
+    • NEVER hardcode business phone numbers, email addresses, physical addresses, or booking links in HTML copy, email copy, or SMS templates.
+    • ALWAYS use GHL dynamic merge tags:
+      - Location Profile: `{{ location.name }}`, `{{ location.phone }}`, `{{ location.email }}`, `{{ location.address }}`
+      - Custom Values: `{{ custom_values.booking_calendar_url }}`, `{{ custom_values.primary_offer_price }}`, `{{ custom_values.support_phone }}`
+      - Lead Personalization: `{{ contact.first_name }}`, `{{ contact.email }}`
+    • Every generated blueprint must include a dedicated Custom Values Setup Table (Key, Default Value, Purpose).
+13. PRO WORKFLOW TRIGGERS & IF/ELSE CONDITIONAL BRANCHING:
+    • Workflows must specify exact native GHL triggers with filters:
+      - `Form Submitted (Filter: Form is [Name])`
+      - `Order Submitted (Filter: In Funnel [Name], Product is [Product])`
+      - `Two Step Order Form (Filter: Unfinished / Cart Abandoned)`
+      - `Appointment Status (Filter: Status is Confirmed)`
+    • Workflows must include explicit If/Else decision branches (e.g. Branch A: Tag contains 'VIP' ➔ Priority Route; Branch B: Default ➔ Standard Route).
+    • Include realistic wait intervals (`Wait: 2 minutes`, `Wait: 24h before appointment`) and internal notification alerts to assigned team members.
+14. GHL SNAPSHOT PACKAGING & REUSABILITY BLUEPRINT:
+    • Conclude builds with a clear GHL Snapshot Packaging Guide: Explain how the user can package these Custom Fields, Custom Values, Pipelines, and Workflows into an Agency Snapshot (Agency Settings ➔ Snapshots) for 1-click deployment into future client accounts.
+15. AI / DEVELOPER MANDATE:
     Do NOT interpret "make it in HTML/CSS" as "build the entire page from scratch using HTML and CSS".
     Instead interpret it as: "Use HTML/CSS only for the parts that GHL cannot build natively."
     The final funnel must feel like a properly built GoHighLevel funnel that the client can open in the GHL builder to change headlines, text, images, buttons, and colors without needing a developer!
@@ -1146,17 +1185,21 @@ Output all 5 sections in this exact order with ZERO preamble text:
      - Section Name | GHL Section/Row Structure | Native GHL Element/Widget (Navigation, Heading, Button, Form, Video, FAQ Accordion) | Native Styling Controls
      - Explain how to configure each section natively in GHL drag-and-drop builder so non-technical clients can edit headlines, images, buttons, and forms without touching code.
 
-3. HighLevel Form, Pipeline Stages, Custom Fields & Tags (Compact Markdown Tables)
+3. HighLevel Form, Pipeline Stages, Custom Fields, Tags & Custom Values (Compact Markdown Tables)
    • Pipeline Stages: Order | Stage Name | Exact Entry Trigger | Exit / Win Condition
    • Contact Custom Fields: Field Name | Unique Key | Data Type | Notes
    • Contact Tags Taxonomy: Tag Name | Application Trigger | Removal Trigger
+   • GHL Custom Values Table: Key (`custom_values.xyz`) | Suggested Value | Agency Purpose (Enabling 1-click snapshot white-labeling)
 
-4. Automated Speed-to-Lead Follow-up & Confirmation Workflow
-   • Complete workflow with triggers, timing, and full SMS/Email copy.
+4. Automated Speed-to-Lead & If/Else Conditional Nurture Workflow
+   • Exact GHL Native Trigger (e.g. `Form Submitted: Form is [Name]`).
+   • If/Else Decision Branches (e.g. Qualified Lead vs General Inquiry).
+   • Complete workflow steps with exact timing, wait delays, internal team notifications, and full SMS/Email copy utilizing `{{ contact.first_name }}` and `{{ custom_values.xyz }}`.
 
-5. HighLevel Website/Funnel Native Implementation & Deployment Guide
+5. HighLevel Native Implementation & Snapshot Packaging Guide
    • Native Builder vs Custom Code: How to build with 80–95% native GHL elements, and how to embed custom interactive visual effects into GHL's Custom Code element.
    • Form webhook connection, workflow triggers, and lead notification setup.
+   • GHL Agency Snapshot Packaging: Step-by-step instructions on saving this system as a reusable Snapshot in GHL Agency View for instant 1-click deployment to new clients.
 
 DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
 {tool_block}
@@ -1223,27 +1266,29 @@ Output all 5 sections in this exact order with ZERO preamble text:
      - Step # | Step Name | Path/Slug | Page Type | GHL Native Section & Row Layout | Native GHL Widget/Element (Form Widget, Video, 2-Step Order Form, 1-Click Upsell, Calendar) | Native Styling Controls
    • Detail how each step is built natively in GHL's drag-and-drop builder so the client can easily modify copy, images, prices, and buttons without needing a developer.
 
-3. HighLevel Pipeline Stages, Custom Fields & Tags (Compact Markdown Tables)
+3. HighLevel Pipeline Stages, Custom Fields, Tags & Custom Values (Compact Markdown Tables)
    • Pipeline Stages: Order | Stage Name | Exact Entry Trigger | Exit / Win Condition
    • Contact Custom Fields: Field Name | Unique Key | Data Type | Implementation Note (Detail how client-side JS sends VSL watch progress via GHL Custom Inbound Webhook)
    • Contact Tags Taxonomy: Tag Name | Exact Application Trigger | Removal Trigger
+   • GHL Custom Values Table: Key (`custom_values.xyz`) | Suggested Value | Agency Purpose (Zero hardcoding; 1-click snapshot reusability)
    • Magic Link Security Architecture: Detail signed query parameters (`?token={{ contact.access_token }}&cid={{ contact.id }}`) validated via GHL custom value / webhook, not unauthenticated raw contact IDs.
 
-4. Production-Ready HighLevel Workflow Automations (Separate, Clean Workflows)
-   DO NOT mix lead follow-up and cart recovery into one vague text block. Provide complete, fully specified workflows with exact timings, if/else branch logic, and full SMS/Email copy:
-   • WORKFLOW 1: Instant VSL Access & Lead Delivery (Trigger, Opportunity stage, SMS + Email copy)
+4. Production-Ready HighLevel Workflow Automations with If/Else Branching
+   DO NOT mix lead follow-up and cart recovery into one vague text block. Provide complete, fully specified workflows with exact native GHL triggers, condition branches (If/Else), timing delays, and full SMS/Email copy:
+   • WORKFLOW 1: Instant VSL Access & Lead Delivery (Trigger: Form Submitted; If/Else: VIP Lead vs Standard; Opportunity stage; SMS + Email copy using merge tags)
    • WORKFLOW 2: 24-Hour Evergreen VSL Replay & Urgency Cadence (Lead Recovery: Wait 2h, Wait 6h, Wait 16h with exact copy)
-   • WORKFLOW 3: 2-Step Order Form Cart Abandonment Sequence (Cart Recovery: T+15m, T+4h, T+24h with core purchase stop-checks)
+   • WORKFLOW 3: 2-Step Order Form Cart Abandonment Sequence (Trigger: Two Step Order Form Unfinished; Wait 15m; If/Else: Has Tag 'Customer' -> Stop; T+15m, T+4h, T+24h emails/SMS)
    • WORKFLOW 4: Core Purchase & OTO Fulfillment (Payment triggers for exact core price and exact OTO price, tag management, custom fields)
    • WORKFLOW 5: Dual-Event Onboarding Activation (Appointment Confirmed + Portal Access)
 
-5. Post-Funnel Native GHL Implementation & Deployment Walkthrough
+5. Post-Funnel Native GHL Implementation, Audit & Snapshot Packaging Walkthrough
    • Provide the user with a clear, step-by-step technical implementation guide explaining:
      - How to build natively in GoHighLevel's Funnel Builder (80–95% Native Elements: native buttons, forms, 2-step checkout, calendars) vs Custom Code embed.
      - How to connect Stripe in HighLevel Sub-Account (Settings ➔ Payments ➔ Integrations).
      - How to set up the Inbound Webhook for VSL 80% watch tracking.
      - How to test the 2-step order form and verify cart abandonment in HighLevel.
      - Mobile-First Audit Checklist: Verifying native responsive controls on Desktop (1440px/1280px), Tablet (768px), and Mobile (430px/375px).
+     - GHL Agency Snapshot Packaging: Step-by-step procedure to package the entire funnel, workflows, custom fields, and custom values into a reusable agency snapshot for 1-click deployment across client accounts.
 
 DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
 {tool_block}
@@ -2023,6 +2068,10 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                 return ghl.create_contact_note(**tool_args)
             elif tool_name == "setup_gym_subaccount":
                 return ghl.setup_gym_subaccount()
+            elif tool_name == "setup_niche_subaccount":
+                return ghl.setup_niche_subaccount(**tool_args)
+            elif tool_name == "audit_subaccount":
+                return ghl.audit_subaccount()
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
         except Exception as e:

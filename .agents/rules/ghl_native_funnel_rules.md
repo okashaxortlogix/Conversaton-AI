@@ -791,6 +791,62 @@ without needing a developer for basic changes.
 
 ---
 
+# 24. GHL CUSTOM VALUES & DYNAMIC MERGE TAGS MANDATE
+
+Agency-grade GoHighLevel implementations **NEVER hardcode** business phone numbers, email addresses, office addresses, or calendar URLs in funnel copy, email notifications, or SMS sequences.
+
+### Mandatory Dynamic Variable Standards:
+* **Location Profile:** `{{ location.name }}`, `{{ location.phone }}`, `{{ location.email }}`, `{{ location.address }}`
+* **Custom Values:** `{{ custom_values.booking_calendar_url }}`, `{{ custom_values.primary_offer_price }}`, `{{ custom_values.support_sms_number }}`
+* **Contact Personalization:** `{{ contact.first_name }}`, `{{ contact.email }}`
+
+### Custom Values Blueprint:
+Every build must deliver a Custom Values Configuration Table specifying:
+1. Custom Value Name
+2. GHL Merge Syntax (`{{ custom_values.key }}`)
+3. Suggested Default Value
+4. Operational Purpose (Enabling instantaneous 1-click white-labeling across sub-accounts)
+
+---
+
+# 25. ENTERPRISE WORKFLOW AUTOMATION & IF/ELSE BRANCHING
+
+Workflows must never be described as generic "send SMS" steps. An expert GHL engineer specifies:
+
+### 1. Exact GHL Native Triggers & Filters:
+* `Form Submitted` (Filter: Form is [Form Name])
+* `Order Form Submission` (Filter: Submission Type is Sale, Funnel is [Funnel Name])
+* `Two Step Order Form (Unfinished)` (Filter: In Funnel [Funnel Name]) ➔ Abandoned Cart Trigger
+* `Appointment Status` (Filter: Calendar is [Calendar Name], Status is Confirmed)
+* `Contact Tag Added` (Filter: Tag is [Tag Name])
+
+### 2. If/Else Conditional Logic:
+* **Branch A (VIP / Qualified):** High lead score, specific custom field selection, or prior purchase history ➔ Instant high-touch outreach + internal team alert.
+* **Branch B (Standard / General):** Default nurture sequence + calendar booking invitation.
+
+### 3. Realistic Delays & Team Notifications:
+* Include explicit wait steps: `Wait: 2 minutes`, `Wait: 15 minutes (Cart Abandonment)`, `Wait until: 24 hours before appointment`.
+* Include internal team notifications (`Internal SMS / Email to Assigned User`).
+
+---
+
+# 26. GHL SNAPSHOT PACKAGING & REUSABILITY ARCHITECTURE
+
+All assets created (Funnels, Custom Fields, Custom Values, Tags, Opportunity Pipelines, Workflows) must be structured so they can be packaged into an **Agency Snapshot**:
+
+1. **Agency View Navigation:** `Agency Settings ➔ Settings ➔ Snapshots ➔ Create New Snapshot`.
+2. **Asset Selection:**
+   * Select the created Pipelines and Stage mappings.
+   * Select Custom Fields and Custom Values.
+   * Select Workflows and associated Email/SMS templates.
+   * Select Funnel / Landing Page templates.
+3. **1-Click Client Onboarding:**
+   * Load Snapshot into new client's Sub-Account.
+   * Populate the Custom Values table (5 minutes).
+   * System is 100% operational immediately without manual rewiring.
+
+---
+
 # FINAL RULE
 
 **Native GHL First. Native GHL Styling Second. Custom CSS Third. Custom JavaScript Last.**
@@ -802,3 +858,4 @@ Do not write code just because you can.
 Build for:
 
 **Conversion + Maintainability + GHL Compatibility + Responsiveness + Simplicity.**
+

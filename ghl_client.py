@@ -268,17 +268,27 @@ class GHLSubAccountClient:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def setup_gym_subaccount(self) -> Dict[str, Any]:
-        """Automated Setup of Gym & Fitness Center Sub-Account Architecture (Custom Fields, Tags, Pipelines)."""
-        from gym_architecture import GYM_CUSTOM_FIELDS_SCHEMA, GYM_TAGS_TAXONOMY, GYM_SALES_PIPELINE, GYM_RETENTION_PIPELINE
+    def setup_niche_subaccount(self, niche: str) -> Dict[str, Any]:
+        """Automated Setup of Niche Sub-Account Architecture (Gym, Real Estate, MedSpa/Dental, Solar/Roofing, Coaching)."""
+        from niche_architectures import NICHE_SCHEMAS
 
+        normalized_niche = niche.lower().strip().replace(" ", "_").replace("-", "_")
+        schema = NICHE_SCHEMAS.get(normalized_niche)
+        if not schema:
+            valid_keys = ["gym", "real_estate", "medspa", "solar", "coaching"]
+            return {
+                "success": False,
+                "error": f"Unsupported niche '{niche}'. Supported niches: {', '.join(valid_keys)}"
+            }
+
+        label = schema.get("label", niche.title())
         created_fields = 0
         created_tags = 0
         created_pipelines = 0
         errors = []
 
         # 1. Create Custom Fields
-        for field in GYM_CUSTOM_FIELDS_SCHEMA:
+        for field in schema.get("custom_fields", []):
             res = self.create_custom_field(
                 name=field["name"],
                 data_type=field.get("dataType", "TEXT"),
@@ -290,7 +300,7 @@ class GHLSubAccountClient:
                 errors.append(f"Field '{field['name']}': {res.get('error')}")
 
         # 2. Create Tags
-        for tag in GYM_TAGS_TAXONOMY:
+        for tag in schema.get("tags", []):
             res = self.create_tag(tag_name=tag)
             if res.get("success"):
                 created_tags += 1
@@ -298,19 +308,137 @@ class GHLSubAccountClient:
                 errors.append(f"Tag '{tag}': {res.get('error')}")
 
         # 3. Create Pipelines
-        p1 = self.create_pipeline(name=GYM_SALES_PIPELINE["name"], stages=GYM_SALES_PIPELINE["stages"])
-        if p1.get("success"): created_pipelines += 1
-        else: errors.append(f"Sales Pipeline: {p1.get('error')}")
-
-        p2 = self.create_pipeline(name=GYM_RETENTION_PIPELINE["name"], stages=GYM_RETENTION_PIPELINE["stages"])
-        if p2.get("success"): created_pipelines += 1
-        else: errors.append(f"Retention Pipeline: {p2.get('error')}")
+        for pipe in schema.get("pipelines", []):
+            res = self.create_pipeline(name=pipe["name"], stages=pipe["stages"])
+            if res.get("success"):
+                created_pipelines += 1
+            else:
+                errors.append(f"Pipeline '{pipe['name']}': {res.get('error')}")
 
         return {
             "success": True,
+            "niche": normalized_niche,
+            "label": label,
             "created_fields": created_fields,
             "created_tags": created_tags,
             "created_pipelines": created_pipelines,
+            "recommended_custom_values": schema.get("custom_values", []),
             "errors": errors,
-            "message": f"✅ Gym Sub-Account Architecture Setup Complete: {created_fields} Fields, {created_tags} Tags, {created_pipelines} Pipelines deployed."
+            "message": f"✅ {label} Sub-Account Architecture Setup Complete: {created_fields} Custom Fields, {created_tags} Tags, {created_pipelines} Pipelines deployed."
         }
+
+    def setup_gym_subaccount(self) -> Dict[str, Any]:
+        """Automated Setup of Gym & Fitness Center Sub-Account Architecture (Backward compatible)."""
+        return self.setup_niche_subaccount("gym")
+
+    def audit_subaccount(self) -> Dict[str, Any]:
+        """
+        Executes a comprehensive health audit of the connected GHL Sub-Account.
+        Scans pipelines, custom fields, tags, workflows, evaluates CRM maturity,
+        calculates a health score (0-100), and returns actionable recommendations.
+        """
+        if not self.location_id or not self.access_token:
+            return {"success": False, "error": "Location ID & Access Token missing. Cannot audit disconnected sub-account."}
+
+        conn = self.verify_connection()
+        if not conn.get("success"):
+            return {"success": False, "error": f"Failed to connect for audit: {conn.get('message')}"}
+
+        loc_name = conn.get("location_name", "Sub-Account")
+
+        pipes_res = self.get_pipelines()
+        fields_res = self.get_custom_fields()
+        tags_res = self.get_tags()
+        workflows_res = self.get_workflows()
+
+        pipelines = pipes_res.get("data", {}).get("pipelines", []) if pipes_res.get("success") else []
+        custom_fields = fields_res.get("data", {}).get("customFields", []) if fields_res.get("success") else []
+        tags = tags_res.get("data", {}).get("tags", []) if tags_res.get("success") else []
+        workflows = workflows_res.get("data", {}).get("workflows", []) if workflows_res.get("success") else []
+
+        score = 0
+        findings = []
+        recommendations = []
+
+        # A. Pipeline Evaluation (max 25 pts)
+        if len(pipelines) >= 2:
+            score += 25
+            findings.append(f"✅ Strong pipeline coverage: {len(pipelines)} pipelines found with multi-stage tracking.")
+        elif len(pipelines) == 1:
+            score += 15
+            findings.append(f"⚠️ Single pipeline found ({pipelines[0].get('name', 'Sales')}).")
+            recommendations.append("Add a secondary Post-Sale / Customer Retention & Nurture Pipeline.")
+        else:
+            score += 0
+            findings.append("❌ No Opportunity Pipelines found in this sub-account.")
+            recommendations.append("High Priority: Deploy a Sales Pipeline with defined stages (Lead In ➔ Discovery ➔ Qualified ➔ Offer Sent ➔ Won/Lost).")
+
+        # B. Custom Fields Evaluation (max 25 pts)
+        if len(custom_fields) >= 8:
+            score += 25
+            findings.append(f"✅ Rich custom data capture: {len(custom_fields)} custom fields configured.")
+        elif len(custom_fields) >= 3:
+            score += 15
+            findings.append(f"ℹ️ Basic custom fields present ({len(custom_fields)} fields).")
+            recommendations.append("Expand qualification custom fields (e.g. Budget Range, Timeline, Specific Bottleneck) to qualify leads before calls.")
+        else:
+            score += 5
+            findings.append(f"⚠️ Sparse custom field taxonomy ({len(custom_fields)} fields).")
+            recommendations.append("High Priority: Add industry-specific custom fields for automated lead scoring and CRM segmentation.")
+
+        # C. Tag Taxonomy Evaluation (max 25 pts)
+        if len(tags) >= 10:
+            score += 25
+            findings.append(f"✅ Robust tag taxonomy: {len(tags)} tags active across source/status lifecycle.")
+        elif len(tags) >= 4:
+            score += 15
+            findings.append(f"ℹ️ Moderate tag usage ({len(tags)} tags).")
+            recommendations.append("Adopt standard prefix naming convention (e.g. 'Src: Meta Ads', 'State: Booked', 'Tier: Hot').")
+        else:
+            score += 5
+            findings.append(f"⚠️ Minimal tag taxonomy ({len(tags)} tags).")
+            recommendations.append("High Priority: Implement lifecycle tags to prevent overlapping broadcast messaging.")
+
+        # D. Automation & Workflow Evaluation (max 25 pts)
+        active_workflows = [w for w in workflows if w.get("status") == "published" or w.get("active", True)]
+        has_speed_to_lead = any("speed" in w.get("name", "").lower() or "lead" in w.get("name", "").lower() or "new" in w.get("name", "").lower() for w in workflows)
+
+        if len(active_workflows) >= 3:
+            score += 20
+            findings.append(f"✅ Automation active: {len(active_workflows)} workflows found.")
+        elif len(active_workflows) >= 1:
+            score += 10
+            findings.append(f"ℹ️ Limited automation: {len(active_workflows)} workflow(s) found.")
+            recommendations.append("Deploy end-to-end follow-up sequences (No-Show recovery, Long-term drip nurture).")
+        else:
+            score += 0
+            findings.append("❌ No active workflows detected in sub-account.")
+            recommendations.append("Critical: Set up Instant Speed-to-Lead (<2 minute response) workflow immediately.")
+
+        if has_speed_to_lead:
+            score += 5
+            findings.append("✅ Speed-to-Lead workflow trigger detected.")
+        else:
+            recommendations.append("Add a dedicated Speed-to-Lead workflow with internal team SMS notifications.")
+
+        score = min(100, max(0, score))
+        tier = "Elite Enterprise" if score >= 85 else "Growth Grade" if score >= 65 else "Foundational / Needs Setup"
+
+        return {
+            "success": True,
+            "location_name": loc_name,
+            "location_id": self.location_id,
+            "health_score": score,
+            "grade_tier": tier,
+            "summary": {
+                "pipeline_count": len(pipelines),
+                "custom_field_count": len(custom_fields),
+                "tag_count": len(tags),
+                "workflow_count": len(workflows),
+                "active_workflow_count": len(active_workflows)
+            },
+            "findings": findings,
+            "recommendations": recommendations,
+            "message": f"📊 GHL Sub-Account Health Audit for '{loc_name}': {score}/100 ({tier})"
+        }
+

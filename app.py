@@ -122,6 +122,11 @@ class VerifyTokenRequest(BaseModel):
     location_id: str
     access_token: str
 
+class SetupNicheRequest(BaseModel):
+    location_id: str
+    access_token: str
+    niche: str = "gym"
+
 class RecordUsageRequest(BaseModel):
     model_id: str
     prompt_tokens: Optional[int] = 0
@@ -598,6 +603,18 @@ async def get_ghl_custom_fields(req: VerifyTokenRequest):
 async def setup_gym_architecture_endpoint(req: VerifyTokenRequest):
     client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
     res = client.setup_gym_subaccount()
+    return res
+
+@app.post("/api/ghl/setup-niche")
+async def setup_niche_architecture_endpoint(req: SetupNicheRequest):
+    client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
+    res = client.setup_niche_subaccount(req.niche)
+    return res
+
+@app.post("/api/ghl/audit")
+async def audit_ghl_subaccount_endpoint(req: VerifyTokenRequest):
+    client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
+    res = client.audit_subaccount()
     return res
 
 @app.post("/api/chat-agent")
