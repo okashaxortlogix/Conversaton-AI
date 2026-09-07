@@ -1,3 +1,9 @@
+"""
+Conversation AI Copilot - Agent Reasoning and Execution Engine
+=============================================================
+Manages prompt construction, multi-model AI routing (Gemini, Groq, OpenRouter),
+portfolio knowledge retrieval (RAG), and GoHighLevel automated tool execution.
+"""
 import os
 import re
 import json

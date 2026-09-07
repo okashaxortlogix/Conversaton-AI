@@ -1,3 +1,9 @@
+"""
+Model Usage and AI Token Tracker
+===============================
+Tracks token consumption, estimated costs, and rate limit quotas
+across Gemini, Groq, and OpenRouter models in real-time.
+"""
 import os
 import json
 import time

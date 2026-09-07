@@ -1,3 +1,17 @@
+"""
+Conversation AI Copilot - Main FastAPI Web Server
+==================================================
+Central server hosting the REST API, GoHighLevel OAuth endpoints,
+and the ChatGPT-style frontend interface.
+
+Key Routes:
+- GET  /                     -> Serves static/index.html web app
+- GET  /connect              -> Initiates GHL Marketplace OAuth 2.0 flow
+- GET  /oauth/callback       -> Handles GHL OAuth 2.0 authorization callback
+- POST /api/chat-agent       -> Streams multi-model AI copilot reasoning
+- POST /api/ghl/*            -> Direct sub-account operations (contacts, pipelines, tags)
+- POST /api/auth/*           -> User authentication and role-based access control
+"""
 import os
 import sys
 import json

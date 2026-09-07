@@ -1,3 +1,10 @@
+"""
+GoHighLevel (GHL) REST API v2 SDK and OAuth Client
+=================================================
+Provides clean wrapper classes and helper functions for:
+- OAuth 2.0 Authorization URL generation and Token Exchange
+- Sub-Account Asset Management (Contacts, Custom Fields, Pipelines, Opportunities, Tags, Tasks, Notes)
+"""
 import requests
 import json
 import logging
@@ -9,10 +16,10 @@ class GHLSubAccountClient:
     """
     GoHighLevel REST API v2 SDK for Sub-Account (Location) Asset Creation & Management.
     Official Base URL: https://services.leadconnectorhq.com
-    API Version Header: 2021-07-28
+    API Version Header: 2023-02-21
     """
     BASE_URL = "https://services.leadconnectorhq.com"
-    API_VERSION = "2021-07-28"
+    API_VERSION = "2023-02-21"
 
     def __init__(self, location_id: str, access_token: str):
         self.location_id = location_id.strip() if location_id else ""
