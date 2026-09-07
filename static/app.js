@@ -2984,7 +2984,19 @@ Please deliver:
             return null;
         }
 
-        // 4. Check for Landing Page Intent
+        // 4. Do NOT open modal if user already provided specific requirements, features, or details in their prompt!
+        // When user gives specific requirements (e.g. "Build a high-ticket coaching application funnel with custom values",
+        // "make a dental funnel with voucher form and 2 steps", "jis mein yeh features hon"), let the copilot generate directly in chat.
+        const promptWords = lower.split(/\s+/).filter(Boolean);
+        const hasSpecificRequirements =
+            /\b(custom\s*values?|merge\s*tags?|with\b|using\b|including\b|include\b|features?\b|having\b|application\b|intake\b|quiz\b|survey\b|oto\b|upsell\b|downsell\b|webinar\b|vsl\b|step\s*\d|\d\s*steps?|\d\s*pages?|checkout\b|stripe\b|pricing\b|offer\b|guarantee\b|theme\b|color\b|dark\s*mode|jis\s*mein|jismein|jis\s*me|jisme|ke\s*sath|aur\s+is\s*me|sath\s+me)\b/i.test(lower) ||
+            promptWords.length >= 7;
+
+        if (hasSpecificRequirements) {
+            return null;
+        }
+
+        // 5. Check for Landing Page Intent
         const hasLandingKeyword = /\b(landing\s*page|landingpage|single\s*page|one\s*page|lead\s*page)\b/i.test(lower);
         const hasFunnelKeyword = /\b(funnel|funnels|sales\s*funnel|vsl\s*funnel|multi\s*step\s*funnel)\b/i.test(lower);
 
