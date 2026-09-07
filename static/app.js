@@ -569,7 +569,80 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarProfileCard) sidebarProfileCard.addEventListener('click', openGhlModal);
     if (closeGhlModalBtn) closeGhlModalBtn.addEventListener('click', closeGhlModal);
     if (cancelGhlModalBtn) cancelGhlModalBtn.addEventListener('click', closeGhlModal);
-    if (saveGhlModalBtn) saveGhlModalBtn.addEventListener('click', handleSaveGhlCredentials);
+        if (saveGhlModalBtn) saveGhlModalBtn.addEventListener('click', handleSaveGhlCredentials);
+
+    // =========================================================================
+    // GoHighLevel 1-Click OAuth 2.0 Integration & Callback Handlers
+    // =========================================================================
+    const ghlOAuthBtn = document.getElementById('ghl-oauth-connect-btn');
+    if (ghlOAuthBtn) {
+        ghlOAuthBtn.addEventListener('click', async () => {
+            try {
+                ghlOAuthBtn.disabled = true;
+                const origHtml = ghlOAuthBtn.innerHTML;
+                ghlOAuthBtn.innerHTML = '<span>Redirecting to GoHighLevel...</span>';
+
+                const res = await fetch('/api/ghl/oauth/authorize-url');
+                const data = await res.json();
+
+                if (res.ok && data.success && data.authorization_url) {
+                    window.location.href = data.authorization_url;
+                } else {
+                    alert(data.message || 'OAuth configuration missing. Please ensure GHL_CLIENT_ID is set in .env.');
+                    ghlOAuthBtn.disabled = false;
+                    ghlOAuthBtn.innerHTML = origHtml;
+                }
+            } catch (err) {
+                console.error('OAuth initiation error:', err);
+                alert('Could not start OAuth flow. Please check your network or server logs.');
+                ghlOAuthBtn.disabled = false;
+                ghlOAuthBtn.innerHTML = '<span>Connect with GoHighLevel</span>';
+            }
+        });
+    }
+
+    // Auto-detect incoming OAuth authorization params (?ghl_connected=1 or ?code=...)
+    (async function checkIncomingOAuth() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('ghl_connected') === '1' || urlParams.get('ghl_connected') === 'true') {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            ghlConfig.locationId = localStorage.getItem('ghl_location_id') || '';
+            ghlConfig.accessToken = localStorage.getItem('ghl_access_token') || '';
+            ghlConfig.locationName = localStorage.getItem('ghl_location_name') || '';
+            updateGhlUI();
+        } else if (urlParams.has('code')) {
+            const code = urlParams.get('code');
+            window.history.replaceState({}, document.title, window.location.pathname);
+            if (openGhlModalBtn) openGhlModalBtn.textContent = 'Connecting OAuth...';
+
+            try {
+                const res = await fetch('/api/ghl/oauth/exchange', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code, redirect_uri: window.location.origin + window.location.pathname })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    ghlConfig.locationId = data.location_id;
+                    ghlConfig.accessToken = data.access_token;
+                    ghlConfig.locationName = data.location_name || 'GHL Sub-Account';
+
+                    localStorage.setItem('ghl_location_id', data.location_id);
+                    localStorage.setItem('ghl_access_token', data.access_token);
+                    if (data.refresh_token) localStorage.setItem('ghl_refresh_token', data.refresh_token);
+                    localStorage.setItem('ghl_location_name', ghlConfig.locationName);
+
+                    updateGhlUI();
+                } else {
+                    console.error('OAuth exchange error:', data);
+                    if (openGhlModalBtn) openGhlModalBtn.textContent = 'Connect Location';
+                }
+            } catch (e) {
+                console.error('Failed to exchange OAuth code:', e);
+                if (openGhlModalBtn) openGhlModalBtn.textContent = 'Connect Location';
+            }
+        }
+    })();
 
     // Initialize GHL UI state
     updateGhlUI();

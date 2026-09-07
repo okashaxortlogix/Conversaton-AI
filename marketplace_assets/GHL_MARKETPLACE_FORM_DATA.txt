@@ -1,0 +1,42 @@
+=====================================================
+GOHIGHLEVEL MARKETPLACE APP SUBMISSION DETAILS
+Project: Conversation AI Copilot
+By: XortLogix (Muhammad Okasha)
+=====================================================
+
+1. APP LOGO (Assets included in this folder):
+   - Primary Recommended: logo_primary_800x800.png (Clean 800x800, < 500KB, 1:1 Aspect Ratio)
+   - Alternative 512x512:  logo_primary_512x512.png (512x512, < 500KB)
+   - Vector SVG:          logo_vector.svg (Infinite resolution, < 10KB)
+   - Alternative Design:  logo_option_b_800x800.png (Minimalist gradient spark version)
+
+2. CATEGORY (Dropdown selection):
+   Select whichever is available in your dropdown (in order of priority):
+   - Option 1 (Best): "Artificial Intelligence" OR "AI"
+   - Option 2: "Automations" OR "Workflow Automation"
+   - Option 3: "Marketing"
+   - Option 4: "Conversations" OR "Communication"
+
+3. TAGLINE (Choose one of these tested, high-converting taglines):
+   - Option 1 (Recommended - 63 chars):
+     Autonomous AI Copilot for GoHighLevel CRM, Funnels & Actions
+
+   - Option 2 (Punchy & Direct - 57 chars):
+     Conversational AI Agent & Funnel Builder for Sub-Accounts
+
+   - Option 3 (Value-focused - 69 chars):
+     Supercharge your GHL sub-accounts with conversational AI & automation
+
+   - Option 4 (Enterprise - 74 chars):
+     Multi-Model AI Copilot to execute CRM mutations, funnels & GHL workflows
+
+4. BUSINESS NICHE (Dropdown selection):
+   Select whichever matches your dropdown:
+   - Option 1 (Recommended for maximum reach): "Marketing Agencies" OR "Agencies"
+   - Option 2: "General" OR "All Niches"
+   - Option 3: "Professional Services"
+
+5. SHORT SUMMARY / DESCRIPTION (In case GHL asks in the next step):
+   Conversation AI Copilot is an enterprise-grade AI execution agent built exclusively for GoHighLevel. Powered by multi-LLM intelligence (Gemini, Groq, OpenRouter), it allows agency owners and clients to automate CRM mutations, generate multi-step funnels, execute workflows, and perform sub-account actions via natural language conversations.
+
+=====================================================

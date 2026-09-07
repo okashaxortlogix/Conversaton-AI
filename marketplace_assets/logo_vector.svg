@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19" />
+      <stop offset="100%" stop-color="#05070e" />
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F2FE" />
+      <stop offset="50%" stop-color="#4FACFE" />
+      <stop offset="100%" stop-color="#0072FF" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect width="800" height="800" rx="160" fill="url(#bgGrad)" />
+
+  <!-- Outer Speech Bubble Glow -->
+  <path d="M 400 150 C 262 150 150 262 150 400 C 150 460 171 515 208 558 L 175 665 L 290 628 C 324 642 361 650 400 650 C 538 650 650 538 650 400 C 650 262 538 150 400 150 Z" 
+        fill="none" stroke="url(#cyanGrad)" stroke-width="16" filter="url(#glow)" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Inner Circuit / Neural Core -->
+  <circle cx="400" cy="385" r="32" fill="url(#cyanGrad)" />
+  <circle cx="310" cy="310" r="18" fill="#00F2FE" />
+  <circle cx="490" cy="310" r="18" fill="#00F2FE" />
+  <circle cx="280" cy="420" r="16" fill="#4FACFE" />
+  <circle cx="520" cy="420" r="16" fill="#4FACFE" />
+  <circle cx="340" cy="490" r="18" fill="#0072FF" />
+  <circle cx="460" cy="490" r="18" fill="#0072FF" />
+
+  <!-- Neural Connection Lines -->
+  <line x1="400" y1="385" x2="310" y2="310" stroke="#00F2FE" stroke-width="8" stroke-linecap="round" />
+  <line x1="400" y1="385" x2="490" y2="310" stroke="#00F2FE" stroke-width="8" stroke-linecap="round" />
+  <line x1="400" y1="385" x2="280" y2="420" stroke="#4FACFE" stroke-width="7" stroke-linecap="round" />
+  <line x1="400" y1="385" x2="520" y2="420" stroke="#4FACFE" stroke-width="7" stroke-linecap="round" />
+  <line x1="400" y1="385" x2="340" y2="490" stroke="#0072FF" stroke-width="8" stroke-linecap="round" />
+  <line x1="400" y1="385" x2="460" y2="490" stroke="#0072FF" stroke-width="8" stroke-linecap="round" />
+
+  <!-- Outer Ring Sparkle Nodes -->
+  <circle cx="400" cy="240" r="12" fill="#FFFFFF" />
+  <line x1="400" y1="385" x2="400" y2="240" stroke="#FFFFFF" stroke-width="5" stroke-dasharray="6,6" />
+
+  <!-- Futuristic Sparkle -->
+  <polygon points="530,250 540,230 550,250 570,260 550,270 540,290 530,270 510,260" fill="#FFFFFF" filter="url(#glow)" />
+</svg>

@@ -442,3 +442,169 @@ class GHLSubAccountClient:
             "message": f"📊 GHL Sub-Account Health Audit for '{loc_name}': {score}/100 ({tier})"
         }
 
+
+
+class GHLOAuthHandler:
+    """
+    GoHighLevel OAuth 2.0 Token Exchange and Authorization Handler.
+    Handles App Marketplace OAuth flows for Sub-Accounts and Agencies.
+    """
+    BASE_URL = "https://services.leadconnectorhq.com"
+    AUTH_URL = "https://marketplace.gohighlevel.com/oauth/chooselocation"
+
+    @staticmethod
+    def get_authorization_url(client_id: str, redirect_uri: str, scopes: Any) -> str:
+        import urllib.parse
+        scope_str = " ".join(scopes) if isinstance(scopes, list) else str(scopes)
+        params = {
+            "response_type": "code",
+            "redirect_uri": redirect_uri,
+            "client_id": client_id,
+            "scope": scope_str
+        }
+        return f"{GHLOAuthHandler.AUTH_URL}?{urllib.parse.urlencode(params)}"
+
+    @staticmethod
+    def exchange_code_for_token(client_id: str, client_secret: str, code: str, redirect_uri: str) -> Dict[str, Any]:
+        """
+        Exchanges authorization code for access_token, refresh_token, and locationId.
+        Endpoint: POST https://services.leadconnectorhq.com/oauth/token
+        """
+        url = f"{GHLOAuthHandler.BASE_URL}/oauth/token"
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        payload = {
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "grant_type": "authorization_code",
+            "code": code,
+            "user_type": "Location",
+            "redirect_uri": redirect_uri
+        }
+        try:
+            res = requests.post(url, data=payload, headers=headers, timeout=15)
+            if res.status_code == 200:
+                data = res.json()
+                return {
+                    "success": True,
+                    "access_token": data.get("access_token"),
+                    "refresh_token": data.get("refresh_token"),
+                    "token_type": data.get("token_type", "Bearer"),
+                    "expires_in": data.get("expires_in"),
+                    "location_id": data.get("locationId"),
+                    "company_id": data.get("companyId"),
+                    "user_id": data.get("userId"),
+                    "raw": data
+                }
+            else:
+                err_text = res.text
+                try:
+                    err_json = res.json()
+                    err_text = err_json.get("error_description") or err_json.get("message") or err_text
+                except Exception:
+                    pass
+                return {"success": False, "error": err_text, "status_code": res.status_code}
+        except Exception as e:
+            return {"success": False, "error": str(e), "status_code": 500}
+
+    @staticmethod
+    def refresh_access_token(client_id: str, client_secret: str, refresh_token: str) -> Dict[str, Any]:
+        """
+        Refreshes an expired GHL access token using refresh_token.
+        """
+        url = f"{GHLOAuthHandler.BASE_URL}/oauth/token"
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        payload = {
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "user_type": "Location"
+        }
+        try:
+            res = requests.post(url, data=payload, headers=headers, timeout=15)
+            if res.status_code == 200:
+                data = res.json()
+                return {"success": True, "data": data}
+            else:
+                return {"success": False, "error": res.text, "status_code": res.status_code}
+        except Exception as e:
+            return {"success": False, "error": str(e), "status_code": 500}
+
+
+# =====================================================================
+# Dedicated High-Level Connect & Callback Helper Functions
+# =====================================================================
+
+def connect_ghl(client_id: Optional[str] = None, redirect_uri: Optional[str] = None, scopes: Optional[Any] = None) -> str:
+    """
+    1-Click Connect Function for GoHighLevel:
+    Generates the official OAuth 2.0 authorization URL where users select
+    their sub-account and grant permissions.
+    """
+    import os
+    client_id = client_id or os.getenv("GHL_CLIENT_ID", "").strip()
+    redirect_uri = redirect_uri or os.getenv("GHL_REDIRECT_URI", "https://xortlogixai.up.railway.app/oauth/callback").strip()
+    scopes = scopes or os.getenv("GHL_SCOPES", (
+        "contacts.readonly contacts.write "
+        "opportunities.readonly opportunities.write "
+        "locations.readonly locations/customFields.readonly locations/customFields.write "
+        "locations/tags.readonly locations/tags.write "
+        "workflows.readonly conversations.readonly conversations.write"
+    ))
+    return GHLOAuthHandler.get_authorization_url(client_id, redirect_uri, scopes)
+
+
+def callback_ghl(code: str, client_id: Optional[str] = None, client_secret: Optional[str] = None, redirect_uri: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Callback Handler Function for GoHighLevel OAuth 2.0:
+    1. Receives authorization code from GHL redirect.
+    2. Exchanges code for access_token, refresh_token, and location_id.
+    3. Verifies and retrieves the Sub-Account name.
+    4. Returns fully structured connection dictionary.
+    """
+    import os
+    client_id = client_id or os.getenv("GHL_CLIENT_ID", "").strip()
+    client_secret = client_secret or os.getenv("GHL_CLIENT_SECRET", "").strip()
+    redirect_uri = redirect_uri or os.getenv("GHL_REDIRECT_URI", "https://xortlogixai.up.railway.app/oauth/callback").strip()
+
+    if not client_id or not client_secret:
+        return {
+            "success": False,
+            "error": "Missing GHL_CLIENT_ID or GHL_CLIENT_SECRET in environment.",
+            "status_code": 400
+        }
+
+    token_res = GHLOAuthHandler.exchange_code_for_token(
+        client_id=client_id,
+        client_secret=client_secret,
+        code=code,
+        redirect_uri=redirect_uri
+    )
+
+    if not token_res.get("success"):
+        return token_res
+
+    location_id = token_res.get("location_id", "")
+    access_token = token_res.get("access_token", "")
+    location_name = "GHL Sub-Account"
+
+    if location_id and access_token:
+        try:
+            client = GHLSubAccountClient(location_id=location_id, access_token=access_token)
+            verify = client.verify_connection()
+            if verify.get("success"):
+                location_name = verify.get("location_name", location_name)
+        except Exception as e:
+            logger.warning(f"Could not verify location name in callback: {e}")
+
+    return {
+        "success": True,
+        "location_id": location_id,
+        "location_name": location_name,
+        "access_token": access_token,
+        "refresh_token": token_res.get("refresh_token", ""),
+        "expires_in": token_res.get("expires_in"),
+        "user_id": token_res.get("user_id"),
+        "company_id": token_res.get("company_id"),
+        "message": f"Successfully connected to {location_name}!"
+    }

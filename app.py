@@ -12,7 +12,7 @@ from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse, HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -35,7 +35,7 @@ if os.path.exists(ENV_PATH):
     # override=False ensures host/cloud environment variables (such as Railway dynamic PORT) take priority
     load_dotenv(dotenv_path=ENV_PATH, override=False)
 
-from ghl_client import GHLSubAccountClient
+from ghl_client import GHLSubAccountClient, GHLOAuthHandler, connect_ghl, callback_ghl
 from agent_engine import GHLAgentExecutionEngine, MODELS_CATALOG, format_friendly_error_banner
 from usage_tracker import usage_tracker
 from key_pool_manager import openrouter_key_pool, gemini_key_pool
@@ -545,6 +545,264 @@ async def get_openrouter_pool_status():
         "active_key_masked": masked_key,
         "pool": openrouter_key_pool.get_pool_status()
     }
+
+
+
+class OAuthExchangeRequest(BaseModel):
+    code: str
+    redirect_uri: Optional[str] = None
+
+
+@app.get("/connect")
+@app.get("/api/ghl/connect")
+async def ghl_direct_connect(request: Request):
+    """
+    Direct 1-Click Connect Endpoint:
+    Visiting /connect or clicking Connect automatically redirects the user
+    to the official GoHighLevel OAuth 2.0 authorization screen.
+    """
+    client_id = os.getenv("GHL_CLIENT_ID", "").strip()
+    redirect_uri = os.getenv("GHL_REDIRECT_URI", "").strip()
+    if not redirect_uri:
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/oauth/callback"
+
+    if not client_id:
+        return HTMLResponse(
+            content="""<!DOCTYPE html><html><body style="background:#0f172a;color:#f59e0b;font-family:sans-serif;padding:40px;text-align:center;">
+            <h2>⚠️ GoHighLevel OAuth Setup Required</h2>
+            <p style="color:#cbd5e1;">Please add your <strong>GHL_CLIENT_ID</strong> and <strong>GHL_CLIENT_SECRET</strong> to your server .env variables.</p>
+            <a href="/" style="display:inline-block;margin-top:16px;padding:10px 20px;background:#10b981;color:#fff;text-decoration:none;border-radius:8px;">Back to Dashboard</a>
+            </body></html>""",
+            status_code=400
+        )
+
+    auth_url = connect_ghl(client_id=client_id, redirect_uri=redirect_uri)
+    return RedirectResponse(url=auth_url, status_code=302)
+
+@app.get("/api/ghl/oauth/authorize-url")
+async def get_ghl_oauth_authorize_url(request: Request):
+    """
+    Returns the official GoHighLevel OAuth 2.0 authorization URL
+    for Sub-Account / Location authorization.
+    """
+    client_id = os.getenv("GHL_CLIENT_ID", "").strip()
+    redirect_uri = os.getenv("GHL_REDIRECT_URI", "").strip()
+    if not redirect_uri:
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/oauth/callback"
+    
+    scopes = os.getenv("GHL_SCOPES", (
+        "contacts.readonly contacts.write "
+        "opportunities.readonly opportunities.write "
+        "locations.readonly locations/customFields.readonly locations/customFields.write "
+        "locations/tags.readonly locations/tags.write "
+        "workflows.readonly conversations.readonly conversations.write"
+    )).strip()
+
+    if not client_id:
+        return {
+            "success": False,
+            "message": "GHL_CLIENT_ID is not configured in .env. Please set GHL_CLIENT_ID and GHL_CLIENT_SECRET.",
+            "authorization_url": None
+        }
+
+    auth_url = GHLOAuthHandler.get_authorization_url(client_id, redirect_uri, scopes)
+    return {
+        "success": True,
+        "authorization_url": auth_url,
+        "client_id": client_id,
+        "redirect_uri": redirect_uri
+    }
+
+
+@app.post("/api/ghl/oauth/exchange")
+async def exchange_ghl_oauth_code(req: OAuthExchangeRequest, request: Request):
+    """
+    Exchanges an OAuth authorization code from GoHighLevel for access/refresh tokens.
+    """
+    client_id = os.getenv("GHL_CLIENT_ID", "").strip()
+    client_secret = os.getenv("GHL_CLIENT_SECRET", "").strip()
+    redirect_uri = req.redirect_uri or os.getenv("GHL_REDIRECT_URI", "").strip()
+    if not redirect_uri:
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/oauth/callback"
+
+    if not client_id or not client_secret:
+        raise HTTPException(
+            status_code=400,
+            detail="GHL_CLIENT_ID and GHL_CLIENT_SECRET must be configured in environment (.env)."
+        )
+
+    res = GHLOAuthHandler.exchange_code_for_token(
+        client_id=client_id,
+        client_secret=client_secret,
+        code=req.code,
+        redirect_uri=redirect_uri
+    )
+
+    if not res.get("success"):
+        raise HTTPException(status_code=400, detail=res.get("error", "OAuth token exchange failed."))
+
+    access_token = res.get("access_token", "")
+    location_id = res.get("location_id", "")
+    location_name = "GHL Sub-Account"
+
+    if location_id and access_token:
+        try:
+            client = GHLSubAccountClient(location_id=location_id, access_token=access_token)
+            verify_res = client.verify_connection()
+            if verify_res.get("success"):
+                location_name = verify_res.get("location_name", location_name)
+        except Exception as e:
+            logger.warning(f"Could not retrieve location name post-OAuth: {e}")
+
+    return {
+        "success": True,
+        "location_id": location_id,
+        "access_token": access_token,
+        "refresh_token": res.get("refresh_token", ""),
+        "expires_in": res.get("expires_in"),
+        "location_name": location_name,
+        "message": f"Successfully connected to {location_name} via OAuth 2.0"
+    }
+
+
+@app.get("/oauth/callback")
+@app.get("/api/ghl/oauth/callback")
+async def ghl_oauth_callback(
+    request: Request,
+    code: Optional[str] = None,
+    error: Optional[str] = None,
+    error_description: Optional[str] = None
+):
+    """
+    Official OAuth 2.0 callback endpoint invoked by GoHighLevel upon app installation.
+    Exchanges code, saves tokens to browser localStorage, and redirects to dashboard.
+    """
+    if error:
+        err_msg = error_description or error
+        html_err = f"""<!DOCTYPE html>
+<html>
+<head><title>GHL OAuth Error</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="background:#0f172a; color:#f87171; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
+    <div style="background:#1e293b; padding:32px; border-radius:12px; border:1px solid #ef4444; max-width:480px; text-align:center;">
+        <h2 style="margin-top:0; color:#ef4444;">Authorization Failed</h2>
+        <p style="color:#cbd5e1;">{err_msg}</p>
+        <a href="/" style="display:inline-block; margin-top:16px; padding:10px 20px; background:#10b981; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Back to Dashboard</a>
+    </div>
+</body>
+</html>"""
+        return HTMLResponse(content=html_err, status_code=400)
+
+    if not code:
+        html_no_code = """<!DOCTYPE html>
+<html>
+<head><title>GHL OAuth - No Code</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="background:#0f172a; color:#cbd5e1; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
+    <div style="background:#1e293b; padding:32px; border-radius:12px; max-width:480px; text-align:center;">
+        <h2 style="color:#38bdf8; margin-top:0;">No Authorization Code Found</h2>
+        <p>Please initiate connection from your GoHighLevel Sub-Account or App Marketplace.</p>
+        <a href="/" style="display:inline-block; margin-top:16px; padding:10px 20px; background:#10b981; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Return to Copilot</a>
+    </div>
+</body>
+</html>"""
+        return HTMLResponse(content=html_no_code, status_code=200)
+
+    client_id = os.getenv("GHL_CLIENT_ID", "").strip()
+    client_secret = os.getenv("GHL_CLIENT_SECRET", "").strip()
+    redirect_uri = os.getenv("GHL_REDIRECT_URI", "").strip()
+    if not redirect_uri:
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/oauth/callback"
+
+    if not client_id or not client_secret:
+        html_no_creds = f"""<!DOCTYPE html>
+<html>
+<head><title>GHL OAuth Setup Required</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="background:#0f172a; color:#cbd5e1; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
+    <div style="background:#1e293b; padding:32px; border-radius:12px; border:1px solid #f59e0b; max-width:520px; text-align:center;">
+        <h2 style="color:#f59e0b; margin-top:0;">Setup Required: Client ID & Secret</h2>
+        <p style="color:#cbd5e1;">Authorization code received from GHL (<code>{code[:12]}...</code>), but <strong>GHL_CLIENT_ID</strong> and <strong>GHL_CLIENT_SECRET</strong> are not configured in your server .env file yet.</p>
+        <p style="font-size:13px; color:#94a3b8;">Add your GHL Client ID and Client Secret in your Railway environment variables, then retry.</p>
+        <a href="/" style="display:inline-block; margin-top:16px; padding:10px 20px; background:#10b981; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Back to Dashboard</a>
+    </div>
+</body>
+</html>"""
+        return HTMLResponse(content=html_no_creds, status_code=200)
+
+    res = GHLOAuthHandler.exchange_code_for_token(
+        client_id=client_id,
+        client_secret=client_secret,
+        code=code,
+        redirect_uri=redirect_uri
+    )
+
+    if not res.get("success"):
+        err_detail = res.get("error", "Unknown token exchange failure")
+        html_fail = f"""<!DOCTYPE html>
+<html>
+<head><title>GHL Token Exchange Failed</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="background:#0f172a; color:#f87171; font-family:sans-serif; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
+    <div style="background:#1e293b; padding:32px; border-radius:12px; border:1px solid #ef4444; max-width:500px; text-align:center;">
+        <h2 style="color:#ef4444; margin-top:0;">Token Exchange Failed</h2>
+        <p style="color:#cbd5e1;">{err_detail}</p>
+        <a href="/" style="display:inline-block; margin-top:16px; padding:10px 20px; background:#10b981; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Back to Dashboard</a>
+    </div>
+</body>
+</html>"""
+        return HTMLResponse(content=html_fail, status_code=400)
+
+    access_token = res.get("access_token", "")
+    refresh_token = res.get("refresh_token", "")
+    location_id = res.get("location_id", "")
+    location_name = "GoHighLevel Sub-Account"
+
+    if location_id and access_token:
+        try:
+            client = GHLSubAccountClient(location_id=location_id, access_token=access_token)
+            verify_res = client.verify_connection()
+            if verify_res.get("success"):
+                location_name = verify_res.get("location_name", location_name)
+        except Exception as e:
+            logger.warning(f"Could not verify location name: {e}")
+
+    html_success = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>Connecting GoHighLevel...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {{ background: #0b0f19; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }}
+        .card {{ background: #131b2e; border: 1px solid #10b981; border-radius: 16px; padding: 36px 32px; max-width: 440px; text-align: center; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.2); }}
+        .spinner {{ width: 44px; height: 44px; border: 4px solid #1e293b; border-top: 4px solid #10b981; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto; }}
+        @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="spinner"></div>
+        <h2 style="margin: 0 0 10px 0; font-size: 20px; color: #10b981;">Connected to GoHighLevel!</h2>
+        <p style="color: #94a3b8; font-size: 14px; margin: 0 0 14px 0;">Location: <strong style="color: #f8fafc;">{location_name}</strong></p>
+        <p style="font-size: 13px; color: #64748b;">Redirecting to your Copilot workspace...</p>
+    </div>
+    <script>
+        try {{
+            localStorage.setItem('ghl_location_id', '{location_id}');
+            localStorage.setItem('ghl_access_token', '{access_token}');
+            localStorage.setItem('ghl_refresh_token', '{refresh_token}');
+            localStorage.setItem('ghl_location_name', '{location_name}');
+        }} catch(e) {{
+            console.error('Storage error:', e);
+        }}
+        setTimeout(function() {{
+            window.location.href = '/?ghl_connected=1';
+        }}, 1200);
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html_success, status_code=200)
+
 
 @app.post("/api/ghl/verify-token")
 async def verify_ghl_token(req: VerifyTokenRequest):
