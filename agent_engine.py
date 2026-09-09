@@ -1053,17 +1053,31 @@ The final result must look professional, modern, and conversion-focused while re
         if is_ghl_connected:
             tool_block = f"""
 =============================================================================
-AUTONOMOUS GHL API TOOL EXECUTION & PLATFORM ARCHITECTURE RULES
+AUTONOMOUS GHL API TOOL EXECUTION & MAXIMUM DELIVERY PROTOCOL
 =============================================================================
 - Connected GHL Sub-Account Location ID: {location_id}.
-- When the user asks you to create or configure assets directly in their HighLevel sub-account, invoke the native tools (`create_contact`, `create_pipeline`, `create_tag`, `create_custom_field`, `create_custom_value`, `create_opportunity`, `setup_niche_subaccount`, `audit_subaccount`, `get_workflows`, `get_custom_values`, `get_location_details`).
-- GHL REST API v2 ARCHITECTURAL BOUNDARIES & USER MANDATE:
-  1. GoHighLevel's official REST API v2 does NOT provide endpoints to programmatically paint or draw new pages/steps inside the drag-and-drop Visual Funnel Builder canvas, nor visual action blocks in the Workflow Canvas.
-  2. When the user asks to "generate a funnel in my subaccount" or "generate a workflow in my subaccount":
-     a) FIRST: Automatically invoke the relevant tool calls to create the CRM backend prerequisites in the subaccount (e.g. Sales Pipeline & stages, Custom Fields, Custom Values, and Lifecycle Tags).
-     b) SECOND: Provide the 100% complete, production-ready interactive single-file Funnel Code (HTML/Tailwind/JS) that they can paste directly into GHL's Funnel "Custom Code" element or embed, alongside the exact Native GHL Element Step Hierarchy.
-     c) THIRD: Provide the complete HighLevel Workflows with exact native Triggers, If/Else branches, delays, and ready-to-use SMS/Email copy.
-     d) CLEARLY EXPLAIN to the user what assets were created directly in their subaccount via API, and give them the 2-minute activation instructions for the funnel and workflow.
+- MAXIMUM AUTONOMOUS EXECUTION MANDATE:
+  1. DO EVERYTHING POSSIBLE VIA GHL API:
+     Whenever the user asks to build, create, or set up a Funnel, Landing Page, Workflow, or CRM architecture:
+     a) FIRST: Automatically invoke all relevant GHL API tools to deploy CRM assets (create_tag, create_pipeline, create_custom_field, create_custom_value, setup_niche_subaccount).
+     b) If an API call fails (e.g. 401 Permission Notice), report it honestly with the exact GHL scope to check, but continue to deliver the rest of the assets and code.
+  2. COMPLETE PRODUCTION CODE DELIVERY:
+     Always deliver the 100% complete, self-contained single-file HTML/CSS/JS code block (```html:descriptive_name.html ... </html>```) with interactive discrete step navigation (`switchStep(n)`), responsive design, validated inputs, and zero placeholders.
+  3. 2-MINUTE GHL SETTINGS & IMPLEMENTATION GUIDE:
+     Right after the code, provide the exact 5-step guide showing how to implement this in GHL (Sites ➔ Funnels ➔ Add Custom Code element ➔ Open Code Editor ➔ Paste ➔ Publish).
+  4. PRODUCTION WORKFLOWS:
+     Provide the complete connected HighLevel Workflows with exact triggers, if/else branches, delays, and ready-to-use SMS/Email templates.
+  5. MANDATORY END-OF-RESPONSE ACTION SUMMARY TABLE:
+     At the very end of EVERY execution response, you MUST output this summary table:
+     ---
+     ### 📊 Execution & Implementation Summary:
+     | Action / Asset | Method | Execution Status | Details |
+     |---|---|---|---|
+     | Tags | GHL API | ✅ Created / Status | [Tags created in sub-account] |
+     | Pipeline | GHL API | [Status] | [Pipeline name & stages] |
+     | Custom Values / Fields | GHL API | [Status] | [Values or fields created] |
+     | Funnel / Page Code | Generated File | 🚀 Ready to Paste | 100% complete single-file code provided above |
+     | Next Action for User | GHL Step | ⚡ 2-Minute Action | [Exact next step to activate in GHL] |
 """
 
         # Direct Q&A, Job Proposals, Consultations, or Direct Asset Commands
@@ -1700,18 +1714,46 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                     msg = result.get("message") or result.get("error") or json.dumps(result)
                     tool_results_summary.append(f"Tool `{tool_name}` result: {msg}")
 
-                synthesis_prompt = f"User Request: {prompt}\n\nActions Taken:\n" + "\n".join(tool_results_summary) + "\n\nProvide a friendly final response confirming the action taken in the GHL Sub-Account."
+                is_funnel_or_page = any(kw in prompt.lower() for kw in [
+                    "funnel", "landing page", "page", "website", "sales page", "optin", "checkout", "vsl", "lead magnet", "lead page"
+                ])
+                if is_funnel_or_page:
+                    synthesis_prompt = (
+                        f"User Request: {prompt}\n\n"
+                        f"Actions Taken in GHL Sub-Account via API:\n" + "\n".join(tool_results_summary) + "\n\n"
+                        "MANDATORY EXECUTION & IMPLEMENTATION INSTRUCTIONS:\n"
+                        "1. State what succeeded in the sub-account and if any permission 401 notice occurred, clearly state the missing scope.\n"
+                        "2. Output the complete 100% production-ready, self-contained single-file HTML/CSS/JS code (```html:descriptive_name.html <!DOCTYPE html> ... </html>```) with working discrete step navigation (`switchStep(n)`), modern styling, input validation, and zero placeholders.\n"
+                        "3. Provide the 5-step 'How to Implement this Funnel in GoHighLevel in 2 Minutes' guide (Sites ➔ Funnels ➔ + New Funnel ➔ Add Custom Code element ➔ Open Code Editor ➔ Paste ➔ Publish).\n"
+                        "4. Provide the connected HighLevel Workflows (triggers, delays, SMS/Email copy).\n"
+                        "5. Conclude with the Execution & Implementation Summary Table detailing what was created via API and what was delivered as code."
+                    )
+                else:
+                    synthesis_prompt = (
+                        f"User Request: {prompt}\n\n"
+                        f"Actions Taken in GHL Sub-Account via API:\n" + "\n".join(tool_results_summary) + "\n\n"
+                        "Provide a friendly, comprehensive final response confirming the actions taken in the GHL Sub-Account. "
+                        "Always conclude with an Action Summary & Execution Report table showing what was executed via API and any next steps."
+                    )
+
                 synth_text = "Action execution complete."
+                synth_client = current_client or self.gemini_client
                 for mod in candidate_models:
                     try:
-                        synth_res = self.gemini_client.models.generate_content(
+                        synth_res = synth_client.models.generate_content(
                             model=mod,
-                            contents=synthesis_prompt
+                            contents=synthesis_prompt,
+                            config=types.GenerateContentConfig(
+                                max_output_tokens=8192,
+                                temperature=0.3,
+                                system_instruction=system_instruction
+                            )
                         )
                         if synth_res and synth_res.text:
                             synth_text = synth_res.text
                             break
-                    except Exception:
+                    except Exception as e_syn:
+                        logger.warning(f"Synthesis with model {mod} failed: {e_syn}")
                         pass
 
                 yield from stream_text_tokens(synth_text)
@@ -2034,10 +2076,23 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                     tool_results_summary.append(f"Tool {tool_name} executed: {res.get('success', False)}")
 
                 # Second turn after tool call
+                is_funnel_or_page = any(kw in prompt.lower() for kw in [
+                    "funnel", "landing page", "page", "website", "sales page", "optin", "checkout", "vsl", "lead magnet"
+                ])
+                if is_funnel_or_page:
+                    messages.append({
+                        "role": "user",
+                        "content": (
+                            "Now output the complete 100% production-ready single-file HTML/CSS/JS funnel code (```html:descriptive_name.html ... </html>```), "
+                            "the 5-step 'How to Implement this Funnel in GoHighLevel in 2 Minutes' guide (Sites ➔ Funnels ➔ Custom Code element ➔ Paste ➔ Publish), "
+                            "the connected HighLevel Workflows, and conclude with the Action Summary table."
+                        )
+                    })
+
                 follow_up_payload = {
                     "model": model_name,
                     "messages": messages,
-                    "temperature": 0.1,
+                    "temperature": 0.2,
                     "max_tokens": target_max_tokens
                 }
                 follow_resp = requests.post(api_url, headers=headers, json=follow_up_payload, timeout=45)
