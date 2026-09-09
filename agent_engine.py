@@ -630,6 +630,198 @@ GHL_TOOLS_DECLARATIONS = [
                 "calendar_id": {"type": "STRING", "description": "Optional specific calendar ID to filter by"}
             }
         }
+    },
+    # =====================================================================
+    # NEW: Extended GHL API v2 Tool Declarations (15 additions)
+    # =====================================================================
+    {
+        "name": "get_contact",
+        "description": "Fetch a single contact's full details by their GHL Contact ID.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "contact_id": {"type": "STRING", "description": "GHL Contact ID to look up"}
+            },
+            "required": ["contact_id"]
+        }
+    },
+    {
+        "name": "update_contact",
+        "description": "Update an existing contact's fields (name, email, phone, tags, custom fields) in the GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "contact_id": {"type": "STRING", "description": "GHL Contact ID to update"},
+                "first_name": {"type": "STRING", "description": "Updated first name"},
+                "last_name": {"type": "STRING", "description": "Updated last name"},
+                "email": {"type": "STRING", "description": "Updated email address"},
+                "phone": {"type": "STRING", "description": "Updated phone number"},
+                "tags": {"type": "ARRAY", "items": {"type": "STRING"}, "description": "Updated tags list (replaces existing tags)"}
+            },
+            "required": ["contact_id"]
+        }
+    },
+    {
+        "name": "delete_contact",
+        "description": "Permanently delete a contact from the GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "contact_id": {"type": "STRING", "description": "GHL Contact ID to delete"}
+            },
+            "required": ["contact_id"]
+        }
+    },
+    {
+        "name": "get_tags",
+        "description": "Fetch all Tags configured in the connected GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
+    },
+    {
+        "name": "delete_tag",
+        "description": "Delete a tag from the GHL Sub-Account by its tag ID.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "tag_id": {"type": "STRING", "description": "GHL Tag ID to delete"}
+            },
+            "required": ["tag_id"]
+        }
+    },
+    {
+        "name": "get_opportunities",
+        "description": "Fetch all opportunities/deals in the sub-account, optionally filtered by pipeline ID.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "pipeline_id": {"type": "STRING", "description": "Optional pipeline ID to filter opportunities by"}
+            }
+        }
+    },
+    {
+        "name": "update_opportunity",
+        "description": "Update an existing opportunity/deal (title, status, monetary value, pipeline, stage).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "opportunity_id": {"type": "STRING", "description": "GHL Opportunity ID to update"},
+                "title": {"type": "STRING", "description": "Updated opportunity title"},
+                "status": {"type": "STRING", "description": "Updated status: open, won, lost, abandoned"},
+                "monetary_value": {"type": "NUMBER", "description": "Updated monetary value of the deal"},
+                "pipeline_id": {"type": "STRING", "description": "Move to a different pipeline"},
+                "stage_id": {"type": "STRING", "description": "Move to a different stage"}
+            },
+            "required": ["opportunity_id"]
+        }
+    },
+    {
+        "name": "delete_opportunity",
+        "description": "Delete an opportunity/deal from the GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "opportunity_id": {"type": "STRING", "description": "GHL Opportunity ID to delete"}
+            },
+            "required": ["opportunity_id"]
+        }
+    },
+    {
+        "name": "get_conversations",
+        "description": "Fetch conversation threads from the GHL Sub-Account, optionally filtered by contact ID.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "contact_id": {"type": "STRING", "description": "Optional GHL Contact ID to filter conversations for a specific contact"}
+            }
+        }
+    },
+    {
+        "name": "create_calendar",
+        "description": "Create a new booking calendar in the GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "name": {"type": "STRING", "description": "Name of the calendar (e.g. 'Discovery Call', 'Free Consultation')"},
+                "description": {"type": "STRING", "description": "Optional calendar description"},
+                "slug": {"type": "STRING", "description": "Optional URL slug for the booking page"},
+                "event_type": {"type": "STRING", "description": "Event type (default: RoundRobin_OptimizeForAvailability)"}
+            },
+            "required": ["name"]
+        }
+    },
+    {
+        "name": "create_appointment",
+        "description": "Book an appointment on a calendar for a contact in the GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "calendar_id": {"type": "STRING", "description": "GHL Calendar ID to book into"},
+                "contact_id": {"type": "STRING", "description": "GHL Contact ID for the appointment"},
+                "start_time": {"type": "STRING", "description": "ISO 8601 start time (e.g. 2026-09-15T10:00:00Z)"},
+                "end_time": {"type": "STRING", "description": "ISO 8601 end time (e.g. 2026-09-15T10:30:00Z)"},
+                "title": {"type": "STRING", "description": "Appointment title (default: 'Appointment')"},
+                "appointment_status": {"type": "STRING", "description": "Status: confirmed, cancelled, showed, noshow (default: confirmed)"}
+            },
+            "required": ["calendar_id", "contact_id", "start_time", "end_time"]
+        }
+    },
+    {
+        "name": "delete_custom_field",
+        "description": "Delete a custom field from the GHL Sub-Account by field ID.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "field_id": {"type": "STRING", "description": "GHL Custom Field ID to delete"}
+            },
+            "required": ["field_id"]
+        }
+    },
+    {
+        "name": "get_custom_fields",
+        "description": "Fetch all Custom Fields configured in the connected GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
+    },
+    {
+        "name": "get_funnels",
+        "description": "Fetch all funnels configured in the connected GHL Sub-Account (read-only listing).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
+    },
+    {
+        "name": "get_funnel_pages",
+        "description": "Fetch all pages within a specific funnel in the GHL Sub-Account (read-only listing).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "funnel_id": {"type": "STRING", "description": "GHL Funnel ID to list pages for"}
+            },
+            "required": ["funnel_id"]
+        }
+    },
+    {
+        "name": "update_location",
+        "description": "Update the connected GHL Sub-Account settings (business name, phone, email, address, website).",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "name": {"type": "STRING", "description": "Updated sub-account business name"},
+                "phone": {"type": "STRING", "description": "Updated phone number"},
+                "email": {"type": "STRING", "description": "Updated email address"},
+                "address": {"type": "STRING", "description": "Updated street address"},
+                "city": {"type": "STRING", "description": "Updated city"},
+                "state": {"type": "STRING", "description": "Updated state/province"},
+                "postal_code": {"type": "STRING", "description": "Updated postal/zip code"},
+                "website": {"type": "STRING", "description": "Updated website URL"}
+            }
+        }
     }
 ]
 
@@ -1077,14 +1269,29 @@ The final result must look professional, modern, and conversion-focused while re
 AUTONOMOUS GHL API TOOL EXECUTION & MAXIMUM DELIVERY PROTOCOL
 =============================================================================
 - Connected GHL Sub-Account Location ID: {location_id}.
+- YOU HAVE 33 GHL API TOOLS AVAILABLE. Use them to do EVERYTHING possible in the sub-account:
+  CONTACT MANAGEMENT: create_contact, search_contacts, get_contact, update_contact, delete_contact
+  PIPELINE & DEALS: create_pipeline, get_pipelines, create_opportunity, get_opportunities, update_opportunity, delete_opportunity
+  TAGS: create_tag, get_tags, delete_tag
+  CUSTOM FIELDS & VALUES: create_custom_field, get_custom_fields, delete_custom_field, create_custom_value, get_custom_values
+  CALENDARS & APPOINTMENTS: get_calendars, get_calendar_events, create_calendar, create_appointment
+  CONVERSATIONS & MESSAGING: send_conversation_message, get_conversations
+  LOCATION & SETTINGS: get_location_details, update_location
+  FUNNELS (READ-ONLY): get_funnels, get_funnel_pages
+  WORKFLOWS (READ-ONLY): get_workflows
+  NICHE SETUP: setup_niche_subaccount, setup_gym_subaccount
+  AUDIT: audit_subaccount
+  TASKS & NOTES: create_contact_task, create_contact_note
+
 - STRICT ZERO-HALLUCINATION TOOL EXECUTION RULES:
   1. ONLY invoke tools directly relevant to the user's immediate message.
   2. NEVER call `create_contact` or create dummy/sample leads (such as 'Ali Raza' or any names from chat history) unless the user's active prompt explicitly says: "create a contact for [name]".
   3. For Funnels, Websites, and Landing Pages: ONLY create relevant lifecycle Tags (e.g. `whitening-lead`) or Pipelines if requested. NEVER create contacts!
   4. If an API tool call returns 401 Permission Notice, report it cleanly in the final table without failing.
+
 - MAXIMUM AUTONOMOUS EXECUTION MANDATE:
   1. DO EVERYTHING POSSIBLE VIA GHL API:
-     Deploy relevant CRM assets (tags, pipeline).
+     Deploy ALL relevant CRM assets (tags, pipelines, custom fields, custom values, calendars, appointments, contacts, opportunities) using the 33 available tools.
   2. COMPLETE PRODUCTION CODE DELIVERY:
      Always deliver the 100% complete, self-contained single-file HTML/CSS/JS code block (```html:descriptive_name.html ... </html>```) with interactive discrete step navigation (`switchStep(n)`), responsive design, validated inputs, and zero placeholders.
   3. 2-MINUTE GHL SETTINGS & IMPLEMENTATION GUIDE:
@@ -1101,6 +1308,33 @@ AUTONOMOUS GHL API TOOL EXECUTION & MAXIMUM DELIVERY PROTOCOL
      | Pipeline | GHL API | [Status] | [Pipeline name & stages] |
      | Funnel / Page Code | Generated File | 🚀 Ready to Paste | 100% complete single-file code provided above |
      | Next Action for User | GHL Step | ⚡ 2-Minute Action | [Exact next step to activate in GHL] |
+
+- SMART FALLBACK FOR API-UNSUPPORTED OPERATIONS:
+  The GHL API does NOT support creating: funnels/funnel pages, workflows, forms, websites, or email templates programmatically. These require the GHL visual builder. When the user asks for these, use this enhanced fallback strategy:
+
+  A. "CREATE A FUNNEL" REQUEST:
+     1. Via API: Create all supporting CRM assets (tags via create_tag, pipeline via create_pipeline, custom fields via create_custom_field, custom values via create_custom_value, calendar via create_calendar).
+     2. Generate: Complete production-ready HTML/CSS/JS funnel code (single-file, self-contained, with switchStep navigation).
+     3. Provide: Step-by-step GHL implementation guide (Sites ➔ Funnels ➔ Custom Code ➔ Paste ➔ Publish).
+
+  B. "CREATE A WORKFLOW" REQUEST:
+     1. Via API: Create all supporting assets (tags, custom fields, pipelines).
+     2. Generate: Detailed workflow blueprint with exact trigger type, conditions, wait/delay steps, if/else branches, and complete SMS/Email template copy.
+     3. Provide: Step-by-step GHL Workflow Builder guide (Automation ➔ Workflows ➔ + Create Workflow ➔ Add Trigger ➔ Build Actions).
+
+  C. "CREATE A FORM" REQUEST:
+     1. Via API: Create supporting tags and custom fields for form data capture.
+     2. Generate: Complete form HTML/CSS/JS code ready to paste.
+     3. Provide: GHL Form Builder guide (Sites ➔ Forms ➔ + New Form ➔ Add Fields ➔ Publish) OR Custom Code embed instructions.
+
+  D. "CREATE AN EMAIL TEMPLATE" REQUEST:
+     1. Generate: Complete HTML email template code with responsive design.
+     2. Provide: GHL Email Builder guide (Marketing ➔ Emails ➔ Templates ➔ + New ➔ Code Editor ➔ Paste).
+
+  E. "CREATE A WEBSITE" REQUEST:
+     1. Via API: Create supporting assets.
+     2. Generate: Complete production website HTML/CSS/JS code.
+     3. Provide: GHL Website Builder guide (Sites ➔ Websites ➔ + New Website ➔ Custom Code).
 """
 
         # Direct Q&A, Job Proposals, Consultations, or Direct Asset Commands
@@ -2221,6 +2455,41 @@ STRICT PROHIBITION:
                 return ghl.get_calendars()
             elif tool_name == "get_calendar_events":
                 return ghl.get_calendar_events(**tool_args)
+            # =====================================================================
+            # NEW: Extended GHL API v2 Dispatch (15 additions)
+            # =====================================================================
+            elif tool_name == "get_contact":
+                return ghl.get_contact(**tool_args)
+            elif tool_name == "update_contact":
+                return ghl.update_contact(**tool_args)
+            elif tool_name == "delete_contact":
+                return ghl.delete_contact(**tool_args)
+            elif tool_name == "get_tags":
+                return ghl.get_tags()
+            elif tool_name == "delete_tag":
+                return ghl.delete_tag(**tool_args)
+            elif tool_name == "get_opportunities":
+                return ghl.get_opportunities(**tool_args)
+            elif tool_name == "update_opportunity":
+                return ghl.update_opportunity(**tool_args)
+            elif tool_name == "delete_opportunity":
+                return ghl.delete_opportunity(**tool_args)
+            elif tool_name == "get_conversations":
+                return ghl.get_conversations(**tool_args)
+            elif tool_name == "create_calendar":
+                return ghl.create_calendar(**tool_args)
+            elif tool_name == "create_appointment":
+                return ghl.create_appointment(**tool_args)
+            elif tool_name == "delete_custom_field":
+                return ghl.delete_custom_field(**tool_args)
+            elif tool_name == "get_custom_fields":
+                return ghl.get_custom_fields()
+            elif tool_name == "get_funnels":
+                return ghl.get_funnels()
+            elif tool_name == "get_funnel_pages":
+                return ghl.get_funnel_pages(**tool_args)
+            elif tool_name == "update_location":
+                return ghl.update_location(**tool_args)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
         except Exception as e:

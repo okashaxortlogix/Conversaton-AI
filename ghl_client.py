@@ -327,6 +327,298 @@ class GHLSubAccountClient:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    # =====================================================================
+    # NEW: Extended GHL API v2 Methods — Maximum Sub-Account Capability
+    # =====================================================================
+
+    def get_contact(self, contact_id: str) -> Dict[str, Any]:
+        """Fetch a single contact's full details by ID."""
+        url = f"{self.BASE_URL}/contacts/{contact_id}"
+        try:
+            res = self.session.get(url, timeout=10)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def update_contact(
+        self,
+        contact_id: str,
+        first_name: str = "",
+        last_name: str = "",
+        email: str = "",
+        phone: str = "",
+        tags: Optional[List[str]] = None,
+        custom_fields: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
+        """Update an existing contact's fields in the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/contacts/{contact_id}"
+        payload: Dict[str, Any] = {}
+        if first_name:
+            payload["firstName"] = first_name
+        if last_name:
+            payload["lastName"] = last_name
+        if email:
+            payload["email"] = email
+        if phone:
+            payload["phone"] = phone
+        if tags is not None:
+            payload["tags"] = tags
+        if custom_fields is not None:
+            payload["customFields"] = custom_fields
+        try:
+            res = self.session.put(url, json=payload, timeout=12)
+            if res.status_code in [200, 201]:
+                return {"success": True, "data": res.json(), "message": f"✅ Contact '{contact_id}' updated successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def delete_contact(self, contact_id: str) -> Dict[str, Any]:
+        """Delete a contact from the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/contacts/{contact_id}"
+        try:
+            res = self.session.delete(url, timeout=10)
+            if res.status_code in [200, 204]:
+                return {"success": True, "message": f"✅ Contact '{contact_id}' deleted successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_tags(self) -> Dict[str, Any]:
+        """Fetch all Location Tags."""
+        url = f"{self.BASE_URL}/locations/{self.location_id}/tags"
+        try:
+            res = self.session.get(url, timeout=10)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": res.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def delete_tag(self, tag_id: str) -> Dict[str, Any]:
+        """Delete a tag from the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/locations/{self.location_id}/tags/{tag_id}"
+        try:
+            res = self.session.delete(url, timeout=10)
+            if res.status_code in [200, 204]:
+                return {"success": True, "message": f"✅ Tag '{tag_id}' deleted successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_opportunities(self, pipeline_id: str = "") -> Dict[str, Any]:
+        """Fetch all opportunities/deals, optionally filtered by pipeline ID."""
+        url = f"{self.BASE_URL}/opportunities/"
+        params: Dict[str, str] = {"locationId": self.location_id}
+        if pipeline_id:
+            params["pipelineId"] = pipeline_id
+        try:
+            res = self.session.get(url, params=params, timeout=12)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def update_opportunity(
+        self,
+        opportunity_id: str,
+        title: str = "",
+        status: str = "",
+        monetary_value: Optional[float] = None,
+        pipeline_id: str = "",
+        stage_id: str = ""
+    ) -> Dict[str, Any]:
+        """Update an existing opportunity/deal in the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/opportunities/{opportunity_id}"
+        payload: Dict[str, Any] = {}
+        if title:
+            payload["name"] = title
+        if status:
+            payload["status"] = status
+        if monetary_value is not None:
+            payload["monetaryValue"] = monetary_value
+        if pipeline_id:
+            payload["pipelineId"] = pipeline_id
+        if stage_id:
+            payload["pipelineStageId"] = stage_id
+        try:
+            res = self.session.put(url, json=payload, timeout=12)
+            if res.status_code in [200, 201]:
+                return {"success": True, "data": res.json(), "message": f"✅ Opportunity '{opportunity_id}' updated successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def delete_opportunity(self, opportunity_id: str) -> Dict[str, Any]:
+        """Delete an opportunity/deal from the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/opportunities/{opportunity_id}"
+        try:
+            res = self.session.delete(url, timeout=10)
+            if res.status_code in [200, 204]:
+                return {"success": True, "message": f"✅ Opportunity '{opportunity_id}' deleted successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_conversations(self, contact_id: str = "") -> Dict[str, Any]:
+        """Fetch conversations/threads, optionally filtered by contact ID."""
+        url = f"{self.BASE_URL}/conversations/"
+        params: Dict[str, str] = {"locationId": self.location_id}
+        if contact_id:
+            params["contactId"] = contact_id
+        try:
+            res = self.session.get(url, params=params, timeout=12)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def create_calendar(
+        self,
+        name: str,
+        description: str = "",
+        slug: str = "",
+        event_type: str = "RoundRobin_OptimizeForAvailability"
+    ) -> Dict[str, Any]:
+        """Create a new booking calendar in the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/calendars/"
+        payload: Dict[str, Any] = {
+            "locationId": self.location_id,
+            "name": name,
+            "eventType": event_type
+        }
+        if description:
+            payload["description"] = description
+        if slug:
+            payload["slug"] = slug
+        try:
+            res = self.session.post(url, json=payload, timeout=12)
+            if res.status_code in [200, 201]:
+                return {"success": True, "data": res.json(), "message": f"✅ Calendar '{name}' created successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def create_appointment(
+        self,
+        calendar_id: str,
+        contact_id: str,
+        start_time: str,
+        end_time: str,
+        title: str = "Appointment",
+        appointment_status: str = "confirmed"
+    ) -> Dict[str, Any]:
+        """Book an appointment on a calendar for a contact."""
+        url = f"{self.BASE_URL}/calendars/events/appointments"
+        payload = {
+            "calendarId": calendar_id,
+            "locationId": self.location_id,
+            "contactId": contact_id,
+            "startTime": start_time,
+            "endTime": end_time,
+            "title": title,
+            "appointmentStatus": appointment_status
+        }
+        try:
+            res = self.session.post(url, json=payload, timeout=12)
+            if res.status_code in [200, 201]:
+                return {"success": True, "data": res.json(), "message": f"✅ Appointment '{title}' booked for contact '{contact_id}'."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def delete_custom_field(self, field_id: str) -> Dict[str, Any]:
+        """Delete a custom field from the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/locations/{self.location_id}/custom-fields/{field_id}"
+        try:
+            res = self.session.delete(url, timeout=10)
+            if res.status_code in [200, 204]:
+                return {"success": True, "message": f"✅ Custom field '{field_id}' deleted successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_funnels(self) -> Dict[str, Any]:
+        """Fetch all funnels in the connected GHL Sub-Account (read-only)."""
+        url = f"{self.BASE_URL}/funnels/"
+        params = {"locationId": self.location_id}
+        try:
+            res = self.session.get(url, params=params, timeout=10)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_funnel_pages(self, funnel_id: str) -> Dict[str, Any]:
+        """Fetch all pages within a specific funnel (read-only)."""
+        url = f"{self.BASE_URL}/funnels/page"
+        params = {"locationId": self.location_id, "funnelId": funnel_id}
+        try:
+            res = self.session.get(url, params=params, timeout=10)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def update_location(
+        self,
+        name: str = "",
+        phone: str = "",
+        email: str = "",
+        address: str = "",
+        city: str = "",
+        state: str = "",
+        postal_code: str = "",
+        website: str = ""
+    ) -> Dict[str, Any]:
+        """Update the connected GHL Sub-Account settings (name, phone, email, address, website)."""
+        url = f"{self.BASE_URL}/locations/{self.location_id}"
+        payload: Dict[str, Any] = {}
+        if name:
+            payload["name"] = name
+        if phone:
+            payload["phone"] = phone
+        if email:
+            payload["email"] = email
+        if address:
+            payload["address"] = address
+        if city:
+            payload["city"] = city
+        if state:
+            payload["state"] = state
+        if postal_code:
+            payload["postalCode"] = postal_code
+        if website:
+            payload["website"] = website
+        try:
+            res = self.session.put(url, json=payload, timeout=12)
+            if res.status_code in [200, 201]:
+                return {"success": True, "data": res.json(), "message": f"✅ Sub-Account settings updated successfully."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     def create_contact_task(self, contact_id: str, title: str, due_date: str = "") -> Dict[str, Any]:
         """Create a Task for a Contact."""
         url = f"{self.BASE_URL}/contacts/{contact_id}/tasks"
