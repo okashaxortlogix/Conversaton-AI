@@ -284,6 +284,49 @@ class GHLSubAccountClient:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def get_calendars(self) -> Dict[str, Any]:
+        """Fetch all booking Calendars configured in the location."""
+        url = f"{self.BASE_URL}/calendars/"
+        params = {"locationId": self.location_id}
+        try:
+            res = self.session.get(url, params=params, timeout=10)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_calendar_events(self, start_time: str = "", end_time: str = "", calendar_id: str = "") -> Dict[str, Any]:
+        """Fetch booked Appointments, meetings, and calendar events."""
+        import datetime
+        url = f"{self.BASE_URL}/calendars/events"
+        now = datetime.datetime.utcnow()
+        if not start_time:
+            # Default to 7 days past up to 30 days ahead
+            start_dt = now - datetime.timedelta(days=7)
+            start_time = start_dt.strftime("%Y-%m-%dT00:00:00Z")
+        if not end_time:
+            end_dt = now + datetime.timedelta(days=30)
+            end_time = end_dt.strftime("%Y-%m-%dT23:59:59Z")
+
+        params = {
+            "locationId": self.location_id,
+            "startTime": start_time,
+            "endTime": end_time
+        }
+        if calendar_id:
+            params["calendarId"] = calendar_id
+
+        try:
+            res = self.session.get(url, params=params, timeout=12)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     def create_contact_task(self, contact_id: str, title: str, due_date: str = "") -> Dict[str, Any]:
         """Create a Task for a Contact."""
         url = f"{self.BASE_URL}/contacts/{contact_id}/tasks"

@@ -883,6 +883,18 @@ async def get_ghl_workflows_endpoint(req: VerifyTokenRequest):
     res = client.get_workflows()
     return res
 
+@app.post("/api/ghl/calendars")
+async def get_ghl_calendars_endpoint(req: VerifyTokenRequest):
+    client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
+    res = client.get_calendars()
+    return res
+
+@app.post("/api/ghl/calendar-events")
+async def get_ghl_calendar_events_endpoint(req: VerifyTokenRequest):
+    client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
+    res = client.get_calendar_events()
+    return res
+
 @app.post("/api/ghl/setup-gym")
 async def setup_gym_architecture_endpoint(req: VerifyTokenRequest):
     client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)

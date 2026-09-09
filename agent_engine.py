@@ -610,6 +610,26 @@ GHL_TOOLS_DECLARATIONS = [
             "type": "OBJECT",
             "properties": {}
         }
+    },
+    {
+        "name": "get_calendars",
+        "description": "Fetch all booking Calendars configured in the connected GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
+    },
+    {
+        "name": "get_calendar_events",
+        "description": "Fetch booked appointments, scheduled meetings, and client calls from the GHL Sub-Account calendar.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "start_time": {"type": "STRING", "description": "Optional ISO 8601 start date time (e.g. 2026-09-01T00:00:00Z)"},
+                "end_time": {"type": "STRING", "description": "Optional ISO 8601 end date time (e.g. 2026-09-30T23:59:59Z)"},
+                "calendar_id": {"type": "STRING", "description": "Optional specific calendar ID to filter by"}
+            }
+        }
     }
 ]
 
@@ -2194,6 +2214,10 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                 return ghl.get_workflows()
             elif tool_name == "get_location_details":
                 return ghl.get_location_details()
+            elif tool_name == "get_calendars":
+                return ghl.get_calendars()
+            elif tool_name == "get_calendar_events":
+                return ghl.get_calendar_events(**tool_args)
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
         except Exception as e:
