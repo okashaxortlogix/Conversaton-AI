@@ -939,7 +939,8 @@ def connect_ghl(client_id: Optional[str] = None, redirect_uri: Optional[str] = N
         "opportunities.readonly opportunities.write "
         "locations.readonly locations/customFields.readonly locations/customFields.write "
         "locations/tags.readonly locations/tags.write "
-        "workflows.readonly conversations.readonly conversations.write"
+        "workflows.readonly conversations.readonly conversations.write "
+        "calendars.readonly calendars.write calendars/events.readonly calendars/events.write"
     ))
     return GHLOAuthHandler.get_authorization_url(client_id, redirect_uri, scopes)
 
