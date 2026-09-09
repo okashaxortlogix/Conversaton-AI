@@ -1311,6 +1311,14 @@ Output all 5 sections in this exact order with ZERO preamble text:
        * Bypass link: `<a href="javascript:void(0)" onclick="switchStep(5)">No Thanks, Continue to Confirmation</a>` (NEVER a dead `href="#"`!) — advances directly to Step 5!
      - Step 5: Thank You Page Container `<div id="step-5" class="funnel-step hidden" style="display:none;">` (Access credentials notice, instant onboarding schedule calendar embed placeholder, community link).
    • Code MUST be 100% complete and self-contained from `<!DOCTYPE html>` to `</html>` without truncation or placeholders.
+    • IMMEDIATELY AFTER THE CODE BLOCK, ALWAYS provide this high-visibility, 100% ready-to-implement activation card:
+      ### ⚡ How to Implement this Funnel in GoHighLevel (in under 2 minutes):
+      1. **Open HighLevel**: Log into your connected GHL Sub-Account ➔ Go to **Sites** ➔ **Funnels**.
+      2. **Create Funnel**: Click **+ New Funnel**, enter a name (e.g. `[Brand Name] Funnel`), and click **Create**.
+      3. **Add Funnel Step**: Click **+ Add New Step**, enter page name (e.g. `Opt-In & Sales`), enter path `/sales`, and open the builder.
+      4. **Add Custom Code Element**: In the GHL Builder, click **+ Add Section (Full Width)** ➔ Click **+ Add Row (1 Column)** ➔ Click **+ Add Element** and drag in the **Custom Code (HTML/JS)** element.
+      5. **Paste & Go Live**: Click the Custom Code element on the canvas ➔ Click **Open Code Editor** in the left sidebar ➔ Paste the entire code generated above ➔ Click **Save** and **Publish**!
+      Your complete, modern, mobile-responsive multi-step funnel is now 100% live and converting leads!
 
 2. GoHighLevel Native Funnel Step Blueprint & URL Map (80–95% Native GHL Elements)
    • Funnel Step Hierarchy Table:
