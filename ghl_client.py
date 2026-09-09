@@ -247,6 +247,43 @@ class GHLSubAccountClient:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def create_custom_value(self, name: str, value: str) -> Dict[str, Any]:
+        """Create a Custom Value in the GHL Sub-Account."""
+        url = f"{self.BASE_URL}/locations/{self.location_id}/customValues"
+        payload = {"name": name, "value": value}
+        try:
+            res = self.session.post(url, json=payload, timeout=10)
+            if res.status_code in [200, 201]:
+                return {"success": True, "data": res.json(), "message": f"✅ Custom Value '{name}' created with value '{value}'."}
+            else:
+                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_custom_values(self) -> Dict[str, Any]:
+        """Fetch all Custom Values in location."""
+        url = f"{self.BASE_URL}/locations/{self.location_id}/customValues"
+        try:
+            res = self.session.get(url, timeout=10)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": res.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_location_details(self) -> Dict[str, Any]:
+        """Fetch Sub-Account details (name, email, phone, address, website)."""
+        url = f"{self.BASE_URL}/locations/{self.location_id}"
+        try:
+            res = self.session.get(url, timeout=10)
+            if res.status_code == 200:
+                return {"success": True, "data": res.json()}
+            else:
+                return {"success": False, "error": res.text}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     def create_contact_task(self, contact_id: str, title: str, due_date: str = "") -> Dict[str, Any]:
         """Create a Task for a Contact."""
         url = f"{self.BASE_URL}/contacts/{contact_id}/tasks"
@@ -322,6 +359,16 @@ class GHLSubAccountClient:
             else:
                 errors.append(f"Pipeline '{pipe['name']}': {res.get('error')}")
 
+        # 4. Create Custom Values
+        created_values = 0
+        for cv in schema.get("custom_values", []):
+            cv_key = cv.get("key", "").replace("custom_values.", "").strip()
+            cv_val = cv.get("value", "") or cv.get("placeholder", "")
+            if cv_key:
+                res_cv = self.create_custom_value(name=cv_key, value=cv_val)
+                if res_cv.get("success"):
+                    created_values += 1
+
         return {
             "success": True,
             "niche": normalized_niche,
@@ -329,9 +376,10 @@ class GHLSubAccountClient:
             "created_fields": created_fields,
             "created_tags": created_tags,
             "created_pipelines": created_pipelines,
+            "created_custom_values": created_values,
             "recommended_custom_values": schema.get("custom_values", []),
             "errors": errors,
-            "message": f"✅ {label} Sub-Account Architecture Setup Complete: {created_fields} Custom Fields, {created_tags} Tags, {created_pipelines} Pipelines deployed."
+            "message": f"✅ {label} Sub-Account Architecture Setup Complete: {created_fields} Custom Fields, {created_tags} Tags, {created_pipelines} Pipelines, {created_values} Custom Values deployed."
         }
 
     def setup_gym_subaccount(self) -> Dict[str, Any]:

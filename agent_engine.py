@@ -92,7 +92,9 @@ _FULL_BUILD_KEYWORDS = {
     'brand customization:', 'connected automations:', 'custom wizard specifications:',
     'html/css', 'html and css', 'provide the html', 'checkout html', 'funnel architecture',
     'deep improvement', 'code review', 'implementation review', 'production ready code',
-    'production-ready', 'review the uploaded', 'architectural review', 'vsl funnel'
+    'production-ready', 'review the uploaded', 'architectural review', 'vsl funnel',
+    'funnel generate', 'funnel bana', 'funnel create', 'funnel build', 'workflow generate',
+    'workflow bana', 'crm bana', 'subaccount setup', 'landing page bana'
 }
 
 _DIRECT_ASSET_PATTERNS = re.compile(
@@ -572,6 +574,42 @@ GHL_TOOLS_DECLARATIONS = [
             "type": "OBJECT",
             "properties": {}
         }
+    },
+    {
+        "name": "create_custom_value",
+        "description": "Create a Custom Value (global merge tag variable) in the connected GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "name": {"type": "STRING", "description": "Key name of the custom value (e.g. primary_phone, booking_calendar_url)"},
+                "value": {"type": "STRING", "description": "Value of the custom value"}
+            },
+            "required": ["name", "value"]
+        }
+    },
+    {
+        "name": "get_custom_values",
+        "description": "Fetch all Custom Values configured in the connected GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
+    },
+    {
+        "name": "get_workflows",
+        "description": "Fetch list of all Workflows currently existing in the connected GHL Sub-Account.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
+    },
+    {
+        "name": "get_location_details",
+        "description": "Fetch connected GHL Sub-Account details, name, phone, email, and settings.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {}
+        }
     }
 ]
 
@@ -1015,10 +1053,17 @@ The final result must look professional, modern, and conversion-focused while re
         if is_ghl_connected:
             tool_block = f"""
 =============================================================================
-AUTONOMOUS GHL API TOOL EXECUTION
+AUTONOMOUS GHL API TOOL EXECUTION & PLATFORM ARCHITECTURE RULES
 =============================================================================
-- Sub-Account Location ID ({location_id}) is connected.
-- When the user asks you to create or configure assets directly in their HighLevel sub-account, invoke the native tools (`create_contact`, `create_pipeline`, `create_tag`, `create_custom_field`, `create_opportunity`, etc.).
+- Connected GHL Sub-Account Location ID: {location_id}.
+- When the user asks you to create or configure assets directly in their HighLevel sub-account, invoke the native tools (`create_contact`, `create_pipeline`, `create_tag`, `create_custom_field`, `create_custom_value`, `create_opportunity`, `setup_niche_subaccount`, `audit_subaccount`, `get_workflows`, `get_custom_values`, `get_location_details`).
+- GHL REST API v2 ARCHITECTURAL BOUNDARIES & USER MANDATE:
+  1. GoHighLevel's official REST API v2 does NOT provide endpoints to programmatically paint or draw new pages/steps inside the drag-and-drop Visual Funnel Builder canvas, nor visual action blocks in the Workflow Canvas.
+  2. When the user asks to "generate a funnel in my subaccount" or "generate a workflow in my subaccount":
+     a) FIRST: Automatically invoke the relevant tool calls to create the CRM backend prerequisites in the subaccount (e.g. Sales Pipeline & stages, Custom Fields, Custom Values, and Lifecycle Tags).
+     b) SECOND: Provide the 100% complete, production-ready interactive single-file Funnel Code (HTML/Tailwind/JS) that they can paste directly into GHL's Funnel "Custom Code" element or embed, alongside the exact Native GHL Element Step Hierarchy.
+     c) THIRD: Provide the complete HighLevel Workflows with exact native Triggers, If/Else branches, delays, and ready-to-use SMS/Email copy.
+     d) CLEARLY EXPLAIN to the user what assets were created directly in their subaccount via API, and give them the 2-minute activation instructions for the funnel and workflow.
 """
 
         # Direct Q&A, Job Proposals, Consultations, or Direct Asset Commands
@@ -2078,6 +2123,14 @@ DO NOT output bracketed tags like `[RECOMMENDED]`, `[VERIFIED]`.
                 return ghl.setup_niche_subaccount(**tool_args)
             elif tool_name == "audit_subaccount":
                 return ghl.audit_subaccount()
+            elif tool_name == "create_custom_value":
+                return ghl.create_custom_value(**tool_args)
+            elif tool_name == "get_custom_values":
+                return ghl.get_custom_values()
+            elif tool_name == "get_workflows":
+                return ghl.get_workflows()
+            elif tool_name == "get_location_details":
+                return ghl.get_location_details()
             else:
                 return {"success": False, "error": f"Unknown tool: {tool_name}"}
         except Exception as e:

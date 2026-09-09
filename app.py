@@ -871,6 +871,18 @@ async def get_ghl_custom_fields(req: VerifyTokenRequest):
     res = client.get_custom_fields()
     return res
 
+@app.post("/api/ghl/custom-values")
+async def get_ghl_custom_values_endpoint(req: VerifyTokenRequest):
+    client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
+    res = client.get_custom_values()
+    return res
+
+@app.post("/api/ghl/workflows")
+async def get_ghl_workflows_endpoint(req: VerifyTokenRequest):
+    client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
+    res = client.get_workflows()
+    return res
+
 @app.post("/api/ghl/setup-gym")
 async def setup_gym_architecture_endpoint(req: VerifyTokenRequest):
     client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
