@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HighLevel AI Assistant - Conversation AI Copilot</title>
+    <title>Nexa AI — GHL Assistant</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,14 +22,14 @@
         <!-- Sidebar Backdrop Overlay -->
         <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
 
-        <!-- Left GHL Navigation Sidebar (ChatGPT Clean Style) -->
+        <!-- Left Nexa AI Navigation Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="ghl-brand-badge">
                     <div class="brand-logo-icon">⚡</div>
                     <div class="brand-text-group">
-                        <span class="brand-text">HighLevel AI</span>
-                        <span class="brand-subtext">AskAI Copilot</span>
+                        <span class="brand-text">Nexa AI</span>
+                        <span class="brand-subtext">GHL Assistant</span>
                     </div>
                 </div>
                 <button class="icon-btn sidebar-close-btn" id="sidebar-close-btn" title="Close sidebar">
@@ -46,13 +46,33 @@
                 </button>
             </div>
 
-            <!-- Quick Template Shortcuts -->
-            <div class="sidebar-quick-tools">
-                <button type="button" class="sidebar-tool-btn" id="sidebar-wizard-btn">
-                    <span class="tool-icon">🚀</span>
+            <!-- Primary Navigation -->
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <button type="button" class="sidebar-nav-item active" data-nav="home" id="nav-home">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span>Home</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-nav="wizard" id="nav-wizard">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                     <span>Funnel & CRM Wizard</span>
                 </button>
-            </div>
+                <button type="button" class="sidebar-nav-item" data-nav="templates" id="nav-templates">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Templates</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-nav="account" id="nav-account">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <span>Account Setup</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-nav="docs" id="nav-docs">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    <span>Documentation</span>
+                </button>
+                <button type="button" class="sidebar-nav-item" data-nav="settings" id="nav-settings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Settings</span>
+                </button>
+            </nav>
 
             <!-- Recent Chats History Section -->
             <div class="history-section-header">
@@ -66,6 +86,16 @@
 
             <!-- Sidebar Footer Navigation & Location Card -->
             <div class="sidebar-footer">
+                <!-- Need Help Card -->
+                <div class="sidebar-help-card">
+                    <div class="help-card-icon">⚡</div>
+                    <div class="help-card-text">
+                        <strong>Need help?</strong>
+                        <span>Get instant support from our AI assistant.</span>
+                    </div>
+                    <button type="button" class="help-chat-btn" id="help-chat-now-btn">Chat Now →</button>
+                </div>
+
                 <button class="footer-nav-item" id="sidebar-usage-btn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
                     <span>AI Model Quotas</span>
@@ -83,20 +113,20 @@
                 </div>
 
                 <!-- Logged In User Info & Logout Button -->
-                <div class="user-account-card" id="sidebar-user-card" style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; margin-top:8px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px;">
-                    <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
-                        <span id="user-avatar-badge" style="font-size:18px; line-height:1;">👤</span>
-                        <div style="display:flex; flex-direction:column; overflow:hidden;">
-                            <span id="user-display-name" style="font-size:13px; font-weight:600; color:var(--text-color); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Guest</span>
-                            <span id="user-display-role" style="font-size:11px; color:var(--text-muted); font-weight:500;">Member</span>
+                <div class="user-account-card" id="sidebar-user-card">
+                    <div class="user-card-left">
+                        <span class="user-avatar-emoji" id="user-avatar-badge">👤</span>
+                        <div class="user-card-info">
+                            <span class="user-card-name" id="user-display-name">Guest</span>
+                            <span class="user-card-role" id="user-display-role">Member</span>
                         </div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:4px;">
+                    <div class="user-card-actions">
                         <!-- Master Admin Users Management Trigger -->
-                        <button type="button" id="admin-users-btn" title="Manage Users & Passwords (Admin Only)" style="display:none; background:transparent; border:none; cursor:pointer; color:#10b981; padding:4px; border-radius:6px; transition:transform 0.15s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='none'">
+                        <button type="button" id="admin-users-btn" class="user-action-icon-btn" title="Manage Users & Passwords (Admin Only)" style="display:none;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         </button>
-                        <button type="button" id="logout-btn" title="Log Out" style="background:transparent; border:none; cursor:pointer; color:var(--text-muted); padding:4px; border-radius:6px; transition:color 0.15s, background 0.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'">
+                        <button type="button" id="logout-btn" class="user-action-icon-btn" title="Log Out">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                         </button>
                     </div>
@@ -115,7 +145,7 @@
                     
                     <div class="header-brand-pill">
                         <div class="brand-indicator-dot"></div>
-                        <span class="active-title" id="active-chat-title">Conversation AI Copilot</span>
+                        <span class="active-title" id="active-chat-title">Nexa AI GHL Assistant</span>
                     </div>
                 </div>
 
@@ -179,44 +209,58 @@
                     <!-- Welcome Hero Screen -->
                     <div class="welcome-screen" id="welcome-screen">
                         <div class="welcome-icon-wrapper">⚡</div>
-                        <h1 class="welcome-heading">HighLevel Conversation AI</h1>
-                        <p class="welcome-subtext">Autonomous AI Copilot for GoHighLevel Sub-Accounts. Create Contacts, build Pipelines & Deals, manage Tags, and draft Custom Fields using natural language prompts.</p>
+                        <h1 class="welcome-heading">Nexa AI GHL Assistant</h1>
+                        <p class="welcome-subtext">Your focused workspace for GoHighLevel. Build funnels, manage contacts, create workflows, and get clear implementation guidance in natural language.</p>
 
                         <!-- Suggestion Cards Grid -->
                         <div class="cards-grid">
+                            <div class="card-item" data-prompt="Build a complete sales funnel with opt-in, VSL, checkout, and thank you pages">
+                                <div class="card-header">
+                                    <span class="card-tag">01 / Funnels</span>
+                                </div>
+                                <div class="card-title">Build a Funnel</div>
+                                <div class="card-desc">Plan pages, offers, and the handoff into GHL.</div>
+                            </div>
+
+                            <div class="card-item" data-prompt="Create an automated follow-up workflow that sends SMS after 1 hour, email after 24 hours, and a task after 3 days">
+                                <div class="card-header">
+                                    <span class="card-tag">02 / Automations</span>
+                                </div>
+                                <div class="card-title">Create a Workflow</div>
+                                <div class="card-desc">Create a follow-up sequence with timing and ownership.</div>
+                            </div>
+
+                            <div class="card-item" data-prompt="Find my appointments and meetings from the past month">
+                                <div class="card-header">
+                                    <span class="card-tag">03 / Calendar</span>
+                                </div>
+                                <div class="card-title">Find My Appointments</div>
+                                <div class="card-desc">Review recent appointments and meeting activity.</div>
+                            </div>
+
                             <div class="card-item" data-prompt="Create a contact named John Doe with email john@example.com, phone +15550199, and tag 'VIP Lead'">
                                 <div class="card-header">
-                                    <span class="card-tag">Contacts API</span>
+                                    <span class="card-tag">04 / Contacts</span>
                                 </div>
-                                <div class="card-title">Create Contact & Add Tags</div>
-                                <div class="card-desc">"Create contact John Doe with email john@example.com and tag 'VIP Lead'"</div>
+                                <div class="card-title">Create a Contact</div>
+                                <div class="card-desc">Add a contact with details, tags, and a clean record.</div>
                             </div>
 
-                            <div class="card-item" data-prompt="Build a sales pipeline called 'Solar Leads' with stages: New Lead, Contacted, Proposal Sent, Closed Won">
-                                <div class="card-header">
-                                    <span class="card-tag">Pipelines API</span>
-                                </div>
-                                <div class="card-title">Build Sales Pipeline & Stages</div>
-                                <div class="card-desc">"Build a pipeline 'Solar Leads' with stages: New, Contacted, Won"</div>
+                            <div class="card-item" data-prompt="Explain how to organize a GoHighLevel account for a new client">
+                                <div class="card-header"><span class="card-tag">05 / Strategy</span></div>
+                                <div class="card-title">Map an Account</div>
+                                <div class="card-desc">Get a practical setup plan for a new client account.</div>
                             </div>
 
-                            <div class="card-item" data-prompt="Create a tag named 'High Value Client' in my GHL sub-account">
-                                <div class="card-header">
-                                    <span class="card-tag">Tags API</span>
-                                </div>
-                                <div class="card-title">Create Location Tag</div>
-                                <div class="card-desc">"Create a tag named 'High Value Client' in my sub-account"</div>
-                            </div>
-
-                            <div class="card-item" data-prompt="Create a custom field named 'Project Budget' with data type TEXT">
-                                <div class="card-header">
-                                    <span class="card-tag">Fields API</span>
-                                </div>
-                                <div class="card-title">Create Custom Field</div>
-                                <div class="card-desc">"Create a TEXT custom field named 'Project Budget' in my sub-account"</div>
+                            <div class="card-item" data-prompt="Show me the best GoHighLevel templates for capturing and nurturing new leads">
+                                <div class="card-header"><span class="card-tag">06 / Templates</span></div>
+                                <div class="card-title">Browse Templates</div>
+                                <div class="card-desc">Find a proven starting point for your next build.</div>
                             </div>
                         </div>
                     </div>
+
+
 
                     <!-- Messages List Container -->
                     <div class="messages-list" id="messages-list"></div>
@@ -329,18 +373,21 @@
                             </div>
                         </div>
                     </div>
-                    <div class="input-footer-note">HighLevel AI Copilot may produce inaccurate information. Verify critical CRM actions before executing.</div>
+                    <div class="input-footer-note">Nexa AI may produce inaccurate information. Verify critical CRM actions before executing.</div>
                 </div>
             </div>
 
-            <!-- Claude-Style Artifact Side Drawer / Code Studio -->
+            <!-- Documentation Panel / Code Studio -->
             <aside class="artifact-drawer hidden" id="artifact-drawer">
                 <div class="artifact-drawer-header">
                     <div class="artifact-meta-group">
-                        <span class="artifact-file-icon" id="artifact-file-icon">🌐</span>
+                        <span class="artifact-file-icon" id="artifact-file-icon">▣</span>
                         <div class="artifact-title-wrapper">
-                            <h4 class="artifact-title" id="artifact-title">Code Studio</h4>
-                            <span class="artifact-lang-tag" id="artifact-lang-badge">HTML</span>
+                            <div>
+                                <h4 class="artifact-title" id="artifact-title">Documentation</h4>
+                                <span class="artifact-subtitle">Generated reference & implementation notes</span>
+                            </div>
+                            <span class="artifact-lang-tag" id="artifact-lang-badge">.md</span>
                         </div>
                     </div>
                     
@@ -1259,7 +1306,7 @@ Page 5 (Thank You Page): Confirmation details, instant access, and calendar onbo
                 <div style="display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg, #10b981, #059669); box-shadow:0 10px 25px -5px rgba(16,185,129,0.4); margin-bottom:12px; font-size:24px;">
                     ⚡
                 </div>
-                <h2 style="font-size:22px; font-weight:700; margin:0 0 6px 0; color:#ffffff; letter-spacing:-0.02em;">Conversation AI Copilot</h2>
+                <h2 style="font-size:22px; font-weight:700; margin:0 0 6px 0; color:#ffffff; letter-spacing:-0.02em;">Nexa AI</h2>
                 <p style="font-size:13px; color:#94a3b8; margin:0;">Enter your assigned credentials to access the workspace.</p>
             </div>
 
@@ -1288,7 +1335,7 @@ Page 5 (Thank You Page): Confirmation details, instant access, and calendar onbo
 
                 <!-- Submit Button -->
                 <button type="submit" id="login-submit-btn" style="width:100%; margin-top:8px; padding:13px; background:linear-gradient(135deg, #10b981, #059669); border:none; border-radius:10px; color:#ffffff; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 20px -4px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
-                    <span>Sign In to Copilot</span>
+                    <span>Sign In to Nexa AI</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
             </form>

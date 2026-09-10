@@ -1,17 +1,17 @@
 /* ==========================================================================
-   HighLevel AI Assistant - Conversation AI Copilot
-   Ultra-Refined GHL AskAI & ChatGPT-Grade Design System
+   Nexa AI — GHL Assistant
+   Modern SaaS Design System
    ========================================================================== */
 
 :root {
-    /* HighLevel Dark Theme Palette (Default / Enterprise Mode) */
-    --bg-primary: #080c15;
+    /* Nexa AI Dark Theme Palette (Default) */
+    --bg-primary: #0a0f1a;
     --bg-secondary: #0e1526;
-    --bg-sidebar: #060911;
+    --bg-sidebar: #070b14;
     --bg-card: rgba(14, 21, 38, 0.75);
     --bg-hover: rgba(255, 255, 255, 0.05);
     --bg-tertiary: #131d33;
-    --bg-header-rgb: 8, 12, 21;
+    --bg-header-rgb: 10, 15, 26;
     
     --border-color: rgba(255, 255, 255, 0.08);
     --border-subtle: rgba(255, 255, 255, 0.04);
@@ -26,6 +26,7 @@
     --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
     --primary-glow: rgba(16, 185, 129, 0.3);
     
+    --accent-teal: #14b8a6;
     --accent-purple: #8b5cf6;
     --accent-blue: #3b82f6;
     --accent-cyan: #06b6d4;
@@ -43,9 +44,9 @@
     --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
     --shadow-glow: 0 0 20px var(--primary-glow);
     
-    --sidebar-width: 260px;
-    --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    --sidebar-width: 220px;
+    --font-sans: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Inter', 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'Fira Code', Consolas, Monaco, monospace;
 }
 
@@ -5082,4 +5083,703 @@ body.dark-theme .agent-markdown-text code:not(pre code) {
     .funnel-cards-grid-3col {
         grid-template-columns: 1fr;
     }
+}
+
+/* ==========================================================================
+   Nexa AI — New Component Styles
+   ========================================================================== */
+
+/* ---------- Sidebar Navigation ---------- */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px 4px;
+}
+
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    position: relative;
+}
+
+.sidebar-nav-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.sidebar-nav-item.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.sidebar-nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--primary-color);
+    border-radius: 0 3px 3px 0;
+}
+
+.sidebar-nav-item svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.sidebar-nav-item.active svg {
+    opacity: 1;
+    stroke: var(--primary-color);
+}
+
+body:not(.dark-theme) .sidebar-nav-item.active {
+    background: rgba(5, 150, 105, 0.08);
+    color: #047857;
+}
+
+body:not(.dark-theme) .sidebar-nav-item.active svg {
+    stroke: #047857;
+}
+
+body:not(.dark-theme) .sidebar-nav-item.active::before {
+    background: #059669;
+}
+
+/* ---------- Sidebar Help Card ---------- */
+.sidebar-help-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    margin: 0 0 10px;
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 12px;
+}
+
+.help-card-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.help-card-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.help-card-text strong {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.help-card-text span {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.help-chat-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    width: fit-content;
+}
+
+.help-chat-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+body:not(.dark-theme) .sidebar-help-card {
+    background: rgba(5, 150, 105, 0.05);
+    border-color: rgba(5, 150, 105, 0.15);
+}
+
+/* ---------- User Account Card ---------- */
+.user-account-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    margin-top: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+
+.user-card-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+}
+
+.user-avatar-emoji {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.user-card-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.user-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-card-role {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.user-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.user-action-icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.15s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-action-icon-btn:hover {
+    color: var(--text-primary);
+    transform: scale(1.1);
+}
+
+#logout-btn:hover {
+    color: #ef4444 !important;
+}
+
+#admin-users-btn {
+    color: var(--primary-color);
+}
+
+body:not(.dark-theme) .user-account-card {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: var(--border-color);
+}
+
+/* ---------- Step Cards (AI Structured Response) ---------- */
+.nexa-step-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.nexa-step-card {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.nexa-step-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.nexa-step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+.nexa-step-header:hover {
+    background: var(--bg-hover);
+}
+
+.nexa-step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.nexa-step-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.nexa-step-title-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.nexa-step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.nexa-step-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 2px 0 0;
+}
+
+.nexa-step-chevron {
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.nexa-step-card.expanded .nexa-step-chevron {
+    transform: rotate(180deg);
+}
+
+.nexa-step-body {
+    display: none;
+    padding: 0 18px 16px 58px;
+}
+
+.nexa-step-card.expanded .nexa-step-body {
+    display: block;
+}
+
+.nexa-step-body p {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 12px;
+}
+
+.nexa-step-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+}
+
+.nexa-step-checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.nexa-step-checklist li::before {
+    content: '✓';
+    color: var(--primary-color);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Tip Box inside step cards */
+.nexa-tip-box {
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.12);
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.nexa-tip-box .tip-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.nexa-tip-box .tip-content {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.nexa-tip-box .tip-content strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+body:not(.dark-theme) .nexa-step-card {
+    border-color: #e2e8f0;
+}
+
+body:not(.dark-theme) .nexa-step-card:hover {
+    border-color: #cbd5e1;
+}
+
+body:not(.dark-theme) .nexa-step-header:hover {
+    background: #f8fafc;
+}
+
+body:not(.dark-theme) .nexa-step-number {
+    background: rgba(5, 150, 105, 0.1);
+    color: #059669;
+}
+
+body:not(.dark-theme) .nexa-tip-box {
+    background: rgba(5, 150, 105, 0.05);
+    border-color: rgba(5, 150, 105, 0.12);
+}
+
+/* ---------- Loading State ---------- */
+.nexa-loading-state {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin: 12px 0;
+}
+
+.nexa-loading-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.nexa-loading-header .loading-icon {
+    font-size: 15px;
+}
+
+.nexa-loading-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0 4px 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.nexa-loading-step .step-indicator {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+}
+
+.nexa-loading-step.done .step-indicator {
+    color: var(--primary-color);
+}
+
+.nexa-loading-step.active .step-indicator {
+    color: var(--accent-teal);
+    animation: nexa-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes nexa-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ---------- Success State ---------- */
+.nexa-success-state {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 18px;
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 12px;
+    margin: 12px 0;
+}
+
+.nexa-success-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.nexa-success-header .success-icon {
+    font-size: 16px;
+}
+
+.nexa-success-message {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.nexa-success-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    width: fit-content;
+    margin-top: 4px;
+    transition: background 0.15s;
+}
+
+.nexa-success-action:hover {
+    background: var(--primary-hover);
+}
+
+/* ---------- Error State ---------- */
+.nexa-error-state {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 18px;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    border-radius: 12px;
+    margin: 12px 0;
+}
+
+.nexa-error-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ef4444;
+}
+
+.nexa-error-header .error-icon {
+    font-size: 16px;
+}
+
+.nexa-error-message {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.nexa-error-details-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: color 0.15s;
+}
+
+.nexa-error-details-toggle:hover {
+    color: var(--text-primary);
+}
+
+.nexa-error-details {
+    display: none;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-size: 11.5px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    word-break: break-all;
+    margin-top: 4px;
+}
+
+.nexa-error-details.visible {
+    display: block;
+}
+
+body:not(.dark-theme) .nexa-loading-state {
+    background: #fff;
+    border-color: #e2e8f0;
+}
+
+body:not(.dark-theme) .nexa-success-state {
+    background: rgba(5, 150, 105, 0.04);
+    border-color: rgba(5, 150, 105, 0.15);
+}
+
+body:not(.dark-theme) .nexa-error-state {
+    background: rgba(239, 68, 68, 0.04);
+    border-color: rgba(239, 68, 68, 0.12);
+}
+
+body:not(.dark-theme) .nexa-error-details {
+    background: #f1f5f9;
+}
+
+/* ---------- Nexa finishing layer ---------- */
+:root {
+    --sidebar-width: 252px;
+    --font-sans: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+    --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    --primary-color: #21c58b;
+    --primary-hover: #16a875;
+}
+
+.sidebar {
+    background: linear-gradient(180deg, var(--bg-sidebar) 0%, var(--bg-secondary) 100%);
+}
+
+.sidebar-header {
+    width: var(--sidebar-width);
+    padding: 18px 16px;
+}
+
+.brand-logo-icon {
+    background: linear-gradient(135deg, #21c58b 0%, #147b9b 100%);
+}
+
+.welcome-screen {
+    animation: nexa-welcome-in 0.45s ease both;
+}
+
+@keyframes nexa-welcome-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.welcome-heading {
+    font-family: var(--font-heading);
+    letter-spacing: 0;
+}
+
+.card-item {
+    min-height: 136px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--bg-card);
+}
+
+.card-item.is-focused {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.card-tag {
+    letter-spacing: 0;
+}
+
+.artifact-subtitle {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: 0;
+}
+
+.nexa-loading-step.done .step-indicator {
+    font-weight: 700;
+}
+
+.nexa-error-details-toggle span:last-child {
+    font-size: 15px;
+    line-height: 1;
+}
+
+@media (max-width: 1100px) {
+    :root { --sidebar-width: 232px; }
+    .header-wizard-btn .btn-text { display: none; }
+    .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: min(86vw, 300px);
+        min-width: min(86vw, 300px);
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar-header { width: 100%; }
+    .sidebar.closed { transform: translateX(-100%); width: min(86vw, 300px) !important; min-width: min(86vw, 300px) !important; }
+    .sidebar-toggle-btn { display: inline-flex !important; }
+    .top-header { padding: 0 12px; }
+    .header-right { gap: 6px; }
+    .ghl-status-pill { max-width: 38px; overflow: hidden; }
+    .ghl-status-pill .status-label,
+    .ghl-status-pill .connect-ghl-btn,
+    .usage-quick-btn { display: none; }
+    .active-title { max-width: 148px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chat-container { padding: 18px 12px 12px; }
+    .welcome-screen { margin: auto 0 8px; }
+    .welcome-heading { font-size: 21px; }
+    .welcome-subtext { font-size: 13px; margin-bottom: 20px; }
+    .cards-grid { grid-template-columns: 1fr; gap: 9px; }
+    .card-item { min-height: 112px; }
+    .input-suggestions-row { overflow-x: auto; justify-content: flex-start; padding-bottom: 2px; }
+    .suggestion-chip { flex-shrink: 0; }
+    .model-selector-pill { max-width: 150px; }
+    .quota-badge { display: none; }
+    .artifact-drawer { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

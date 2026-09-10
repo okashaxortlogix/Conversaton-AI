@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 if (loginSubmitBtn) {
                     loginSubmitBtn.disabled = false;
-                    loginSubmitBtn.innerHTML = '<span>Sign In to Copilot</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                    loginSubmitBtn.innerHTML = '<span>Sign In to Nexa AI</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
                 }
             }
         });
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to log out of Conversation AI Copilot?')) {
+            if (confirm('Are you sure you want to log out of Nexa AI?')) {
                 const token = localStorage.getItem('copilot_auth_token');
                 try {
                     await fetch('/api/auth/logout', {
@@ -350,6 +350,86 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
 
+    // Nexa workspace navigation keeps each destination tied to an existing control.
+    const navItems = document.querySelectorAll('.sidebar-nav-item');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const helpChatBtn = document.getElementById('help-chat-now-btn');
+
+    function setActiveNav(navKey) {
+        navItems.forEach(item => item.classList.toggle('active', item.dataset.nav === navKey));
+    }
+
+    function focusPromptCard(cardIndex) {
+        const card = document.querySelectorAll('.card-item')[cardIndex];
+        if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('is-focused');
+            setTimeout(() => card.classList.remove('is-focused'), 900);
+        }
+    }
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const destination = item.dataset.nav;
+            setActiveNav(destination);
+            if (destination === 'wizard') {
+                document.getElementById('header-wizard-launcher-btn')?.click();
+            } else if (destination === 'templates') {
+                focusPromptCard(5);
+            } else if (destination === 'account') {
+                document.getElementById('open-ghl-modal-btn')?.click();
+            } else if (destination === 'docs') {
+                if (artifactDrawer && !artifactDrawer.classList.contains('hidden')) {
+                    artifactDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    focusPromptCard(0);
+                }
+            }
+            if (window.innerWidth <= 768) closeSidebar();
+        });
+    });
+
+    function applyTheme(theme) {
+        document.body.classList.toggle('dark-theme', theme === 'dark');
+        localStorage.setItem('nexa_theme', theme);
+        if (themeToggleBtn) themeToggleBtn.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`);
+    }
+
+    applyTheme(localStorage.getItem('nexa_theme') || 'dark');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            applyTheme(document.body.classList.contains('dark-theme') ? 'light' : 'dark');
+        });
+    }
+
+    if (helpChatBtn) {
+        helpChatBtn.addEventListener('click', () => {
+            setActiveNav('home');
+            userInput?.focus();
+        });
+    }
+
+    document.addEventListener('click', (event) => {
+        const stepHeader = event.target.closest('.nexa-step-header');
+        if (stepHeader) {
+            const stepCard = stepHeader.closest('.nexa-step-card');
+            if (stepCard) {
+                const expanded = stepCard.classList.toggle('expanded');
+                stepHeader.setAttribute('aria-expanded', String(expanded));
+            }
+        }
+
+        const errorToggle = event.target.closest('.nexa-error-details-toggle');
+        if (errorToggle) {
+            const details = errorToggle.parentElement?.querySelector('.nexa-error-details');
+            if (details) {
+                const visible = details.classList.toggle('visible');
+                errorToggle.setAttribute('aria-expanded', String(visible));
+                errorToggle.querySelector('.error-toggle-label').textContent = visible ? 'Hide technical details' : 'Show technical details';
+            }
+        }
+    });
+
 
     // DOM Elements - Usage Monitor Modal
     const usageModal = document.getElementById('usage-monitor-modal');
@@ -393,6 +473,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let isGenerating = false;
     let promptQueue = []; // [{ prompt: string, elementId: string }]
     let currentAbortController = null;
+    let loadingProgressTimer = null;
+
+    function stopLoadingProgress() {
+        if (loadingProgressTimer) {
+            clearInterval(loadingProgressTimer);
+            loadingProgressTimer = null;
+        }
+    }
+
+    function renderErrorState(container, message, details = '') {
+        if (!container) return;
+        container.innerHTML = `
+            <div class="nexa-error-state">
+                <div class="nexa-error-header"><span class="error-icon">!</span><span>Something needs your attention</span></div>
+                <div class="nexa-error-message">${escapeHtml(message)}</div>
+                ${details ? `<button type="button" class="nexa-error-details-toggle" aria-expanded="false"><span class="error-toggle-label">Show technical details</span><span>+</span></button><div class="nexa-error-details">${escapeHtml(details)}</div>` : ''}
+            </div>`;
+    }
 
     function updateQueueUI() {
         if (!promptQueueContainer) return;
@@ -454,6 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         isGenerating = false;
         updateSendButtonState();
+        stopLoadingProgress();
         if (loadingIndicator) loadingIndicator.classList.add('hidden');
     }
 
@@ -1613,7 +1712,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openRenameModal() {
         const thread = getThreadById(currentThreadId);
         if (renameInputTitle) {
-            renameInputTitle.value = (thread && thread.title) ? thread.title : 'Conversation AI Copilot';
+            renameInputTitle.value = (thread && thread.title) ? thread.title : 'Nexa AI GHL Assistant';
         }
         if (renameChatModal) renameChatModal.classList.remove('hidden');
         if (renameInputTitle) setTimeout(() => renameInputTitle.focus(), 50);
@@ -1750,7 +1849,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         messagesList.innerHTML = '';
         if (welcomeScreen) welcomeScreen.classList.remove('hidden');
-        if (activeChatTitle) activeChatTitle.textContent = 'Conversation AI Copilot';
+        if (activeChatTitle) activeChatTitle.textContent = 'Nexa AI GHL Assistant';
 
         if (userInput) {
             userInput.value = '';
@@ -1808,7 +1907,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentThreadId = thread.id;
         localStorage.setItem('ghl_active_thread_id', currentThreadId);
 
-        if (activeChatTitle) activeChatTitle.textContent = thread.title || 'Conversation AI Copilot';
+        if (activeChatTitle) activeChatTitle.textContent = thread.title || 'Nexa AI GHL Assistant';
         messagesList.innerHTML = '';
 
         if (!thread.messages || thread.messages.length === 0) {
@@ -3265,22 +3364,11 @@ Please deliver:
         botMsgWrap.innerHTML = `
             <div class="assistant-avatar thinking-pulse" id="current-bot-avatar">⚡</div>
             <div class="assistant-body" id="current-bot-body">
-                <div class="ai-thinking-card" id="current-thinking-card">
-                    <div class="ai-thinking-header">
-                        <div class="thinking-spinner">
-                            <div class="spinner-ring"></div>
-                            <span class="sparkle-icon">✨</span>
-                        </div>
-                        <div class="thinking-text-wrapper">
-                            <span class="thinking-title">Copilot is thinking...</span>
-                            <span class="thinking-status" id="thinking-status-text">Analyzing prompt & scoping requirements...</span>
-                        </div>
-                    </div>
-                    <div class="thinking-skeleton-lines">
-                        <div class="skeleton-shimmer-line line-long"></div>
-                        <div class="skeleton-shimmer-line line-medium"></div>
-                        <div class="skeleton-shimmer-line line-short"></div>
-                    </div>
+                <div class="nexa-loading-state" id="current-thinking-card">
+                    <div class="nexa-loading-header"><span class="loading-icon">✦</span><span>Building your answer</span></div>
+                    <div class="nexa-loading-step active" data-progress-step="0"><span class="step-indicator">◌</span><span>Understanding the request</span></div>
+                    <div class="nexa-loading-step" data-progress-step="1"><span class="step-indicator">○</span><span>Checking GHL structure</span></div>
+                    <div class="nexa-loading-step" data-progress-step="2"><span class="step-indicator">○</span><span>Preparing the next action</span></div>
                 </div>
             </div>
             <div class="message-actions-bar">
@@ -3289,6 +3377,18 @@ Please deliver:
             </div>
         `;
         messagesList.appendChild(botMsgWrap);
+        let progressStep = 0;
+        stopLoadingProgress();
+        loadingProgressTimer = setInterval(() => {
+            const steps = botMsgWrap.querySelectorAll('[data-progress-step]');
+            if (!steps.length || progressStep >= steps.length - 1) return;
+            steps[progressStep].classList.remove('active');
+            steps[progressStep].classList.add('done');
+            steps[progressStep].querySelector('.step-indicator').textContent = '✓';
+            progressStep += 1;
+            steps[progressStep].classList.add('active');
+            steps[progressStep].querySelector('.step-indicator').textContent = '◌';
+        }, 1200);
         bindMessageActions(botMsgWrap, botMsgId);
 
         const botBodyEl = botMsgWrap.querySelector('.assistant-body');
@@ -3351,6 +3451,7 @@ Please deliver:
             window._stopActiveStream = null;
             isGenerating = false;
             currentAbortController = null;
+            stopLoadingProgress();
             updateSendButtonState();
             if (loadingIndicator) loadingIndicator.classList.add('hidden');
 
@@ -3454,7 +3555,7 @@ Please deliver:
                         textContainer.innerHTML = safeMarkdown(displayedText);
                     }
                 } else {
-                    botBodyEl.innerHTML = safeMarkdown(errMsg);
+                    renderErrorState(botBodyEl, errData.detail || 'The request could not be completed.', errMsg);
                 }
                 addMessageToCurrentThread('assistant', displayedText || errMsg, [], botMsgId);
                 onGenerationComplete();
@@ -3575,7 +3676,7 @@ Please deliver:
                     }
                     addMessageToCurrentThread('assistant', displayedText, recordedBadges, botMsgId);
                 } else {
-                    botBodyEl.innerHTML = safeMarkdown(errStr);
+                    renderErrorState(botBodyEl, 'Generation was interrupted before a response was returned.', err.message);
                     addMessageToCurrentThread('assistant', errStr, [], botMsgId);
                 }
             }
