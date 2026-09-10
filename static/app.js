@@ -3495,9 +3495,13 @@ Please deliver:
                                 const errMsg = data.result.error || data.result.message || 'Action failed';
                                 const isAuthErr = !isSuccess && (errMsg.includes('Location ID') || errMsg.includes('Token') || errMsg.includes('401') || errMsg.includes('404'));
 
-                                resultBadge.innerHTML = isSuccess ?
-                                    `✅ Action Executed: ${data.result.message || 'Asset Created'}` :
-                                    `❌ Action Failed: ${errMsg} ${isAuthErr ? '<button type="button" class="connect-ghl-btn inline-connect-trigger" style="margin-left: 10px; font-size: 11px; padding: 3px 10px;">Connect Location</button>' : ''}`;
+                                if (isSuccess) {
+                                    resultBadge.innerHTML = `✅ Action Executed: ${data.result.message || 'Asset Created'}`;
+                                } else if (isAuthErr) {
+                                    resultBadge.innerHTML = `❌ Action Failed: ${errMsg}<br/>I don't have this scope permission. You can do it manually.<br/>Steps:<ol><li>Open the GoHighLevel sub‑account settings.</li><li>Navigate to <strong>Integrations → Private Integrations</strong> and paste your API token.</li><li>Enter the Location ID in the Connect modal.</li><li>Retry the operation.</li></ol>`;
+                                } else {
+                                    resultBadge.innerHTML = `❌ Action Failed: ${errMsg}`;
+                                }
 
                                 botBodyEl.appendChild(resultBadge);
                                 recordedBadges.push({ type: 'tool_result', text: resultBadge.innerHTML, isSuccess: isSuccess });
