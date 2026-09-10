@@ -298,32 +298,82 @@ class GHLSubAccountClient:
             return {"success": False, "error": str(e)}
 
     def get_calendar_events(self, start_time: str = "", end_time: str = "", calendar_id: str = "") -> Dict[str, Any]:
-        """Fetch booked Appointments, meetings, and calendar events."""
+        """Fetch booked appointments/meetings for the location.
+
+        * Defaults to the past month when *start_time*/*end_time* are omitted.
+        * If *calendar_id* is not provided, all calendars for the location are queried and results merged.
+        * Handles pagination via ``nextPage``/``nextPageToken``.
+        """
         import datetime
         url = f"{self.BASE_URL}/calendars/events"
         now = datetime.datetime.utcnow()
-        if not start_time:
-            # Default to 7 days past up to 30 days ahead
-            start_dt = now - datetime.timedelta(days=7)
+        # Default to past month if no explicit range supplied
+        if not start_time and not end_time:
+            start_dt = now - datetime.timedelta(days=30)
+            end_dt = now
             start_time = start_dt.strftime("%Y-%m-%dT00:00:00Z")
-        if not end_time:
-            end_dt = now + datetime.timedelta(days=30)
             end_time = end_dt.strftime("%Y-%m-%dT23:59:59Z")
+        else:
+            if not start_time:
+                start_dt = now - datetime.timedelta(days=7)
+                start_time = start_dt.strftime("%Y-%m-%dT00:00:00Z")
+            if not end_time:
+                end_dt = now + datetime.timedelta(days=30)
+                end_time = end_dt.strftime("%Y-%m-%dT23:59:59Z")
 
-        params = {
-            "locationId": self.location_id,
-            "startTime": start_time,
-            "endTime": end_time
-        }
-        if calendar_id:
-            params["calendarId"] = calendar_id
+        def _fetch_events(params: dict) -> list:
+            events = []
+            while True:
+                res = self.session.get(url, params=params, timeout=12)
+                if res.status_code != 200:
+                    raise Exception(f"HTTP {res.status_code}: {res.text}")
+                data = res.json()
+                batch = data.get('events') or data.get('data') or data
+                if isinstance(batch, list):
+                    events.extend(batch)
+                else:
+                    events.append(batch)
+                next_token = data.get('nextPage') or data.get('nextPageToken') or data.get('page')
+                if not next_token:
+                    break
+                params = params.copy()
+                params['page'] = next_token
+            return events
 
         try:
-            res = self.session.get(url, params=params, timeout=12)
-            if res.status_code == 200:
-                return {"success": True, "data": res.json()}
+            base_params = {
+                "locationId": self.location_id,
+                "startTime": start_time,
+                "endTime": end_time,
+            }
+            all_events = []
+            if calendar_id:
+                base_params["calendarId"] = calendar_id
+                all_events = _fetch_events(base_params)
             else:
-                return {"success": False, "error": f"HTTP {res.status_code}: {res.text}"}
+                cal_res = self.get_calendars()
+                if not cal_res.get('success'):
+                    return {"success": False, "error": f"Failed to list calendars: {cal_res.get('error')}"}
+                calendars = cal_res.get('data', [])
+                if not calendars:
+                    return {"success": False, "error": "No calendars found for this location."}
+                for cal in calendars:
+                    cid = cal.get('id') or cal.get('calendarId')
+                    if not cid:
+                        continue
+                    params = base_params.copy()
+                    params["calendarId"] = cid
+                    all_events.extend(_fetch_events(params))
+            # De‑duplicate by event ID if present
+            seen = set()
+            uniq = []
+            for ev in all_events:
+                ev_id = ev.get('id') or ev.get('eventId')
+                if ev_id and ev_id in seen:
+                    continue
+                seen.add(ev_id)
+                uniq.append(ev)
+            return {"success": True, "data": uniq}
         except Exception as e:
             return {"success": False, "error": str(e)}
 
