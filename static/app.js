@@ -487,6 +487,35 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sidebarLocationId) {
             sidebarLocationId.textContent = isConnected ? (ghlConfig.locationId.substring(0, 14) + '...') : 'Click to Connect';
         }
+
+        // Update GHL Modal connected card and disconnect buttons
+        const connectedCard = document.getElementById('ghl-connected-card');
+        const connectedNameDisplay = document.getElementById('ghl-connected-name-display');
+        const connectedIdDisplay = document.getElementById('ghl-connected-id-display');
+        const disconnectModalBtn = document.getElementById('ghl-disconnect-modal-btn');
+        const oauthConnectBtnSpan = document.querySelector('#ghl-oauth-connect-btn span');
+
+        if (connectedCard) {
+            if (isConnected) {
+                connectedCard.classList.remove('hidden');
+                if (connectedNameDisplay) connectedNameDisplay.textContent = ghlConfig.locationName || 'GoHighLevel Sub-Account';
+                if (connectedIdDisplay) connectedIdDisplay.textContent = ghlConfig.locationId || '';
+            } else {
+                connectedCard.classList.add('hidden');
+            }
+        }
+
+        if (disconnectModalBtn) {
+            if (isConnected) {
+                disconnectModalBtn.classList.remove('hidden');
+            } else {
+                disconnectModalBtn.classList.add('hidden');
+            }
+        }
+
+        if (oauthConnectBtnSpan) {
+            oauthConnectBtnSpan.textContent = isConnected ? 'Re-authorize / Switch Sub-Account' : 'Connect with GoHighLevel';
+        }
     }
 
     function openGhlModal() {
@@ -495,11 +524,53 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ghlAccessTokenInput) ghlAccessTokenInput.value = ghlConfig.accessToken || '';
         if (ghlModalError) ghlModalError.classList.add('hidden');
         if (ghlModalSuccess) ghlModalSuccess.classList.add('hidden');
+        updateGhlUI();
         ghlModal.classList.remove('hidden');
     }
 
     function closeGhlModal() {
         if (ghlModal) ghlModal.classList.add('hidden');
+    }
+
+    async function handleDisconnectGhl() {
+        if (!confirm('Are you sure you want to disconnect this GoHighLevel Sub-Account? This will clear active tokens so you can authorize again.')) {
+            return;
+        }
+
+        const oldLocId = ghlConfig.locationId;
+
+        // 1. Clear local storage
+        localStorage.removeItem('ghl_location_id');
+        localStorage.removeItem('ghl_access_token');
+        localStorage.removeItem('ghl_refresh_token');
+        localStorage.removeItem('ghl_location_name');
+
+        // 2. Clear in-memory config
+        ghlConfig.locationId = '';
+        ghlConfig.accessToken = '';
+        ghlConfig.locationName = '';
+
+        // 3. Clear modal inputs
+        if (ghlLocationIdInput) ghlLocationIdInput.value = '';
+        if (ghlAccessTokenInput) ghlAccessTokenInput.value = '';
+
+        // 4. Invalidate backend cache
+        try {
+            fetch('/api/ghl/disconnect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ location_id: oldLocId })
+            }).catch(() => {});
+        } catch (e) {}
+
+        // 5. Update UI
+        updateGhlUI();
+
+        if (ghlModalSuccess) {
+            ghlModalSuccess.textContent = '✓ Sub-Account disconnected successfully. You can now re-authorize to get fresh tokens.';
+            ghlModalSuccess.classList.remove('hidden');
+        }
+        if (ghlModalError) ghlModalError.classList.add('hidden');
     }
 
     async function handleSaveGhlCredentials() {
@@ -569,7 +640,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarProfileCard) sidebarProfileCard.addEventListener('click', openGhlModal);
     if (closeGhlModalBtn) closeGhlModalBtn.addEventListener('click', closeGhlModal);
     if (cancelGhlModalBtn) cancelGhlModalBtn.addEventListener('click', closeGhlModal);
-        if (saveGhlModalBtn) saveGhlModalBtn.addEventListener('click', handleSaveGhlCredentials);
+    if (saveGhlModalBtn) saveGhlModalBtn.addEventListener('click', handleSaveGhlCredentials);
+    const ghlDisconnectCardBtn = document.getElementById('ghl-disconnect-card-btn');
+    const ghlDisconnectModalBtn = document.getElementById('ghl-disconnect-modal-btn');
+    if (ghlDisconnectCardBtn) ghlDisconnectCardBtn.addEventListener('click', handleDisconnectGhl);
+    if (ghlDisconnectModalBtn) ghlDisconnectModalBtn.addEventListener('click', handleDisconnectGhl);
+
 
     // =========================================================================
     // GoHighLevel 1-Click OAuth 2.0 Integration & Callback Handlers

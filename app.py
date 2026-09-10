@@ -818,6 +818,17 @@ async def ghl_oauth_callback(
     return HTMLResponse(content=html_success, status_code=200)
 
 
+@app.post("/api/ghl/disconnect")
+async def ghl_disconnect(req: Optional[Dict[str, Any]] = None):
+    """Clears connection cache and acknowledges disconnection."""
+    global _conn_cache
+    if req and "location_id" in req and req["location_id"]:
+        _conn_cache.pop(req["location_id"], None)
+    else:
+        _conn_cache.clear()
+    return {"success": True, "message": "Sub-Account disconnected successfully."}
+
+
 @app.post("/api/ghl/verify-token")
 async def verify_ghl_token(req: VerifyTokenRequest):
     client = GHLSubAccountClient(location_id=req.location_id, access_token=req.access_token)
