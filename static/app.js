@@ -506,11 +506,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (disconnectModalBtn) {
-            if (isConnected) {
-                disconnectModalBtn.classList.remove('hidden');
-            } else {
-                disconnectModalBtn.classList.add('hidden');
-            }
+            disconnectModalBtn.disabled = !isConnected;
+            disconnectModalBtn.style.opacity = isConnected ? '1' : '0.45';
+            disconnectModalBtn.style.cursor = isConnected ? 'pointer' : 'not-allowed';
         }
 
         if (oauthConnectBtnSpan) {
