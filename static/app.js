@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } finally {
                 if (loginSubmitBtn) {
                     loginSubmitBtn.disabled = false;
-                    loginSubmitBtn.innerHTML = '<span>Sign In to Nexa AI</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+                    loginSubmitBtn.innerHTML = '<span>Sign In to GHL AI</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
                 }
             }
         });
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            if (confirm('Are you sure you want to log out of Nexa AI?')) {
+            if (confirm('Are you sure you want to log out of GHL AI?')) {
                 const token = localStorage.getItem('copilot_auth_token');
                 try {
                     await fetch('/api/auth/logout', {
@@ -353,6 +353,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Nexa workspace navigation keeps each destination tied to an existing control.
     const navItems = document.querySelectorAll('.sidebar-nav-item');
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const themeIconSun = document.getElementById('theme-icon-sun');
+    const themeIconMoon = document.getElementById('theme-icon-moon');
+    const themeToggleLabel = themeToggleBtn?.querySelector('.theme-toggle-label');
     const helpChatBtn = document.getElementById('help-chat-now-btn');
 
     function setActiveNav(navKey) {
@@ -390,12 +393,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function applyTheme(theme) {
-        document.body.classList.toggle('dark-theme', theme === 'dark');
-        localStorage.setItem('nexa_theme', theme);
-        if (themeToggleBtn) themeToggleBtn.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`);
+        const isDark = theme === 'dark';
+        document.body.classList.toggle('dark-theme', isDark);
+        localStorage.setItem('nexa_theme', isDark ? 'dark' : 'light');
+        if (themeToggleBtn) {
+            const nextTheme = isDark ? 'light' : 'dark';
+            themeToggleBtn.setAttribute('aria-label', `Switch to ${nextTheme} mode`);
+            themeToggleBtn.setAttribute('title', `Switch to ${nextTheme} mode`);
+            themeToggleBtn.setAttribute('aria-pressed', String(isDark));
+        }
+        if (themeIconSun) themeIconSun.hidden = isDark;
+        if (themeIconMoon) themeIconMoon.hidden = !isDark;
+        if (themeToggleLabel) themeToggleLabel.textContent = isDark ? 'Light' : 'Dark';
     }
 
-    applyTheme(localStorage.getItem('nexa_theme') || 'dark');
+    applyTheme(localStorage.getItem('nexa_theme') || 'light');
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
             applyTheme(document.body.classList.contains('dark-theme') ? 'light' : 'dark');
@@ -732,7 +744,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (openGhlModalBtn) openGhlModalBtn.addEventListener('click', openGhlModal);
+    if (openGhlModalBtn) openGhlModalBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openGhlModal();
+    });
+    if (ghlStatusPill) {
+        ghlStatusPill.addEventListener('click', openGhlModal);
+        ghlStatusPill.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openGhlModal();
+            }
+        });
+    }
     if (sidebarConnectGhl) sidebarConnectGhl.addEventListener('click', openGhlModal);
     if (sidebarProfileCard) sidebarProfileCard.addEventListener('click', openGhlModal);
     if (closeGhlModalBtn) closeGhlModalBtn.addEventListener('click', closeGhlModal);
@@ -1712,7 +1736,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function openRenameModal() {
         const thread = getThreadById(currentThreadId);
         if (renameInputTitle) {
-            renameInputTitle.value = (thread && thread.title) ? thread.title : 'Nexa AI GHL Assistant';
+            renameInputTitle.value = (thread && thread.title) ? thread.title : 'GHL AI Assistant';
         }
         if (renameChatModal) renameChatModal.classList.remove('hidden');
         if (renameInputTitle) setTimeout(() => renameInputTitle.focus(), 50);
@@ -1849,7 +1873,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         messagesList.innerHTML = '';
         if (welcomeScreen) welcomeScreen.classList.remove('hidden');
-        if (activeChatTitle) activeChatTitle.textContent = 'Nexa AI GHL Assistant';
+        if (activeChatTitle) activeChatTitle.textContent = 'GHL AI Assistant';
 
         if (userInput) {
             userInput.value = '';
@@ -1907,7 +1931,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentThreadId = thread.id;
         localStorage.setItem('ghl_active_thread_id', currentThreadId);
 
-        if (activeChatTitle) activeChatTitle.textContent = thread.title || 'Nexa AI GHL Assistant';
+        if (activeChatTitle) activeChatTitle.textContent = thread.title || 'GHL AI Assistant';
         messagesList.innerHTML = '';
 
         if (!thread.messages || thread.messages.length === 0) {

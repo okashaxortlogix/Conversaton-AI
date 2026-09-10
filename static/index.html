@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexa AI — GHL Assistant</title>
+    <title>GHL AI — GHL Assistant</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,13 +22,13 @@
         <!-- Sidebar Backdrop Overlay -->
         <div class="sidebar-overlay hidden" id="sidebar-overlay"></div>
 
-        <!-- Left Nexa AI Navigation Sidebar -->
+        <!-- Left GHL AI Navigation Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="ghl-brand-badge">
                     <div class="brand-logo-icon">⚡</div>
                     <div class="brand-text-group">
-                        <span class="brand-text">Nexa AI</span>
+                        <span class="brand-text">GHL AI</span>
                         <span class="brand-subtext">GHL Assistant</span>
                     </div>
                 </div>
@@ -145,7 +145,7 @@
                     
                     <div class="header-brand-pill">
                         <div class="brand-indicator-dot"></div>
-                        <span class="active-title" id="active-chat-title">Nexa AI GHL Assistant</span>
+                        <span class="active-title" id="active-chat-title">GHL AI Assistant</span>
                     </div>
                 </div>
 
@@ -157,7 +157,7 @@
                     </button>
 
                     <!-- Sub-Account Connection Status Pill -->
-                    <div class="ghl-status-pill disconnected" id="ghl-status-pill">
+                    <div class="ghl-status-pill disconnected" id="ghl-status-pill" role="button" tabindex="0" aria-label="Open GHL location connection settings" title="Open GHL location settings">
                         <span class="status-dot"></span>
                         <span class="status-label" id="ghl-status-label">Disconnected</span>
                         <button type="button" class="connect-ghl-btn" id="open-ghl-modal-btn">Connect Location</button>
@@ -170,8 +170,10 @@
                     </button>
 
                     <!-- Theme Toggle Switcher -->
-                    <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Light / Dark Mode">
+                    <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="Switch to dark mode" aria-label="Switch to dark mode" aria-pressed="false">
                         <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg id="theme-icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                        <span class="theme-toggle-label">Dark</span>
                     </button>
 
                     <!-- Chat Management Actions Dropdown -->
@@ -209,7 +211,7 @@
                     <!-- Welcome Hero Screen -->
                     <div class="welcome-screen" id="welcome-screen">
                         <div class="welcome-icon-wrapper">⚡</div>
-                        <h1 class="welcome-heading">Nexa AI GHL Assistant</h1>
+                        <h1 class="welcome-heading">GHL AI Assistant</h1>
                         <p class="welcome-subtext">Your focused workspace for GoHighLevel. Build funnels, manage contacts, create workflows, and get clear implementation guidance in natural language.</p>
 
                         <!-- Suggestion Cards Grid -->
@@ -373,7 +375,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="input-footer-note">Nexa AI may produce inaccurate information. Verify critical CRM actions before executing.</div>
+                    <div class="input-footer-note">GHL AI may produce inaccurate information. Verify critical CRM actions before executing.</div>
                 </div>
             </div>
 
@@ -1306,7 +1308,7 @@ Page 5 (Thank You Page): Confirmation details, instant access, and calendar onbo
                 <div style="display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg, #10b981, #059669); box-shadow:0 10px 25px -5px rgba(16,185,129,0.4); margin-bottom:12px; font-size:24px;">
                     ⚡
                 </div>
-                <h2 style="font-size:22px; font-weight:700; margin:0 0 6px 0; color:#ffffff; letter-spacing:-0.02em;">Nexa AI</h2>
+                <h2 style="font-size:22px; font-weight:700; margin:0 0 6px 0; color:#ffffff; letter-spacing:-0.02em;">GHL AI</h2>
                 <p style="font-size:13px; color:#94a3b8; margin:0;">Enter your assigned credentials to access the workspace.</p>
             </div>
 
@@ -1335,7 +1337,7 @@ Page 5 (Thank You Page): Confirmation details, instant access, and calendar onbo
 
                 <!-- Submit Button -->
                 <button type="submit" id="login-submit-btn" style="width:100%; margin-top:8px; padding:13px; background:linear-gradient(135deg, #10b981, #059669); border:none; border-radius:10px; color:#ffffff; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s, box-shadow 0.15s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 20px -4px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='none'; this.style.boxShadow='none'">
-                    <span>Sign In to Nexa AI</span>
+                    <span>Sign In to GHL AI</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                 </button>
             </form>

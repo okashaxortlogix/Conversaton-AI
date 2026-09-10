@@ -1,10 +1,10 @@
 /* ==========================================================================
-   Nexa AI — GHL Assistant
+    GHL AI — GHL Assistant
    Modern SaaS Design System
    ========================================================================== */
 
 :root {
-    /* Nexa AI Dark Theme Palette (Default) */
+    /* GHL AI Dark Theme Palette */
     --bg-primary: #0a0f1a;
     --bg-secondary: #0e1526;
     --bg-sidebar: #070b14;
@@ -834,6 +834,16 @@ body {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ghl-status-pill:hover,
+.ghl-status-pill:focus-visible {
+    background-color: var(--bg-hover);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    outline: none;
 }
 
 .status-dot {
@@ -868,7 +878,7 @@ body {
 }
 
 .theme-toggle-btn {
-    width: 32px;
+    min-width: 32px;
     height: 32px;
     border-radius: 8px;
     background: var(--bg-secondary);
@@ -877,6 +887,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
     cursor: pointer;
     transition: all 0.15s ease;
     flex-shrink: 0;
@@ -886,6 +897,36 @@ body {
     background: var(--bg-hover);
     border-color: var(--primary-color);
     color: var(--primary-color);
+}
+
+.environment-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.environment-pill:hover {
+    border-color: var(--primary-color);
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.environment-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
 .header-dropdown-wrapper {
@@ -5086,7 +5127,7 @@ body.dark-theme .agent-markdown-text code:not(pre code) {
 }
 
 /* ==========================================================================
-   Nexa AI — New Component Styles
+    GHL AI — New Component Styles
    ========================================================================== */
 
 /* ---------- Sidebar Navigation ---------- */
@@ -5670,7 +5711,7 @@ body:not(.dark-theme) .nexa-error-details {
     background: #f1f5f9;
 }
 
-/* ---------- Nexa finishing layer ---------- */
+/* ---------- GHL AI finishing layer ---------- */
 :root {
     --sidebar-width: 252px;
     --font-sans: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
@@ -5782,4 +5823,14 @@ body:not(.dark-theme) .nexa-error-details {
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+.theme-toggle-btn svg[hidden] {
+    display: none;
+}
+
+.theme-toggle-label {
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
 }
