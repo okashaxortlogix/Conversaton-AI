@@ -402,9 +402,17 @@ document.addEventListener('DOMContentLoaded', () => {
             themeToggleBtn.setAttribute('title', `Switch to ${nextTheme} mode`);
             themeToggleBtn.setAttribute('aria-pressed', String(isDark));
         }
-        if (themeIconSun) themeIconSun.hidden = isDark;
-        if (themeIconMoon) themeIconMoon.hidden = !isDark;
-        if (themeToggleLabel) themeToggleLabel.textContent = isDark ? 'Light' : 'Dark';
+        if (themeIconSun) {
+            themeIconSun.hidden = !isDark;
+            themeIconSun.style.display = isDark ? 'inline-block' : 'none';
+            themeIconSun.setAttribute('aria-hidden', String(!isDark));
+        }
+        if (themeIconMoon) {
+            themeIconMoon.hidden = isDark;
+            themeIconMoon.style.display = isDark ? 'none' : 'inline-block';
+            themeIconMoon.setAttribute('aria-hidden', String(isDark));
+        }
+        if (themeToggleLabel) themeToggleLabel.textContent = isDark ? 'Light mode' : 'Dark mode';
     }
 
     applyTheme(localStorage.getItem('nexa_theme') || 'light');
