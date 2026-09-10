@@ -376,11 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const destination = item.dataset.nav;
             setActiveNav(destination);
             if (destination === 'wizard') {
-                document.getElementById('header-wizard-launcher-btn')?.click();
+                document.getElementById('open-wizard-chip-btn')?.click();
             } else if (destination === 'templates') {
                 focusPromptCard(5);
             } else if (destination === 'account') {
-                document.getElementById('open-ghl-modal-btn')?.click();
+                document.getElementById('ghl-status-pill')?.click();
             } else if (destination === 'docs') {
                 if (artifactDrawer && !artifactDrawer.classList.contains('hidden')) {
                     artifactDrawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements - GHL Connection Modal
     const ghlStatusPill = document.getElementById('ghl-status-pill');
     const ghlStatusLabel = document.getElementById('ghl-status-label');
-    const openGhlModalBtn = document.getElementById('open-ghl-modal-btn');
+    const ghlLocationNameLabel = document.getElementById('ghl-location-name-label');
     const ghlModal = document.getElementById('ghl-modal');
     const closeGhlModalBtn = document.getElementById('close-ghl-modal');
     const cancelGhlModalBtn = document.getElementById('cancel-ghl-modal');
@@ -589,8 +589,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (ghlStatusLabel) {
             ghlStatusLabel.textContent = isConnected ? 'Connected' : 'Disconnected';
         }
-        if (openGhlModalBtn) {
-            openGhlModalBtn.textContent = isConnected ? (ghlConfig.locationName || 'Settings') : 'Connect Location';
+        if (ghlStatusPill) {
+            ghlStatusPill.setAttribute('aria-label', isConnected ? `Manage ${ghlConfig.locationName || 'GHL location'}` : 'Connect a GHL location');
+        }
+        if (ghlLocationNameLabel) {
+            ghlLocationNameLabel.textContent = isConnected ? (ghlConfig.locationName || 'Manage Location') : 'Connect Location';
         }
         if (sidebarLocationName) {
             sidebarLocationName.textContent = isConnected ? (ghlConfig.locationName || 'Connected Sub-Account') : 'No Sub-Account';
@@ -744,18 +747,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    if (openGhlModalBtn) openGhlModalBtn.addEventListener('click', (event) => {
-        event.stopPropagation();
-        openGhlModal();
-    });
     if (ghlStatusPill) {
         ghlStatusPill.addEventListener('click', openGhlModal);
-        ghlStatusPill.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openGhlModal();
-            }
-        });
     }
     if (sidebarConnectGhl) sidebarConnectGhl.addEventListener('click', openGhlModal);
     if (sidebarProfileCard) sidebarProfileCard.addEventListener('click', openGhlModal);
@@ -810,7 +803,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (urlParams.has('code')) {
             const code = urlParams.get('code');
             window.history.replaceState({}, document.title, window.location.pathname);
-            if (openGhlModalBtn) openGhlModalBtn.textContent = 'Connecting OAuth...';
+            if (ghlLocationNameLabel) ghlLocationNameLabel.textContent = 'Connecting...';
 
             try {
                 const res = await fetch('/api/ghl/oauth/exchange', {
@@ -832,11 +825,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateGhlUI();
                 } else {
                     console.error('OAuth exchange error:', data);
-                    if (openGhlModalBtn) openGhlModalBtn.textContent = 'Connect Location';
+                    if (ghlLocationNameLabel) ghlLocationNameLabel.textContent = 'Connect Location';
                 }
             } catch (e) {
                 console.error('Failed to exchange OAuth code:', e);
-                if (openGhlModalBtn) openGhlModalBtn.textContent = 'Connect Location';
+                if (ghlLocationNameLabel) ghlLocationNameLabel.textContent = 'Connect Location';
             }
         }
     })();
@@ -2291,7 +2284,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========================================================
     const wizardModal = document.getElementById('builder-wizard-modal');
     const closeWizardModalBtn = document.getElementById('close-wizard-modal');
-    const headerWizardLauncherBtn = document.getElementById('header-wizard-launcher-btn');
     const sidebarWizardBtn = document.getElementById('sidebar-wizard-btn');
     const openWizardChipBtn = document.getElementById('open-wizard-chip-btn');
     const btnModeFunnel = document.getElementById('btn-mode-funnel');
@@ -3043,66 +3035,6 @@ Please deliver:
         sidebar.classList.add('closed');
         if (sidebarOverlay) sidebarOverlay.classList.remove('active');
         localStorage.setItem('sidebar_closed', 'true');
-    }
-
-    // GHL Modal Events
-    if (openGhlModalBtn) openGhlModalBtn.addEventListener('click', openGhlModal);
-    if (sidebarConnectGhlBtn) sidebarConnectGhlBtn.addEventListener('click', openGhlModal);
-    if (closeGhlModalBtn) closeGhlModalBtn.addEventListener('click', closeGhlModal);
-    if (cancelGhlModalBtn) cancelGhlModalBtn.addEventListener('click', closeGhlModal);
-
-    function openGhlModal() {
-        ghlLocationIdInput.value = ghlConfig.locationId;
-        ghlAccessTokenInput.value = ghlConfig.accessToken;
-        clearGhlModalAlerts();
-        ghlModal.classList.remove('hidden');
-    }
-
-    function closeGhlModal() {
-        ghlModal.classList.add('hidden');
-    }
-
-    function clearGhlModalAlerts() {
-        ghlModalError.classList.add('hidden');
-        ghlModalSuccess.classList.add('hidden');
-        ghlModalError.textContent = '';
-        ghlModalSuccess.textContent = '';
-    }
-
-    if (saveGhlModalBtn) {
-        saveGhlModalBtn.addEventListener('click', async () => {
-            const locId = ghlLocationIdInput.value.trim();
-            const token = ghlAccessTokenInput.value.trim();
-
-            if (!locId || !token) {
-                ghlModalError.textContent = 'Please provide both Location ID and Access Token.';
-                ghlModalError.classList.remove('hidden');
-                return;
-            }
-
-            clearGhlModalAlerts();
-            setBtnLoading(saveGhlModalBtn, true);
-
-            const res = await verifyGhlConnection(locId, token, true);
-            setBtnLoading(saveGhlModalBtn, false);
-
-            if (res.success) {
-                ghlConfig.locationId = locId;
-                ghlConfig.accessToken = token;
-                ghlConfig.locationName = res.location_name || 'Sub-Account';
-                localStorage.setItem('ghl_location_id', locId);
-                localStorage.setItem('ghl_access_token', token);
-                localStorage.setItem('ghl_location_name', ghlConfig.locationName);
-
-                ghlModalSuccess.textContent = `Connected to GHL Sub-Account: ${ghlConfig.locationName}`;
-                ghlModalSuccess.classList.remove('hidden');
-                updateGHLStatusUI();
-                setTimeout(closeGhlModal, 1200);
-            } else {
-                ghlModalError.textContent = `${res.message}`;
-                ghlModalError.classList.remove('hidden');
-            }
-        });
     }
 
     async function verifyGhlConnection(locId, token, isTesting) {
