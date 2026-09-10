@@ -3553,20 +3553,39 @@ Please deliver:
                                 removeThinkingState();
                                 const resultBadge = document.createElement('div');
                                 const isSuccess = data.result && data.result.success !== false;
-                                resultBadge.className = isSuccess ? 'tool-execution-badge success' : 'tool-execution-badge error';
-                                const errMsg = data.result.error || data.result.message || 'Action failed';
-                                const isAuthErr = !isSuccess && (errMsg.includes('Location ID') || errMsg.includes('Token') || errMsg.includes('401') || errMsg.includes('404'));
+                                const errMsg = data.result?.error || data.result?.message || 'Action failed';
+                                const normalizedErrMsg = String(errMsg).toLowerCase();
+                                const isAlreadyDone = !isSuccess && (
+                                    normalizedErrMsg.includes('already exists') ||
+                                    normalizedErrMsg.includes('already exist') ||
+                                    normalizedErrMsg.includes('already created') ||
+                                    normalizedErrMsg.includes('duplicate')
+                                );
+                                const isPermissionErr = !isSuccess && (
+                                    normalizedErrMsg.includes('permission') ||
+                                    normalizedErrMsg.includes('forbidden') ||
+                                    normalizedErrMsg.includes('not allowed') ||
+                                    normalizedErrMsg.includes('scope') ||
+                                    normalizedErrMsg.includes('unauthorized') ||
+                                    normalizedErrMsg.includes('403') ||
+                                    normalizedErrMsg.includes('401')
+                                );
+                                const displayAsSuccess = isSuccess || isAlreadyDone;
+                                resultBadge.className = displayAsSuccess ? 'tool-execution-badge success' : 'tool-execution-badge error';
 
                                 if (isSuccess) {
                                     resultBadge.innerHTML = `✅ Action Executed: ${data.result.message || 'Asset Created'}`;
-                                } else if (isAuthErr) {
-                                    resultBadge.innerHTML = `❌ Action Failed: ${errMsg}<br/>I don't have this scope permission. You can do it manually.<br/>Steps:<ol><li>Open the GoHighLevel sub‑account settings.</li><li>Navigate to <strong>Integrations → Private Integrations</strong> and paste your API token.</li><li>Enter the Location ID in the Connect modal.</li><li>Retry the operation.</li></ol>`;
+                                } else if (isAlreadyDone) {
+                                    resultBadge.innerHTML = `✅ Done: This has already been set up in your GoHighLevel sub-account.`;
+                                } else if (isPermissionErr) {
+                                    resultBadge.className = 'tool-execution-badge info';
+                                    resultBadge.innerHTML = `🛈 <strong>GHL Note:</strong> This action is not allowed by the current GoHighLevel permissions. You can complete it manually in your sub-account. I'll continue with the rest of your response.`;
                                 } else {
                                     resultBadge.innerHTML = `❌ Action Failed: ${errMsg}`;
                                 }
 
                                 botBodyEl.appendChild(resultBadge);
-                                recordedBadges.push({ type: 'tool_result', text: resultBadge.innerHTML, isSuccess: isSuccess });
+                                recordedBadges.push({ type: 'tool_result', text: resultBadge.innerHTML, isSuccess: displayAsSuccess });
 
                                 const inlineTrigger = resultBadge.querySelector('.inline-connect-trigger');
                                 if (inlineTrigger) {
