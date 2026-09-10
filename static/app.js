@@ -754,15 +754,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeGhlModalBtn) closeGhlModalBtn.addEventListener('click', closeGhlModal);
     if (cancelGhlModalBtn) cancelGhlModalBtn.addEventListener('click', closeGhlModal);
     if (saveGhlModalBtn) saveGhlModalBtn.addEventListener('click', handleSaveGhlCredentials);
-    if (newGhlConnectBtn) {
-        newGhlConnectBtn.addEventListener('click', () => {
-            if (ghlLocationIdInput) ghlLocationIdInput.value = '';
-            if (ghlAccessTokenInput) ghlAccessTokenInput.value = '';
-            if (ghlModalError) ghlModalError.classList.add('hidden');
-            if (ghlModalSuccess) ghlModalSuccess.classList.add('hidden');
-            ghlLocationIdInput?.focus();
-        });
-    }
     const ghlDisconnectCardBtn = document.getElementById('ghl-disconnect-card-btn');
     const ghlDisconnectModalBtn = document.getElementById('ghl-disconnect-modal-btn');
     if (ghlDisconnectCardBtn) ghlDisconnectCardBtn.addEventListener('click', handleDisconnectGhl);
@@ -773,30 +764,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // GoHighLevel 1-Click OAuth 2.0 Integration & Callback Handlers
     // =========================================================================
     const ghlOAuthBtn = document.getElementById('ghl-oauth-connect-btn');
-    if (ghlOAuthBtn) {
-        ghlOAuthBtn.addEventListener('click', async () => {
-            try {
-                ghlOAuthBtn.disabled = true;
-                const origHtml = ghlOAuthBtn.innerHTML;
-                ghlOAuthBtn.innerHTML = '<span>Redirecting to GoHighLevel...</span>';
+    async function startGhlOAuth(triggerBtn) {
+        if (!triggerBtn) return;
 
-                const res = await fetch('/api/ghl/oauth/authorize-url');
-                const data = await res.json();
+        try {
+            triggerBtn.disabled = true;
+            const originalHtml = triggerBtn.innerHTML;
+            triggerBtn.innerHTML = '<span>Redirecting to GoHighLevel...</span>';
 
-                if (res.ok && data.success && data.authorization_url) {
-                    window.location.href = data.authorization_url;
-                } else {
-                    alert(data.message || 'OAuth configuration missing. Please ensure GHL_CLIENT_ID is set in .env.');
-                    ghlOAuthBtn.disabled = false;
-                    ghlOAuthBtn.innerHTML = origHtml;
-                }
-            } catch (err) {
-                console.error('OAuth initiation error:', err);
-                alert('Could not start OAuth flow. Please check your network or server logs.');
-                ghlOAuthBtn.disabled = false;
-                ghlOAuthBtn.innerHTML = '<span>Connect with GoHighLevel</span>';
+            const res = await fetch('/api/ghl/oauth/authorize-url');
+            const data = await res.json();
+
+            if (res.ok && data.success && data.authorization_url) {
+                window.location.href = data.authorization_url;
+            } else {
+                alert(data.message || 'OAuth configuration missing. Please ensure GHL_CLIENT_ID is set in .env.');
+                triggerBtn.disabled = false;
+                triggerBtn.innerHTML = originalHtml;
             }
-        });
+        } catch (err) {
+            console.error('OAuth initiation error:', err);
+            alert('Could not start OAuth flow. Please check your network or server logs.');
+            triggerBtn.disabled = false;
+            triggerBtn.innerHTML = '<span>Connect Sub-Account</span>';
+        }
+    }
+
+    if (newGhlConnectBtn) {
+        newGhlConnectBtn.addEventListener('click', () => startGhlOAuth(newGhlConnectBtn));
+    }
+    if (ghlOAuthBtn) {
+        ghlOAuthBtn.addEventListener('click', () => startGhlOAuth(ghlOAuthBtn));
     }
 
     // Auto-detect incoming OAuth authorization params (?ghl_connected=1 or ?code=...)
