@@ -2747,7 +2747,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Close buttons
         if (closeWizardModalBtn) closeWizardModalBtn.addEventListener('click', closeWizardModal);
-        if (headerWizardLauncherBtn) headerWizardLauncherBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
         if (sidebarWizardBtn) sidebarWizardBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
         if (openWizardChipBtn) openWizardChipBtn.addEventListener('click', () => openWizardModal('', 'funnel'));
 
