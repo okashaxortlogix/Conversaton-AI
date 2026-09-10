@@ -355,8 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('theme-toggle-btn');
     const themeIconSun = document.getElementById('theme-icon-sun');
     const themeIconMoon = document.getElementById('theme-icon-moon');
-    const themeToggleLabel = themeToggleBtn?.querySelector('.theme-toggle-label');
-    const helpChatBtn = document.getElementById('help-chat-now-btn');
 
     function setActiveNav(navKey) {
         navItems.forEach(item => item.classList.toggle('active', item.dataset.nav === navKey));
@@ -412,20 +410,12 @@ document.addEventListener('DOMContentLoaded', () => {
             themeIconMoon.style.display = isDark ? 'none' : 'inline-block';
             themeIconMoon.setAttribute('aria-hidden', String(isDark));
         }
-        if (themeToggleLabel) themeToggleLabel.textContent = isDark ? 'Light mode' : 'Dark mode';
     }
 
     applyTheme(localStorage.getItem('nexa_theme') || 'light');
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {
             applyTheme(document.body.classList.contains('dark-theme') ? 'light' : 'dark');
-        });
-    }
-
-    if (helpChatBtn) {
-        helpChatBtn.addEventListener('click', () => {
-            setActiveNav('home');
-            userInput?.focus();
         });
     }
 
@@ -468,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeGhlModalBtn = document.getElementById('close-ghl-modal');
     const cancelGhlModalBtn = document.getElementById('cancel-ghl-modal');
     const saveGhlModalBtn = document.getElementById('save-ghl-modal');
+    const newGhlConnectBtn = document.getElementById('ghl-new-connect-btn');
     const ghlLocationIdInput = document.getElementById('ghl-location-id');
     const ghlAccessTokenInput = document.getElementById('ghl-access-token');
     const ghlModalError = document.getElementById('ghl-modal-error');
@@ -763,6 +754,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeGhlModalBtn) closeGhlModalBtn.addEventListener('click', closeGhlModal);
     if (cancelGhlModalBtn) cancelGhlModalBtn.addEventListener('click', closeGhlModal);
     if (saveGhlModalBtn) saveGhlModalBtn.addEventListener('click', handleSaveGhlCredentials);
+    if (newGhlConnectBtn) {
+        newGhlConnectBtn.addEventListener('click', () => {
+            if (ghlLocationIdInput) ghlLocationIdInput.value = '';
+            if (ghlAccessTokenInput) ghlAccessTokenInput.value = '';
+            if (ghlModalError) ghlModalError.classList.add('hidden');
+            if (ghlModalSuccess) ghlModalSuccess.classList.add('hidden');
+            ghlLocationIdInput?.focus();
+        });
+    }
     const ghlDisconnectCardBtn = document.getElementById('ghl-disconnect-card-btn');
     const ghlDisconnectModalBtn = document.getElementById('ghl-disconnect-modal-btn');
     if (ghlDisconnectCardBtn) ghlDisconnectCardBtn.addEventListener('click', handleDisconnectGhl);
